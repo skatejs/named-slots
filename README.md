@@ -18,9 +18,9 @@ Working example: http://jsbin.com/weboki/31/edit?js,output
 
 ## How
 
-What this polyfill does is override native methods so that it can check added / removed elements for a `slot` attribute, or uses a default slot. It uses this slot as a property name and sets that property with an array of nodes that correspond to that slot based on which DOM methods were called. From there, you do the work.
+What this polyfill does is override native methods so that it can check added / removed elements for a `slot` attribute, or use a default. It uses this slot as a property name and sets that property with information regarding the change. From there, you do the work.
 
-On top of this, it needs to report only the nodes that are contained in slots from native accessors like `chilNodes` and `children`.
+On top of this, it needs to report only the nodes that are contained in slots from native accessors such as `chilNodes`, `children`, etc.
 
 For example, let's assume we have some initial content. This is what your consumer would write.
 

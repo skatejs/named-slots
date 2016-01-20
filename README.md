@@ -200,7 +200,7 @@ These are members which are not yet polyfilled but are up for discussion.
 
 ## Unlikely
 
-These are members which are not polyfilled and probably never will be.
+These are members which are not polyfilled and probably never will be because it's likely not necessary.
 
 ### Properties
 

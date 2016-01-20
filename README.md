@@ -27,7 +27,7 @@ Note:
 - Prototypes that get more specific than that are not polyfilled. These include `HTMLElement` and anything more specific.
 - All members which are not standardised or are listed as experimental are not included in these lists.
 - Members are only polyfilled on the specific web component unless otherwise noted.
-- Members must be overridden on the instance rather than prototype because WebKit as a bug that prevents correct descritpors from being returned using `Object.getOwnPropertyDescriptors()` See https://bugs.webkit.org/show_bug.cgi?id=49739 for more info. We'd need to be able to bypass the overrides. This does have performance implications and we'll be gathering data on that soon.
+- Members must be overridden on the instance rather than prototype because WebKit as a bug that prevents correct descritpors from being returned using [`Object.getOwnPropertyDescriptors()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor) See https://bugs.webkit.org/show_bug.cgi?id=49739 for more info. We need to be able to bypass the overrides if modifying the prototypes. This does have performance implications but since only web component elements get these overrides, these are minimised. We'll be gathering some performance data on this soon.
 
 
 

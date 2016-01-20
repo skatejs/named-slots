@@ -1,0 +1,26 @@
+{
+  "name": "named-slots",
+  "version": "0.0.0",
+  "description": "A polygap (partial polyfill) for the Shadow DOM Named Slot API.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skatejs/named-slots.git"
+  },
+  "keywords": [
+    "named",
+    "slots",
+    "shadow",
+    "dom",
+    "skate"
+  ],
+  "author": "Trey Shugart",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/skatejs/named-slots/issues"
+  },
+  "homepage": "https://github.com/skatejs/named-slots#readme"
+}

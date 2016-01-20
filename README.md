@@ -150,7 +150,7 @@ skate('my-component', {
 
 
 
-### Skate (functional)
+### Skate (functional + virtual DOM)
 
 And if you like writing in a more functional approach, you can use [skatejs-dom-diff](https://github.com/skatejs/dom-diff).
 
@@ -163,7 +163,7 @@ skate('my-component', {
     content: slots.property({ set: skate.render }
   },
   render: slots.render(diff.render(function (elem) {
-    return <div class="wrapper">{elem.content.nodes}</div>;
+    return diff.vdom.element('div', { 'class': 'wrapper' }, elem.content.nodes);
   }))
 });
 ```

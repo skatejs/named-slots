@@ -1,4 +1,5 @@
-const el = Node.prototype;
+'use strict';
+
 const mapPatch = new WeakMap();
 const mapSlots = new WeakMap();
 const mapSlotsDefault = new WeakMap();
@@ -49,7 +50,11 @@ const props = {
       return this.childNodes.map(node => node.outerHTML || node.textContent).join('');
     },
     set (val) {
-      this.appendChild(skate.fragment(val));
+      const div = document.createElement('div');
+      div.innerHTML = val;
+      while (div.hasChildNodes()) {
+        this.appendChild(div.childNodes[0]);
+      }
     }
   },
   lastChild: {
@@ -123,24 +128,30 @@ const funcs = {
 };
 
 
-// Polyfill.
-
+// Polyfills an element.
 function polyfill (elem) {
-  if (mapPatch.get(elem)) {
+  if (polyfilled(elem)) {
     return;
   }
-  
-  for (var name in props) {
+
+  for (let name in props) {
     prop(elem, name, props[name]);
   }
-  
-  for (var name in funcs) {
+
+  for (let name in funcs) {
     elem[name] = funcs[name];
   }
-  
+
   mapPatch.set(elem, true);
 }
 
+// Returns whether or not the specified element has been polyfilled.
+function polyfilled (elem) {
+  return mapPatch.get(elem);
+}
+
+// Creates a slot property compatible with the SkateJS custom property
+// definitions. Makes web component integration much simpler.
 function slot (opts) {
   if (!opts) {
     opts = {
@@ -148,42 +159,65 @@ function slot (opts) {
       set: null
     };
   }
-  
+
   return {
     // Makes sure that whatever is passed in is an array.
-    coerce: function (val) { 
+    coerce: function (val) {
       return Array.isArray(val) ? val : [val];
     },
-    
+
     // Registers the slot so we can check later.
     created: function (elem, data) {
-      var slots = mapSlots.get(elem);
-      
+      const slots = mapSlots.get(elem);
+
       if (!slots) {
         mapSlots.set(elem, slots = []);
       }
-      
+
       slots.push(data.name);
-      
+
       if (opts.default) {
         mapSlotsDefault.set(elem, data.name);
       }
     },
-    
+
     // If an empty value is passed in, ensure that it's an array.
-    'default': function () { 
+    'default': function () {
       return [];
     },
-    
+
     // Return any initial nodes that match the slot.
     initial: function (elem, data) {
       return [].slice.call(elem.childNodes).filter(function (ch) {
-        var slot = (ch.getAttribute && ch.getAttribute('slot')) || (opts.default && data.name);
+        const slot = (ch.getAttribute && ch.getAttribute('slot')) || (opts.default && data.name);
         return slot && slot === data.name;
       });
     },
-    
+
     // User-defined setter.
     set: opts.set
-  }
+  };
 }
+
+// Simple renderer that proxies another renderer. It will polyfill if not yet
+// polyfilled, or simply run the renderer. Initial content is taken into
+// consideration.
+function render (fn) {
+  return function (elem) {
+    if (mapPatch.get(elem)) {
+      fn(elem);
+    } else {
+      const ch = [].slice.call(elem.childNodes);
+      fn(elem);
+      polyfill(elem);
+      ch.forEach(elem.appendChild(ch));
+    }
+  };
+}
+
+module.exports = {
+  polyfill,
+  polyfilled,
+  render,
+  slot
+};

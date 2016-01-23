@@ -168,7 +168,7 @@ function slot (opts) {
 
     // Registers the slot so we can check later.
     created: function (elem, data) {
-      const slots = mapSlots.get(elem);
+      let slots = mapSlots.get(elem);
 
       if (!slots) {
         mapSlots.set(elem, slots = []);

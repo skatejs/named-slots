@@ -2,9 +2,10 @@
   "name": "named-slots",
   "version": "0.0.0",
   "description": "A polygap (partial polyfill) for the Shadow DOM Named Slot API.",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "gulp build"
   },
   "repository": {
     "type": "git",
@@ -22,5 +23,9 @@
   "bugs": {
     "url": "https://github.com/skatejs/named-slots/issues"
   },
-  "homepage": "https://github.com/skatejs/named-slots#readme"
+  "homepage": "https://github.com/skatejs/named-slots#readme",
+  "devDependencies": {
+    "gulp": "gulpjs/gulp#73eced0",
+    "skatejs-build": "skatejs/build#feda154"
+  }
 }

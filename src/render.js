@@ -9,10 +9,8 @@ export default function (fn) {
     if (mapPatch.get(elem)) {
       fn(elem);
     } else {
-      const chs = [].slice.call(elem.childNodes);
       fn(elem);
       polyfill(elem);
-      chs.forEach(ch => elem.appendChild(ch));
     }
   };
 }

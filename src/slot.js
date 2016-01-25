@@ -40,9 +40,10 @@ export default function (opts) {
     // Return any initial nodes that match the slot.
     initial: function (elem, data) {
       return [].slice.call(elem.childNodes).filter(function (ch) {
-        const slot = (ch.getAttribute && ch.getAttribute('slot')) || (opts.default && data.name);
-        const chHasContent = ch.nodeType === 1 || ch.textContent.trim();
-        return slot && slot === data.name && chHasContent;
+        if (ch.getAttribute) {
+          const slot = ch.getAttribute('slot') || (opts.default && data.name);
+          return slot === data.name;
+        }
       });
     },
 

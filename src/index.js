@@ -129,7 +129,7 @@ const funcs = {
 
 
 // Polyfills an element.
-function polyfill (elem) {
+export function polyfill (elem) {
   if (polyfilled(elem)) {
     return;
   }
@@ -146,13 +146,13 @@ function polyfill (elem) {
 }
 
 // Returns whether or not the specified element has been polyfilled.
-function polyfilled (elem) {
+export function polyfilled (elem) {
   return mapPatch.get(elem);
 }
 
 // Creates a slot property compatible with the SkateJS custom property
 // definitions. Makes web component integration much simpler.
-function slot (opts) {
+export function slot (opts) {
   if (!opts) {
     opts = {
       default: false,
@@ -202,7 +202,7 @@ function slot (opts) {
 // Simple renderer that proxies another renderer. It will polyfill if not yet
 // polyfilled, or simply run the renderer. Initial content is taken into
 // consideration.
-function render (fn) {
+export function render (fn) {
   return function (elem) {
     if (mapPatch.get(elem)) {
       fn(elem);
@@ -214,10 +214,3 @@ function render (fn) {
     }
   };
 }
-
-module.exports = {
-  polyfill,
-  polyfilled,
-  render,
-  slot
-};

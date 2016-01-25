@@ -171,10 +171,12 @@
       if (mapPatch.get(elem)) {
         fn(elem);
       } else {
-        var ch = [].slice.call(elem.childNodes);
+        var chs = [].slice.call(elem.childNodes);
         fn(elem);
         polyfill(elem);
-        ch.forEach(elem.appendChild(ch));
+        chs.forEach(function (ch) {
+          return elem.appendChild(ch);
+        });
       }
     };
   }
@@ -219,7 +221,8 @@
       initial: function initial(elem, data) {
         return [].slice.call(elem.childNodes).filter(function (ch) {
           var slot = ch.getAttribute && ch.getAttribute('slot') || opts.default && data.name;
-          return slot && slot === data.name;
+          var chHasContent = ch.nodeType === 1 || ch.textContent.trim();
+          return slot && slot === data.name && chHasContent;
         });
       },
 

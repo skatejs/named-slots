@@ -11,8 +11,9 @@
     value: true
   });
   exports.polyfill = polyfill;
+  exports.polyfilled = polyfilled;
   exports.slot = slot;
-  var el = Node.prototype;
+  exports.render = render;
   var mapPatch = new WeakMap();
   var mapSlots = new WeakMap();
   var mapSlotsDefault = new WeakMap();
@@ -69,7 +70,11 @@
         }).join('');
       },
       set: function set(val) {
-        this.appendChild(skate.fragment(val));
+        var div = document.createElement('div');
+        div.innerHTML = val;
+        while (div.hasChildNodes()) {
+          this.appendChild(div.childNodes[0]);
+        }
       }
     },
     lastChild: {
@@ -143,23 +148,32 @@
     }
   };
   
-  // Polyfill.
+  // Polyfills an element.
   
   function polyfill(elem) {
-    if (mapPatch.get(elem)) {
+    if (polyfilled(elem)) {
       return;
     }
   
-    for (var name in props) {
-      prop(elem, name, props[name]);
+    for (var _name in props) {
+      prop(elem, _name, props[_name]);
     }
   
-    for (var name in funcs) {
-      elem[name] = funcs[name];
+    for (var _name2 in funcs) {
+      elem[_name2] = funcs[_name2];
     }
   
     mapPatch.set(elem, true);
   }
+  
+  // Returns whether or not the specified element has been polyfilled.
+  
+  function polyfilled(elem) {
+    return mapPatch.get(elem);
+  }
+  
+  // Creates a slot property compatible with the SkateJS custom property
+  // definitions. Makes web component integration much simpler.
   
   function slot(opts) {
     if (!opts) {
@@ -205,6 +219,23 @@
   
       // User-defined setter.
       set: opts.set
+    };
+  }
+  
+  // Simple renderer that proxies another renderer. It will polyfill if not yet
+  // polyfilled, or simply run the renderer. Initial content is taken into
+  // consideration.
+  
+  function render(fn) {
+    return function (elem) {
+      if (mapPatch.get(elem)) {
+        fn(elem);
+      } else {
+        var ch = [].slice.call(elem.childNodes);
+        fn(elem);
+        polyfill(elem);
+        ch.forEach(elem.appendChild(ch));
+      }
     };
   }
   

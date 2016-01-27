@@ -228,11 +228,14 @@
     };
   }
 
+  var version = '0.0.0';
+
   var main = {
     polyfill: polyfill,
     polyfilled: polyfilled,
     render: render,
-    slot: slot
+    slot: slot,
+    version: version
   };
 
   var previousGlobal = window.skatejsNamedSlots;

@@ -1,0 +1,16 @@
+sudo: false
+language: node_js
+node_js:
+- stable
+before_script:
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
+- npm install
+script:
+- npm run lint
+- if [ "${TRAVIS_SECURE_ENV_VARS}" = "true" ]; then npm test -- --saucelabs; else npm test -- --browsers Firefox; fi
+env:
+  global:
+    - SAUCE_TESTNAME="skatejs-named-slots"
+    - SAUCE_USERNAME="skatejs-named-slots"
+    - secure:

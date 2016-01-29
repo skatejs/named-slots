@@ -1,3 +1,4 @@
+import render from '../src/render';
 import version from '../src/version';
 
 describe('skatejs-named-slots', function () {

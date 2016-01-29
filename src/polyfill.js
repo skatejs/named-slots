@@ -8,12 +8,28 @@ const prop = Object.defineProperty.bind(Object);
 
 // Helpers.
 
+function getSlot (elem, node) {
+  const key = getSlotName(elem, node);
+  const val = elem[key];
+  return key && val ? { key, val: val.slice() } : null;
+}
+
 function getSlotName (elem, node) {
   return node.getAttribute && node.getAttribute('slot') || mapSlotsDefault.get(elem);
 }
 
+// TODO use in DOM manip methods to make them DocumentFragment compatible.
 function nodeToArray (node) {
   return node instanceof DocumentFragment ? [].slice.call(node.childNodes) : [node];
+}
+
+function arrayItem (idx) {
+  return this[idx];
+}
+
+function makeLikeNodeList (arr) {
+  arr.item = arrayItem;
+  return arr;
 }
 
 
@@ -27,12 +43,12 @@ const props = {
   },
   childNodes: {
     get () {
-      return (mapSlots.get(this) || []).reduce((prev, curr) => prev.concat(this[curr]), []);
+      return makeLikeNodeList((mapSlots.get(this) || []).reduce((prev, curr) => prev.concat(this[curr]), []));
     }
   },
   children: {
     get () {
-      return this.childNodes.filter(node => node.nodeType === 1);
+      return makeLikeNodeList(this.childNodes.filter(node => node.nodeType === 1));
     }
   },
   firstChild: {
@@ -96,33 +112,53 @@ const props = {
 
 const funcs = {
   appendChild (newNode) {
-    const name = getSlotName(this, newNode);
-    if (!name && !this[name]) return;
-    this[name] = this[name].concat(nodeToArray(newNode));
+    const slot = getSlot(this, newNode);
+    if (!slot) {
+      return;
+    }
+    slot.val.push(newNode);
+    this[slot.key] = slot.val;
     return newNode;
   },
   hasChildNodes () {
     return this.childNodes.length > 0;
   },
   insertBefore (newNode, refNode) {
-    const name = getSlotName(this, newNode);
-    if (!name || !this[name]) return;
-    const index = this[name].indexOf(refNode);
-    this[name] = this[name].slice(0, index).concat(nodeToArray(newNode)).concat(this[name].slice(index));
+    const slot = getSlot(this, newNode);
+    if (!slot) {
+      return;
+    }
+    const index = slot.val.indexOf(refNode);
+    if (index === -1) {
+      slot.val.push(newNode);
+    } else {
+      slot.val.splice(index, 0, newNode);
+    }
+    this[slot.key] = slot.val;
     return newNode;
   },
   removeChild (refNode) {
-    const name = getSlotName(this, refNode);
-    if (!name && !this[name]) return;
-    const index = this[name].indexOf(refNode);
-    this[name] = this[name].slice(0, index).concat(this[name].slice(index + 1));
+    const slot = getSlot(this, refNode);
+    if (!slot) {
+      return;
+    }
+    const index = slot.val.indexOf(refNode);
+    if (index !== -1) {
+      slot.val.splice(index, 1);
+      this[slot.key] = slot.val;
+    }
     return refNode;
   },
   replaceChild (newNode, refNode) {
-    const name = getSlotName(this, newNode);
-    if (!name || !this[name]) return;
-    const index = this[name].indexOf(refNode);
-    this[name] = this[name].slice(0, index).concat(nodeToArray(newNode)).concat(this[name].slice(index + 1));
+    const slot = getSlot(this, newNode);
+    if (!slot) {
+      return;
+    }
+    const index = slot.val.indexOf(refNode);
+    if (index !== -1) {
+      slot.val.splice(index, 1, newNode);
+      this[slot.key] = slot.val;
+    }
     return refNode;
   }
 };

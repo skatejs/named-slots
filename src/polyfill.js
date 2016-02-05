@@ -87,10 +87,10 @@ const props = {
   },
   outerHTML: {
     get () {
-      var name = this.tagName.toLowerCase();
-      var attributes = [].slice.call(this.attributes).map(function (attr) {
-        return ` ${attr.name}${attr.value ? `=${attr.value}` : ''}`;
-      });
+      const name = this.tagName.toLowerCase();
+      const attributes = [].slice.call(this.attributes).map(function (attr) {
+        return ` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`;
+      }).join('');
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
     }
   },

@@ -29,6 +29,11 @@
     return node.getAttribute && node.getAttribute('slot') || mapSlotsDefault.get(elem);
   }
 
+  // TODO use in DOM manip methods to make them DocumentFragment compatible.
+  function nodeToArray(node) {
+    return node instanceof DocumentFragment ? [].slice.call(node.childNodes) : [node];
+  }
+
   function arrayItem(idx) {
     return this[idx];
   }
@@ -122,57 +127,58 @@
     }
   };
 
+  function doForNodesIfSlot(elem, node, func) {
+    nodeToArray(node).forEach(function (node) {
+      var slot = getSlot(elem, node);
+      if (slot) {
+        func(elem, node, slot);
+      }
+    });
+  }
+
   // Method overrides.
 
   var funcs = {
     appendChild: function appendChild(newNode) {
-      var slot = getSlot(this, newNode);
-      if (!slot) {
-        return;
-      }
-      slot.val.push(newNode);
-      this[slot.key] = slot.val;
+      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+        slot.val.push(node);
+        elem[slot.key] = slot.val;
+      });
       return newNode;
     },
     hasChildNodes: function hasChildNodes() {
       return this.childNodes.length > 0;
     },
     insertBefore: function insertBefore(newNode, refNode) {
-      var slot = getSlot(this, newNode);
-      if (!slot) {
-        return;
-      }
-      var index = slot.val.indexOf(refNode);
-      if (index === -1) {
-        slot.val.push(newNode);
-      } else {
-        slot.val.splice(index, 0, newNode);
-      }
-      this[slot.key] = slot.val;
+      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+        var index = slot.val.indexOf(refNode);
+        if (index === -1) {
+          slot.val.push(node);
+        } else {
+          slot.val.splice(index, 0, node);
+        }
+        elem[slot.key] = slot.val;
+      });
       return newNode;
     },
     removeChild: function removeChild(refNode) {
-      var slot = getSlot(this, refNode);
-      if (!slot) {
-        return;
-      }
-      var index = slot.val.indexOf(refNode);
-      if (index !== -1) {
-        slot.val.splice(index, 1);
-        this[slot.key] = slot.val;
-      }
+      doForNodesIfSlot(this, refNode, function (elem, node, slot) {
+        var index = slot.val.indexOf(node);
+        if (index !== -1) {
+          slot.val.splice(index, 1);
+          elem[slot.key] = slot.val;
+        }
+      });
       return refNode;
     },
     replaceChild: function replaceChild(newNode, refNode) {
-      var slot = getSlot(this, newNode);
-      if (!slot) {
-        return;
-      }
-      var index = slot.val.indexOf(refNode);
-      if (index !== -1) {
-        slot.val.splice(index, 1, newNode);
-        this[slot.key] = slot.val;
-      }
+      doForNodesIfSlot(this, refNode, function (elem, node, slot) {
+        var index = slot.val.indexOf(refNode);
+        if (index !== -1) {
+          slot.val.splice(index, 1, newNode);
+          elem[slot.key] = slot.val;
+        }
+      });
       return refNode;
     }
   };

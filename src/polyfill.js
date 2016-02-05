@@ -107,58 +107,59 @@ const props = {
   }
 };
 
+function doForNodesIfSlot (elem, node, func) {
+  nodeToArray(node).forEach(function (node) {
+    const slot = getSlot(elem, node);
+    if (slot) {
+      func(elem, node, slot);
+    }
+  });
+}
+
 
 // Method overrides.
 
 const funcs = {
   appendChild (newNode) {
-    const slot = getSlot(this, newNode);
-    if (!slot) {
-      return;
-    }
-    slot.val.push(newNode);
-    this[slot.key] = slot.val;
+    doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+      slot.val.push(node);
+      elem[slot.key] = slot.val;
+    });
     return newNode;
   },
   hasChildNodes () {
     return this.childNodes.length > 0;
   },
   insertBefore (newNode, refNode) {
-    const slot = getSlot(this, newNode);
-    if (!slot) {
-      return;
-    }
-    const index = slot.val.indexOf(refNode);
-    if (index === -1) {
-      slot.val.push(newNode);
-    } else {
-      slot.val.splice(index, 0, newNode);
-    }
-    this[slot.key] = slot.val;
+    doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+      const index = slot.val.indexOf(refNode);
+      if (index === -1) {
+        slot.val.push(node);
+      } else {
+        slot.val.splice(index, 0, node);
+      }
+      elem[slot.key] = slot.val;
+    });
     return newNode;
   },
   removeChild (refNode) {
-    const slot = getSlot(this, refNode);
-    if (!slot) {
-      return;
-    }
-    const index = slot.val.indexOf(refNode);
-    if (index !== -1) {
-      slot.val.splice(index, 1);
-      this[slot.key] = slot.val;
-    }
+    doForNodesIfSlot(this, refNode, function (elem, node, slot) {
+      const index = slot.val.indexOf(node);
+      if (index !== -1) {
+        slot.val.splice(index, 1);
+        elem[slot.key] = slot.val;
+      }
+    });
     return refNode;
   },
   replaceChild (newNode, refNode) {
-    const slot = getSlot(this, newNode);
-    if (!slot) {
-      return;
-    }
-    const index = slot.val.indexOf(refNode);
-    if (index !== -1) {
-      slot.val.splice(index, 1, newNode);
-      this[slot.key] = slot.val;
-    }
+    doForNodesIfSlot(this, refNode, function (elem, node, slot) {
+      const index = slot.val.indexOf(refNode);
+      if (index !== -1) {
+        slot.val.splice(index, 1, newNode);
+        elem[slot.key] = slot.val;
+      }
+    });
     return refNode;
   }
 };

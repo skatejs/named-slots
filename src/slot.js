@@ -43,6 +43,8 @@ export default function (opts) {
         if (ch.getAttribute) {
           const slot = ch.getAttribute('slot') || (opts.default && data.name);
           return slot === data.name;
+        } else if (ch.nodeType === 3) {
+          return true;
         }
       });
     },

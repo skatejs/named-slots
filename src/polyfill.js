@@ -180,4 +180,5 @@ export default function (elem) {
   }
 
   mapPatch.set(elem, true);
+  return elem;
 }

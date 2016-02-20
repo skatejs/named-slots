@@ -1,16 +1,58 @@
 import polyfill from './polyfill';
-import mapPatch from './internal/map/patch';
+
+// Returns a document fragment of the childNodes of the specified element. Due
+// to the nature of the DOM, this will remove the nodes from the element.
+function createFragmentFromChildNodes (elem) {
+  const frag = document.createDocumentFragment();
+  while (elem.hasChildNodes()) {
+    frag.appendChild(elem.firstChild);
+  }
+  return frag;
+}
+
+// Creates an shadow root, appends it to the element and returns it.
+function createShadowRoot (elem) {
+  const root = document.createElement(isBlockLevel(elem) ? 'div' : 'span');
+  elem.appendChild(root);
+  return root;
+}
+
+// Returns wether or not the specified element is a block level element or not
+// We need this to determine the type of element the shadow root should be
+// since we must use real nodes to simulate a shadow root.
+function isBlockLevel (elem) {
+  return window.getComputedStyle(elem).display === 'block';
+}
 
 // Simple renderer that proxies another renderer. It will polyfill if not yet
 // polyfilled, or simply run the renderer. Initial content is taken into
 // consideration.
 export default function (fn) {
   return function (elem) {
-    if (mapPatch.get(elem)) {
-      fn(elem);
+    let shadowRoot;
+
+    if (shadowRoot) {
+      fn(shadowRoot);
     } else {
-      fn(elem);
+      // We get a fragment of the initial DOM so that we can create the shadow
+      // root.
+      const initialLightDom = createFragmentFromChildNodes(elem);
+
+      // Create the shadow root and return the light DOM. We must get the light
+      // DOM before we template it so that we can distribute it after
+      // polyfilling.
+      shadowRoot = createShadowRoot(elem);
+
+      // Render once we have the initial light DOM as this would likely blow
+      // that away.
+      fn(shadowRoot);
+
+      // Now polyfill so that we can distribute after.
       polyfill(elem);
+
+      // Distribute the initial light DOM after polyfill so they get put into
+      // the right spots.
+      elem.appendChild(initialLightDom);
     }
   };
 }

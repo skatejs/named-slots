@@ -1,5 +1,4 @@
-import mapPatch from './internal/map/patch';
-import mapSlotsDefault from './internal/map/slots-default';
+import mapPatch from './internal/map-patch';
 import polyfilled from './polyfilled';
 import prop from './internal/prop';
 

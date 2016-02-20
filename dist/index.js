@@ -24,6 +24,10 @@
   }
 
   function getSlot(elem, node) {
+    if (!node) {
+      return;
+    }
+
     var name = node.getAttribute && node.getAttribute('slot') || 'content';
 
     if (!elem.__slots) {

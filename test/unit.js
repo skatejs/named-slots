@@ -1,4 +1,4 @@
-import polyfill from '../src/polyfill';
+import polyfill from '../src/index';
 import version from '../src/version';
 
 describe('skatejs-named-slots', function () {

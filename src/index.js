@@ -4,8 +4,8 @@ import render from './render';
 import slot from './slot';
 import version from './version';
 
-export default {
-  polyfill,
+export default polyfill;
+export {
   polyfilled,
   render,
   slot,

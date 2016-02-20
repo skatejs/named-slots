@@ -29,7 +29,7 @@ function isBlockLevel (elem) {
 // consideration.
 export default function (fn) {
   return function (elem) {
-    let shadowRoot;
+    let shadowRoot = elem.__shadowRoot;
 
     if (shadowRoot) {
       fn(elem, shadowRoot);
@@ -41,7 +41,7 @@ export default function (fn) {
       // Create the shadow root and return the light DOM. We must get the light
       // DOM before we template it so that we can distribute it after
       // polyfilling.
-      shadowRoot = createShadowRoot(elem);
+      shadowRoot = elem.__shadowRoot = createShadowRoot(elem);
 
       // Render once we have the initial light DOM as this would likely blow
       // that away.

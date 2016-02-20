@@ -32,7 +32,7 @@ export default function (fn) {
     let shadowRoot;
 
     if (shadowRoot) {
-      fn(shadowRoot);
+      fn(elem, shadowRoot);
     } else {
       // We get a fragment of the initial DOM so that we can create the shadow
       // root.
@@ -45,7 +45,7 @@ export default function (fn) {
 
       // Render once we have the initial light DOM as this would likely blow
       // that away.
-      fn(shadowRoot);
+      fn(elem, shadowRoot);
 
       // Now polyfill so that we can distribute after.
       polyfill(elem);

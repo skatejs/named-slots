@@ -12,7 +12,7 @@ Working example: http://jsbin.com/weboki/31/edit?js,output
 - You don't want to resort to massive, or outdated polyfills
 - You don't want to wait for browser adoption
 - You don't need allthethings in the [Shadow DOM spec](http://w3c.github.io/webcomponents/spec/shadow/)
-- You want interopability with React, jQuery and other libraries that don't care about your implementation details
+- You want interopaberability with React, jQuery and other libraries that don't care about your implementation details
 
 
 

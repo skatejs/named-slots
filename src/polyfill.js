@@ -1,5 +1,4 @@
-import mapPatch from './internal/map-patch';
-import polyfilled from './polyfilled';
+import mapPolyfilled from './internal/map-polyfilled';
 import prop from './internal/prop';
 
 
@@ -176,7 +175,7 @@ const funcs = {
 
 // Polyfills an element.
 export default function (elem) {
-  if (polyfilled(elem)) {
+  if (mapPolyfilled.get(elem)) {
     return;
   }
 
@@ -190,6 +189,6 @@ export default function (elem) {
     elem[name] = funcs[name];
   }
 
-  mapPatch.set(elem, true);
+  mapPolyfilled.set(elem, true);
   return elem;
 }

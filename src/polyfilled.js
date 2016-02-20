@@ -1,6 +1,6 @@
-import mapPatch from './internal/map-patch';
+import mapPolyfilled from './internal/map-polyfilled';
 
 // Returns whether or not the specified element has been polyfilled.
 export default function (elem) {
-  return mapPatch.get(elem);
+  return mapPolyfilled.get(elem);
 }

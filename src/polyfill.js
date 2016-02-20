@@ -5,11 +5,21 @@ import prop from './internal/prop';
 // Helpers.
 
 function applyParentNode (node, parent) {
-  prop(node, 'parentNode', { get: () => parent, configurable: true });
+  prop(node, 'parentNode', {
+    configurable: true,
+    get: function () {
+      return parent;
+    }
+  });
 }
 
 function removeParentNode (node) {
-  prop(node, 'parentNode', { get: () => null, configurable: true });
+  prop(node, 'parentNode', {
+    configurable: true,
+    get: function () {
+      return null;
+    }
+  });
 }
 
 function arrayItem (idx) {
@@ -175,7 +185,7 @@ const funcs = {
   removeChild (refNode) {
     doForNodesIfSlot(this, refNode, function (elem, node, slot) {
       slot.removeChild(node);
-      removeParentNode(refNode);
+      removeParentNode(node);
     });
     return refNode;
   },
@@ -183,8 +193,8 @@ const funcs = {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
       slot.replaceChild(node, refNode);
       applyParentNode(node, elem);
-      removeParentNode(refNode);
     });
+    removeParentNode(refNode);
     return refNode;
   }
 };

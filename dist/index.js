@@ -10,6 +10,24 @@
 
   // Helpers.
 
+  function applyParentNode(node, parent) {
+    prop(node, 'parentNode', {
+      configurable: true,
+      get: function get() {
+        return parent;
+      }
+    });
+  }
+
+  function removeParentNode(node) {
+    prop(node, 'parentNode', {
+      configurable: true,
+      get: function get() {
+        return null;
+      }
+    });
+  }
+
   function arrayItem(idx) {
     return this[idx];
   }
@@ -160,6 +178,7 @@
     appendChild: function appendChild(newNode) {
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
         slot.appendChild(node);
+        applyParentNode(node, elem);
       });
       return newNode;
     },
@@ -168,20 +187,24 @@
     },
     insertBefore: function insertBefore(newNode, refNode) {
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        slot.insertBefore(newNode, refNode);
+        slot.insertBefore(node, refNode);
+        applyParentNode(node, elem);
       });
       return newNode;
     },
     removeChild: function removeChild(refNode) {
       doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-        slot.removeChild(refNode);
+        slot.removeChild(node);
+        removeParentNode(node);
       });
       return refNode;
     },
     replaceChild: function replaceChild(newNode, refNode) {
-      doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-        slot.replaceChild(newNode, refNode);
+      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+        slot.replaceChild(node, refNode);
+        applyParentNode(node, elem);
       });
+      removeParentNode(refNode);
       return refNode;
     }
   };

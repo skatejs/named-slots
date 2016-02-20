@@ -4,6 +4,14 @@ import prop from './internal/prop';
 
 // Helpers.
 
+function applyParentNode (node, parent) {
+  prop(node, 'parentNode', { get: () => parent, configurable: true });
+}
+
+function removeParentNode (node) {
+  prop(node, 'parentNode', { get: () => null, configurable: true });
+}
+
 function arrayItem (idx) {
   return this[idx];
 }
@@ -150,6 +158,7 @@ const funcs = {
   appendChild (newNode) {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
       slot.appendChild(node);
+      applyParentNode(node, elem);
     });
     return newNode;
   },
@@ -158,19 +167,23 @@ const funcs = {
   },
   insertBefore (newNode, refNode) {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      slot.insertBefore(newNode, refNode);
+      slot.insertBefore(node, refNode);
+      applyParentNode(node, elem);
     });
     return newNode;
   },
   removeChild (refNode) {
     doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-      slot.removeChild(refNode);
+      slot.removeChild(node);
+      removeParentNode(refNode);
     });
     return refNode;
   },
   replaceChild (newNode, refNode) {
-    doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-      slot.replaceChild(newNode, refNode);
+    doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+      slot.replaceChild(node, refNode);
+      applyParentNode(node, elem);
+      removeParentNode(refNode);
     });
     return refNode;
   }

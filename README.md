@@ -13,78 +13,99 @@ Working example: http://jsbin.com/weboki/31/edit?js,output
 - You don't want to wait for browser adoption
 - You don't need allthethings in the [Shadow DOM spec](http://w3c.github.io/webcomponents/spec/shadow/)
 - You want interopaberability with React, jQuery and other libraries that don't care about your implementation details
+- You want something that is performant
 
 
 
 ## How
 
-What this polyfill does is override native methods so that it can check added / removed elements for a `slot` attribute, or use a default. It uses this slot as a property name and sets that property with information regarding the change. From there, you do the work.
+Instead of polyfilling everything, we polyfill only the bare minimum that is required to supply the consumers of your custom elements with an API where they can distribute content to / from your element.
 
-On top of this, it needs to report only the nodes that are contained in slots from native accessors such as `chilNodes`, `children`, etc.
-
-For example, let's assume we have some initial content. This is what your consumer would write.
+Your consuemrs may use it like so:
 
 ```html
 <my-component id="example">
-  <p slot="content">paragraph 1</p>
-  <p slot="content">paragraph 2</p>
+  <p>paragraph 1</p>
+  <p>paragraph 2</p>
 </my-component>
 ```
 
-And you want it to result in:
+Your shadow root may be templated out like:
+
+```html
+<div class="wrapper">
+  <slot />
+</div>
+```
+
+Which would result in:
 
 ```html
 <my-component id="example">
   <div class="wrapper">
-    <p slot="content">paragraph 1</p>
-    <p slot="content">paragraph 2</p>
+    <p>paragraph 1</p>
+    <p>paragraph 2</p>
   </div>
 </my-component>
 ```
 
-However, you don't want your consumers to worry, or know about `.wrapper`.
+
+## Usage
+
+To render a shadow root and distribute initial content, use the `render` function:
+
+```js
+import { render } from 'skatejs-named-slots';
+
+const div = document.createElement('div'):
+const template = render(function (elem, shadowRoot) {
+  shadowRoot.innerHTML = '<div class="wrapper"><slot name=""></slot></div>';
+});
+
+// Set initial light DOM.
+div.innerHTML = '<p>paragraph 1</p>';
+
+// Render shadow root template and distribute initial light DOM.
+template(div);
+
+// Add more content.
+div.innerHTML += '<p>paragraph 2</p>';
+```
+
+A more streamlined approach would be to use it with a library like [Skate](https://github.com/skatejs/skatejs).
 
 
 
-### Skate (vanilla)
+### With Skate (vanilla)
 
 There are some helpers that make using with [Skate](https://github.com/skatejs/skatejs) a lot simpler.
 
 ```js
-import slots from 'skatejs-named-slots';
+import { render } from 'skatejs-named-slots';
 
 skate('my-component', {
-  properties: {
-    content: slots.property({
-      set (elem, data) {
-        const wrapper = elem.querySelector('.wrapper');
-        wrapper[data.type].apply(wrapper, data.args);
-      }
-    })
-  },
-  render: slots.render(function (elem) {
-    elem.innerHTML = '<div class="wrapper"></div>';
+  render: render(function (elem, shadowRoot) {
+    shadoRoot.innerHTML = '<div class="wrapper"><slot name=""></slot></div>';
   })
 });
 ```
 
 
 
-### Skate (functional + virtual DOM)
+### With Kickflip (Skate + Named Slots + Incremental DOM)
 
-And if you like writing in a more functional approach, you can use [skatejs-dom-diff](https://github.com/skatejs/dom-diff).
+And if you like writing in a more functional approach, [Kickflip](https://github.com/skatejs/kickflip) blends this polygap with Skate.
 
 ```js
-import diff from 'skatejs-dom-diff';
-import slots from 'skatejs-named-slots';
+import { div, slot } from 'kickflip/src/vdom';
+import kickflip from 'kickflip';
 
-skate('my-component', {
-  properties: {
-    content: slots.property({ set: skate.render }
-  },
-  render: slots.render(diff.render(function (elem) {
-    return diff.vdom.element('div', { 'class': 'wrapper' }, elem.content.nodes);
-  }))
+kickflip('my-component', {
+  render (elem) {
+    div({ class: 'wrapper' }, function () {
+      slot({ name: '' });
+    });
+  }
 });
 ```
 
@@ -125,6 +146,7 @@ These are members which are already polyfilled.
 - `Node.childNodes`
 - `Node.firstChild`
 - `Node.lastChild`
+- `Node.parentNode`
 - `Node.textContent`
 
 #### ParentNode
@@ -177,7 +199,6 @@ These are members which are not yet polyfilled but are up for discussion.
 - `Node.nodeValue`
 - `Node.nextSibling`
 - `Node.nodeValue`
-- `Node.parentNode`
 - `Node.parentElement`
 - `Node.previousSibling`
 

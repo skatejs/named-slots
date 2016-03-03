@@ -57,7 +57,7 @@ To render a shadow root and distribute initial content, use the `render` functio
 ```js
 import { render } from 'skatejs-named-slots';
 
-const div = document.createElement('div'):
+const div = document.createElement('div');
 const template = render(function (elem, shadowRoot) {
   shadowRoot.innerHTML = '<div class="wrapper"><slot name=""></slot></div>';
 });

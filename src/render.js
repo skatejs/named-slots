@@ -1,5 +1,8 @@
 import polyfill from './polyfill';
 
+// Incremented so that we can have a unique id for the shadow root.
+let shadowId = 0;
+
 // Returns a document fragment of the childNodes of the specified element. Due
 // to the nature of the DOM, this will remove the nodes from the element.
 function createFragmentFromChildNodes (elem) {
@@ -17,7 +20,7 @@ function createShadowRoot (elem) {
   return root;
 }
 
-// Returns wether or not the specified element is a block level element or not
+// Returns whether or not the specified element is a block level element or not
 // We need this to determine the type of element the shadow root should be
 // since we must use real nodes to simulate a shadow root.
 function isBlockLevel (elem) {
@@ -27,7 +30,8 @@ function isBlockLevel (elem) {
 // Simple renderer that proxies another renderer. It will polyfill if not yet
 // polyfilled, or simply run the renderer. Initial content is taken into
 // consideration.
-export default function (fn) {
+const defaults = { shadowId: '' };
+export default function (fn, opts = defaults) {
   return function (elem) {
     let shadowRoot = elem.__shadowRoot;
 
@@ -38,14 +42,20 @@ export default function (fn) {
       // root.
       const initialLightDom = createFragmentFromChildNodes(elem);
 
+      // Create a shadow ID so that it can be used to get a slot that is unique
+      // to this shadow root. Since we don't polyfill querySelector() et al, we
+      // need a way to be able to refer to slots that are unique to this
+      // shadow root.
+      elem.__shadowId = opts.shadowId;
+
       // Create the shadow root and return the light DOM. We must get the light
       // DOM before we template it so that we can distribute it after
       // polyfilling.
-      shadowRoot = elem.__shadowRoot = createShadowRoot(elem);
+      elem.__shadowRoot = createShadowRoot(elem);
 
       // Render once we have the initial light DOM as this would likely blow
       // that away.
-      fn(elem, shadowRoot);
+      fn(elem, elem.__shadowRoot);
 
       // Now polyfill so that we can distribute after.
       polyfill(elem);

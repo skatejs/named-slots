@@ -33,21 +33,24 @@ Your consuemrs may use it like so:
 Your shadow root may be templated out like:
 
 ```html
-<div class="wrapper">
-  <slot />
-</div>
+<div class="wrapper" slot-name=""></div>
 ```
 
 Which would result in:
 
 ```html
 <my-component id="example">
-  <div class="wrapper">
+  <div class="wrapper" slot-name="">
     <p>paragraph 1</p>
     <p>paragraph 2</p>
   </div>
 </my-component>
 ```
+
+Instead of using `<slot />` elements, we use a `slot-name` attribute to search for slots. This is because a there is no clear path right now in how you would distribute list items into a `<ul />` or rows into a `<tbody />` if they don't accept a `<slot />` element to distribute to.
+
+This is an implementation detail that your consumers do not need to be aware of and ensures that you can distribute nodes everywhere without worrying about how a browser might behave.
+
 
 
 ## Usage
@@ -59,7 +62,7 @@ import { render } from 'skatejs-named-slots';
 
 const div = document.createElement('div'):
 const template = render(function (elem, shadowRoot) {
-  shadowRoot.innerHTML = '<div class="wrapper"><slot name=""></slot></div>';
+  shadowRoot.innerHTML = '<div class="wrapper" slot-name=""></div>';
 });
 
 // Set initial light DOM.
@@ -78,14 +81,14 @@ A more streamlined approach would be to use it with a library like [Skate](https
 
 ### With Skate (vanilla)
 
-There are some helpers that make using with [Skate](https://github.com/skatejs/skatejs) a lot simpler.
+Using with [Skate](https://github.com/skatejs/skatejs) makes things a lot simpler.
 
 ```js
 import { render } from 'skatejs-named-slots';
 
 skate('my-component', {
   render: render(function (elem, shadowRoot) {
-    shadoRoot.innerHTML = '<div class="wrapper"><slot name=""></slot></div>';
+    shadoRoot.innerHTML = '<div class="wrapper" slot-name=""></div>';
   })
 });
 ```
@@ -94,20 +97,20 @@ skate('my-component', {
 
 ### With Kickflip (Skate + Named Slots + Incremental DOM)
 
-And if you like writing in a more functional approach, [Kickflip](https://github.com/skatejs/kickflip) blends this polygap with Skate.
+And if you like writing in a more functional way, [Kickflip](https://github.com/skatejs/kickflip) blends this polygap with Skate.
 
 ```js
-import { div, slot } from 'kickflip/src/vdom';
+import { slot } from 'kickflip/src/vdom';
 import kickflip from 'kickflip';
 
 kickflip('my-component', {
   render (elem) {
-    div({ class: 'wrapper' }, function () {
-      slot({ name: '' });
-    });
+    slot({ class: 'wrapper', type: 'div' });
   }
 });
 ```
+
+Kickflip has a `slot()` element helper that ensures a `slot-name` attribute is applied while making it look like your declaring a `<slot />` element. It will render a `<slot />` element by default unless you specify a `type` option which allows you to render slots as `<ul />`'s or `<tbody />`'s.
 
 
 

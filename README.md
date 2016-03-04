@@ -110,7 +110,7 @@ kickflip('my-component', {
 });
 ```
 
-Kickflip has a `slot()` element helper that ensures a `slot-name` attribute is applied while making it look like your declaring a `<slot />` element. It will render a `<slot />` element by default unless you specify a `type` option which allows you to render slots as `<ul />`'s or `<tbody />`'s.
+Kickflip has a `slot()` element helper that ensures a `slot-name` attribute is applied while making it look like you're declaring a `<slot />` element. It will render a `<slot />` element by default unless you specify a `type` option which allows you to render slots as `<ul />`'s or `<tbody />`'s.
 
 
 

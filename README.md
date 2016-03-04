@@ -2,7 +2,7 @@
 
 A polygap (partial polyfill) for the Shadow DOM Named Slot API using SkateJS.
 
-Working example: http://jsbin.com/weboki/31/edit?js,output
+Working example: http://jsbin.com/yabesi/6
 
 
 

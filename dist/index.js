@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global.skatejs-named-slots = factory());
+  (global.skatejsNamedSlots = factory());
 }(this, function () {
 
   var mapPolyfilled = new WeakMap();

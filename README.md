@@ -114,6 +114,20 @@ Kickflip has a `slot()` element helper that ensures a `slot-name` attribute is a
 
 
 
+## Performance
+
+Obviously, performance is a concern when polyfilling anything and the past has shown Shadow DOM polyfills to be slow. Since we're not polyfilling everything, and don't ever aim to, we strive to keep an acceptable level of performance.
+
+We've written some simple perf tests to show overhead against native. These vary depending on the browser you run them, so if you're concerned about performance, it's best to run these yourself. You can do so by:
+
+1. Clone the repo
+2. `npm install`
+3. `gulp perf`
+
+For most purposes, the performance should be acceptable. That said, we're always looking at ways to imporove.
+
+
+
 ## Support
 
 The following lists are an exhaustive representation of what this polygap supports and why for the following interfaces:
@@ -130,7 +144,7 @@ Note:
 - `HTMLElement` and any prototypes more specific are not polyfilled for simplicity.
 - All members which are not standardised or are listed as experimental are not included in these lists.
 - Members are only polyfilled on the specific web component unless otherwise noted.
-- Members must be overridden on the instance rather than prototype because WebKit has a bug that prevents correct descritpors from being returned using [`Object.getOwnPropertyDescriptor()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor) See https://bugs.webkit.org/show_bug.cgi?id=49739 for more info. We need to be able to bypass the overrides if modifying the prototypes. This does have performance implications but since only web component elements get these overrides, these are minimised. We'll be gathering some performance data on this soon.
+- Members must be overridden on the instance rather than prototype because WebKit has a bug that prevents correct descritpors from being returned using [`Object.getOwnPropertyDescriptor()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor) See https://bugs.webkit.org/show_bug.cgi?id=49739 for more info.
 
 
 

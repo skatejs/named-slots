@@ -55,7 +55,7 @@
     var slots = elem.__slots;
 
     if (typeof slots[name] === 'undefined') {
-      var slot = elem.querySelector('[slot-name="' + elem.__shadowId + (name === 'content' ? '' : name) + '"]');
+      var slot = elem.querySelector('[slot-name="' + (elem.__shadowId || '') + (name === 'content' ? '' : name) + '"]');
       if (slot) {
         slots[name] = slot;
       }

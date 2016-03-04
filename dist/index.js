@@ -131,6 +131,9 @@
         var div = document.createElement('div');
         var frag = document.createDocumentFragment();
         div.innerHTML = val;
+        while (this.hasChildNodes()) {
+          this.removeChild(this.firstChild);
+        }
         while (div.hasChildNodes()) {
           frag.appendChild(div.firstChild);
         }

@@ -29,6 +29,6 @@
     "eslint": "1.10.3",
     "eslint-plugin-react": "^3.16.1",
     "gulp": "gulpjs/gulp#73eced0",
-    "skatejs-build": "skatejs/build#812f155"
+    "skatejs-build": "skatejs/build#2614923"
   }
 }

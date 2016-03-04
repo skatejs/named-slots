@@ -200,6 +200,8 @@ describe('skatejs-named-slots', function () {
       expect(host.innerHTML).to.equal('');
       host.innerHTML = '<div></div>';
       expect(host.innerHTML).to.equal('<div></div>');
+      host.innerHTML = '<div></div>';
+      expect(host.innerHTML).to.equal('<div></div>');
     });
 
     it('lastChild', function () {
@@ -224,6 +226,8 @@ describe('skatejs-named-slots', function () {
       expect(host.outerHTML).to.equal('<div></div>');
       host.innerHTML = '<div slot="custom"></div>';
       expect(host.outerHTML).to.equal('<div></div>');
+      host.innerHTML = '<div></div>';
+      expect(host.outerHTML).to.equal('<div><div></div></div>');
       host.innerHTML = '<div></div>';
       expect(host.outerHTML).to.equal('<div><div></div></div>');
     });

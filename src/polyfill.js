@@ -122,6 +122,9 @@ const props = {
       const div = document.createElement('div');
       const frag = document.createDocumentFragment();
       div.innerHTML = val;
+      while(this.hasChildNodes()) {
+        this.removeChild(this.firstChild);
+      }
       while (div.hasChildNodes()) {
         frag.appendChild(div.firstChild);
       }

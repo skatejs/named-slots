@@ -49,7 +49,7 @@ function getSlot (elem, node) {
   const slots = elem.__slots;
 
   if (typeof slots[name] === 'undefined') {
-    const slot = elem.querySelector(`[slot-name="${elem.__shadowId}${name === 'content' ? '' : name}"]`);
+    const slot = elem.querySelector(`[slot-name="${elem.__shadowId || ''}${name === 'content' ? '' : name}"]`);
     if (slot) {
       slots[name] = slot;
     }

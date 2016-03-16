@@ -1,8 +1,5 @@
 import polyfill from './polyfill';
 
-// Incremented so that we can have a unique id for the shadow root.
-let shadowId = 0;
-
 // Returns a document fragment of the childNodes of the specified element. Due
 // to the nature of the DOM, this will remove the nodes from the element.
 function createFragmentFromChildNodes (elem) {

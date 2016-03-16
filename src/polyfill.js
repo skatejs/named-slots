@@ -1,90 +1,128 @@
 import mapPolyfilled from './internal/map-polyfilled';
 import prop from './internal/prop';
 
+const configurable = true;
+
+// Cached prototypes.
+const elProto = Element.prototype;
+const htmlElProto = HTMLElement.prototype;
+const nodeProto = Node.prototype;
+
+// Cached descriptor getters.
+const descEl = Object.getOwnPropertyDescriptor.bind(Object, elProto);
+const descNode = Object.getOwnPropertyDescriptor.bind(Object, nodeProto);
+
+// Properties that must be applied to descendants.
+const descendantAccessors = {
+  // Natives.
+  __nextElementSibling: descEl('nextElementSibling'),
+  __nextSibling: descNode('nextSibling'),
+  __parentElement: descNode('parentElement'),
+  __parentNode: descNode('parentNode'),
+  __previousElementSibling: descEl('nextElementSibling'),
+  __previousSibling: descNode('previousSibling'),
+
+  // Polyfills.
+  parentElement: {
+    configurable,
+    get () {
+      if (this.__isLightDom) {
+        const parent = this.parentNode;
+        return parent.nodeType === 1 ? parent : null;
+      }
+      return this.__parentElement;
+    }
+  },
+  parentNode: {
+    configurable,
+    get () {
+      return this.__polyfilledParentNode || this.__parentNode || null;
+    }
+  },
+  nextSibling: {
+    configurable,
+    get () {
+      if (this.__isLightDom) {
+        let index;
+        const parChs = this.parentNode.childNodes;
+        const parChsLen = parChs.length;
+        for (let a = 0; a < parChsLen; a++) {
+          if (parChs[a] === this) {
+            index = a;
+            continue;
+          }
+        }
+        return typeof index === 'number' ? parChs[index + 1] : null;
+      }
+      return this.__nextSibling;
+    }
+  },
+  nextElementSibling: {
+    configurable,
+    get () {
+      if (this.__isLightDom) {
+        let next;
+        while ((next = this.nextSibling)) {
+          if (next.nodeType === 1) {
+            return next;
+          }
+        }
+        return null;
+      }
+      return this.__nextElementSibling;
+    }
+  },
+  previousSibling: {
+    configurable,
+    get () {
+      if (this.__isLightDom) {
+        let index;
+        const parChs = this.parentNode.childNodes;
+        const parChsLen = parChs.length;
+        for (let a = 0; a < parChsLen; a++) {
+          if (parChs[a] === this) {
+            index = a;
+            continue;
+          }
+        }
+        return typeof index === 'number' ? parChs[index - 1] : null;
+      }
+      return this.__previousSibling;
+    }
+  },
+  previousElementSibling: {
+    configurable,
+    get () {
+      if (this.__isLightDom) {
+        let prev;
+        while ((prev = this.previousSibling)) {
+          if (prev.nodeType === 1) {
+            return prev;
+          }
+        }
+        return null;
+      }
+      return this.__previousElementSibling;
+    }
+  }
+};
+
+// WebKit, this is because of you.
+const canPatchNativeAccessors = !!descendantAccessors.__parentNode.get;
 
 // Helpers.
 
 function applyParentNode (node, parent) {
-  prop(node, 'parentElement', {
-    configurable: true,
-    get () {
-      return parent.nodeType === 1 ? parent : null;
-    }
-  });
-
-  prop(node, 'parentNode', {
-    configurable: true,
-    get () {
-      return parent;
-    }
-  });
-
-  prop(node, 'nextSibling', {
-    configurable: true,
-    get () {
-      let index;
-      const parChs = parent.childNodes;
-      const parChsLen = parChs.length;
-      for (let a = 0; a < parChsLen; a++) {
-        if (parChs[a] === node) {
-          index = a;
-          continue;
-        }
-      }
-      return typeof index === 'number' ? parChs[index + 1] : null;
-    }
-  });
-
-  prop(node, 'nextElementSibling', {
-    configurable: true,
-    get () {
-      let next;
-      while ((next = this.nextSibling)) {
-        if (next.nodeType === 1) {
-          return next;
-        }
-      }
-      return null;
-    }
-  });
-
-  prop(node, 'previousSibling', {
-    configurable: true,
-    get () {
-      let index;
-      const parChs = parent.childNodes;
-      const parChsLen = parChs.length;
-      for (let a = 0; a < parChsLen; a++) {
-        if (parChs[a] === node) {
-          index = a;
-          continue;
-        }
-      }
-      return typeof index === 'number' ? parChs[index - 1] : null;
-    }
-  });
-
-  prop(node, 'previousElementSibling', {
-    configurable: true,
-    get () {
-      let prev;
-      while ((prev = this.previousSibling)) {
-        if (prev.nodeType === 1) {
-          return prev;
-        }
-      }
-      return null;
-    }
-  });
+  node.__isLightDom = true;
+  node.__polyfilledParentNode = parent;
+  if (!canPatchNativeAccessors) {
+    Object.defineProperties(node, descendantAccessors);
+  }
 }
 
 function removeParentNode (node) {
-  prop(node, 'parentNode', {
-    configurable: true,
-    get: function () {
-      return null;
-    }
-  });
+  node.__isLightDom = false;
+  node.__polyfilledParentNode = null;
 }
 
 function arrayItem (idx) {
@@ -278,6 +316,14 @@ const funcs = {
     return refNode;
   }
 };
+
+
+// Polyfill the prototypes if we can.
+if (canPatchNativeAccessors) {
+  // Patch the HTMLElement prototype if we can as it's the highest in the
+  // prototype chain we need to worry about.
+  Object.defineProperties(htmlElProto, descendantAccessors);
+}
 
 
 // Polyfills an element.

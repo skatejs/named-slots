@@ -146,33 +146,31 @@ Note:
 - Members are only polyfilled on the specific web component unless otherwise noted.
 - Members must be overridden on the instance rather than prototype because WebKit has a bug that prevents correct descritpors from being returned using [`Object.getOwnPropertyDescriptor()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor) See https://bugs.webkit.org/show_bug.cgi?id=49739 for more info.
 
-
-
 ## Polyfilled
 
 These are members which are already polyfilled.
 
 ### Properties
 
-#### Element
-
 - `Element.innerHTML`
-
-#### Node
-
+- `Element.outerHTML` - Only the getter is polyfilled.
 - `Node.childNodes`
 - `Node.firstChild`
 - `Node.lastChild`
+- `Node.nextSibling`
+- `Node.nodeValue` - Doesn't need polyfilling because its return value is `null` for all element nodes.
+- `Node.parentElement`
 - `Node.parentNode`
+- `Node.previousSibling`
 - `Node.textContent`
-
-#### ParentNode
-
+- `NonDocumentTypeChildNode.nextElementSibling`
+- `NonDocumentTypeChildNode.previousElementSibling`
+- `ParentNode.childElementCount`
 - `ParentNode.children`
+- `ParentNode.firstElementChild`
+- `ParentNode.lastElementChild`
 
 ### Methods
-
-#### Node
 
 - `Node.appendChild()`
 - `Node.hasChildNodes()`
@@ -180,69 +178,34 @@ These are members which are already polyfilled.
 - `Node.removeChild()`
 - `Node.replaceChild()`
 
-
-
-## Probably
-
-These are members which are not yet polyfilled but are planned to be.
-
-### Properties
-
-#### ParentNode
-
-- `ParentNode.childElementCount`
-- `ParentNode.firstElementChild`
-- `ParentNode.lastElementChild`
-
-
-
 ## Maybe
 
-These are members which are not yet polyfilled but are up for discussion.
+These are members which are not yet polyfilled for a few reasons:
+
+- They'd probably have to be polyfilled for all elements, not just the host.
+- They may not behave as expected causing confusion.
+- If only part of the finding methods are polyfilled, not polyfilling some may cause confusion.
 
 ### Properties
-
-#### Element
 
 - `Element.id`
 
-#### NonDocumentTypeChildNode
-
-- `NonDocumentTypeChildNode.nextElementSibling`
-- `NonDocumentTypeChildNode.previousElementSibling`
-
-#### Node
-
-- `Node.nodeValue`
-- `Node.nextSibling`
-- `Node.nodeValue`
-- `Node.parentElement`
-- `Node.previousSibling`
-
 ### Methods
 
-#### Element
-
+- `Document.getElementById()`
 - `Element.getElementsByClassName()`
 - `Element.getElementsByTagName()`
 - `Element.getElementsByTagNameNS()`
-
-#### Node
-
-- `Node.cloneNode()`
+- `Element.querySelector()`
+- `Element.querySelectorAll()`
 - `Node.compareDocumentPosition()`
 - `Node.contains()`
-- `Node.normalize()`
-
-
 
 ## Unlikely
 
-These are members which are not polyfilled and probably never will be because it's likely not necessary.
+These are members which are not polyfilled because it's likely not necessary.
 
 ### Properties
-
-#### Element
 
 - `Element.accessKey`
 - `Element.attributes`
@@ -250,17 +213,12 @@ These are members which are not polyfilled and probably never will be because it
 - `Element.className`
 - `Element.namespaceURI`
 - `Element.tagName`
-
-#### Node
-
 - `Node.baseURI`
 - `Node.nodeName`
 - `Node.nodeType`
 - `Node.ownerDocument`
 
 ### Methods
-
-#### Element
 
 - `Element.getAttribute()`
 - `Element.getAttributeNS()`
@@ -269,24 +227,18 @@ These are members which are not polyfilled and probably never will be because it
 - `Element.hasAttribute()`
 - `Element.hasAttributeNS()`
 - `Element.hasAttributes()`
-- `Element.querySelector()`
-- `Element.querySelectorAll()`
 - `Element.releasePointerCapture()`
 - `Element.removeAttribute()`
 - `Element.removeAttributeNS()`
 - `Element.setAttribute()`
 - `Element.setAttributeNS()`
 - `Element.setPointerCapture()`
-
-#### EventTarget
-
 - `EventTarget.addEventListener()`
 - `EventTarget.dispatchEvent()`
 - `EventTarget.removeEventListener()`
-
-#### Node
-
+- `Node.cloneNode()`
 - `Node.isDefaultNamespace()`
 - `Node.isEqualNode()`
 - `Node.lookupNamespaceURI()`
 - `Node.lookupPrefix()`
+- `Node.normalize()`

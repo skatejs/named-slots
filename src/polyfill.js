@@ -5,10 +5,75 @@ import prop from './internal/prop';
 // Helpers.
 
 function applyParentNode (node, parent) {
+  prop(node, 'parentElement', {
+    configurable: true,
+    get () {
+      return parent.nodeType === 1 ? parent : null;
+    }
+  });
+
   prop(node, 'parentNode', {
     configurable: true,
-    get: function () {
+    get () {
       return parent;
+    }
+  });
+
+  prop(node, 'nextSibling', {
+    configurable: true,
+    get () {
+      let index;
+      const parChs = parent.childNodes;
+      const parChsLen = parChs.length;
+      for (let a = 0; a < parChsLen; a++) {
+        if (parChs[a] === node) {
+          index = a;
+          continue;
+        }
+      }
+      return typeof index === 'number' ? parChs[index + 1] : null;
+    }
+  });
+
+  prop(node, 'nextElementSibling', {
+    configurable: true,
+    get () {
+      let next;
+      while ((next = this.nextSibling)) {
+        if (next.nodeType === 1) {
+          return next;
+        }
+      }
+      return null;
+    }
+  });
+
+  prop(node, 'previousSibling', {
+    configurable: true,
+    get () {
+      let index;
+      const parChs = parent.childNodes;
+      const parChsLen = parChs.length;
+      for (let a = 0; a < parChsLen; a++) {
+        if (parChs[a] === node) {
+          index = a;
+          continue;
+        }
+      }
+      return typeof index === 'number' ? parChs[index - 1] : null;
+    }
+  });
+
+  prop(node, 'previousElementSibling', {
+    configurable: true,
+    get () {
+      let prev;
+      while ((prev = this.previousSibling)) {
+        if (prev.nodeType === 1) {
+          return prev;
+        }
+      }
+      return null;
     }
   });
 }

@@ -232,7 +232,45 @@ describe('skatejs-named-slots', function () {
       expect(host.outerHTML).to.equal('<div><div></div></div>');
     });
 
-    it('parentNode', function () {
+    it('nextSibling, previousSibling', function () {
+      const ch1 = document.createElement('div');
+      const ch2 = document.createElement('div');
+
+      // So they can get distributed.
+      ch1.setAttribute('slot', 'slot1');
+      ch2.setAttribute('slot', 'slot2');
+
+      // Create separate slots so each node can go into a separate one.
+      shadow.innerHTML = '<div slot-name="slot1"></div><div slot-name="slot2"></div>';
+
+      // Distribute.
+      host.appendChild(ch1);
+      host.appendChild(ch2);
+
+      expect(ch1.nextSibling).to.equal(ch2);
+      expect(ch2.previousSibling).to.equal(ch1);
+    });
+
+    it('nextElementSibling, previousElementSibling', function () {
+      const ch1 = document.createElement('div');
+      const ch2 = document.createElement('div');
+
+      // So they can get distributed.
+      ch1.setAttribute('slot', 'slot1');
+      ch2.setAttribute('slot', 'slot2');
+
+      // Create separate slots so each node can go into a separate one.
+      shadow.innerHTML = '<div slot-name="slot1"></div><div slot-name="slot2"></div>';
+
+      // Distribute.
+      host.appendChild(ch1);
+      host.appendChild(ch2);
+
+      expect(ch1.nextElementSibling).to.equal(ch2);
+      expect(ch2.previousElementSibling).to.equal(ch1);
+    });
+
+    it('parentElement, parentNode', function () {
       const childNode = document.createElement('div');
 
       host.appendChild(childNode);
@@ -241,6 +279,7 @@ describe('skatejs-named-slots', function () {
       expect(slot.childNodes[0]).to.equal(childNode);
 
       // And this will confirm appendChild has set parentNode.
+      expect(childNode.parentElement).to.equal(host);
       expect(childNode.parentNode).to.equal(host);
 
       // We ensure that removeChild cleans up the parentNode.

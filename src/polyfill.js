@@ -121,13 +121,20 @@ const props = {
     set (val) {
       const div = document.createElement('div');
       const frag = document.createDocumentFragment();
+
+      // TODO: This may not be foolproof with incompatible child nodes.
       div.innerHTML = val;
-      while(this.hasChildNodes()) {
+
+      // Ensure existing nodes are cleaned up properly.
+      while (this.hasChildNodes()) {
         this.removeChild(this.firstChild);
       }
+
+      // Ensures new nodes are set up properly.
       while (div.hasChildNodes()) {
         frag.appendChild(div.firstChild);
       }
+
       this.appendChild(frag);
     }
   },
@@ -157,6 +164,11 @@ const props = {
       return this.childNodes.map(node => node.textContent).join('');
     },
     set (val) {
+      // Ensure existing nodes are cleaned up properly.
+      while (this.hasChildNodes()) {
+        this.removeChild(this.firstChild);
+      }
+
       doForNodesIfSlot(this, val.toString(), function (elem, node, slot) {
         slot.textContent = node;
       });

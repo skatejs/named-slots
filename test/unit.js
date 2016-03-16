@@ -232,6 +232,60 @@ describe('skatejs-named-slots', function () {
       expect(host.outerHTML).to.equal('<div><div></div></div>');
     });
 
+    it('parentNode', function () {
+      const childNode = document.createElement('div');
+
+      host.appendChild(childNode);
+
+      // Ensure it's in fact in the slot.
+      expect(slot.childNodes[0]).to.equal(childNode);
+
+      // And this will confirm appendChild has set parentNode.
+      expect(childNode.parentNode).to.equal(host);
+
+      // We ensure that removeChild cleans up the parentNode.
+      host.removeChild(childNode);
+      expect(childNode.parentNode).to.equal(null);
+
+
+      // Other means of adding.
+
+      // insertBefore
+      const childNodeInsertBefore = document.createElement('div');
+      host.appendChild(childNodeInsertBefore);
+      host.insertBefore(childNode, childNodeInsertBefore);
+      expect(childNode.parentNode).to.equal(host);
+      expect(childNodeInsertBefore.parentNode).to.equal(host);
+      host.removeChild(childNode);
+      host.removeChild(childNodeInsertBefore);
+
+      // replaceChild
+      const childNodeReplaceChild = document.createElement('div');
+      host.appendChild(childNodeReplaceChild);
+      host.replaceChild(childNode, childNodeReplaceChild);
+      expect(childNode.parentNode).to.equal(host);
+      expect(childNodeReplaceChild.parentNode).to.equal(null);
+      host.removeChild(childNode);
+
+
+      // Other means of removing.
+
+      // innerHTML
+      host.appendChild(childNode);
+      host.innerHTML = '';
+      expect(childNode.parentNode).to.equal(null);
+
+      // textContent
+      host.appendChild(childNode);
+      host.textContent = '';
+      expect(childNode.parentNode).to.equal(null);
+
+      // parentNode.removeChild()
+      host.appendChild(childNode);
+      childNode.parentNode.removeChild(childNode);
+      expect(childNode.parentNode).to.equal(null);
+    });
+
     it('textContent', function () {
       expect(host.textContent).to.equal('');
       host.textContent = '<test />';

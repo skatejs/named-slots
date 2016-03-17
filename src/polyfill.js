@@ -1,3 +1,4 @@
+import getSlot from './internal/get-slot';
 import mapPolyfilled from './internal/map-polyfilled';
 import prop from './internal/prop';
 
@@ -110,6 +111,7 @@ const descendantAccessors = {
 // WebKit, this is because of you.
 const canPatchNativeAccessors = !!descendantAccessors.__parentNode.get;
 
+
 // Helpers.
 
 function applyParentNode (node, parent) {
@@ -136,31 +138,6 @@ function doForNodesIfSlot (elem, node, func) {
       func(elem, node, slot);
     }
   });
-}
-
-function getSlot (elem, node) {
-  if (!node) {
-    return;
-  }
-
-  const name = node.getAttribute && node.getAttribute('slot') || 'content';
-
-  if (!elem.__slots) {
-    elem.__slots = {};
-  }
-
-  const slots = elem.__slots;
-
-  if (typeof slots[name] === 'undefined') {
-    const slot = elem.querySelector(`[slot-name="${elem.__shadowId || ''}${name === 'content' ? '' : name}"]`);
-    if (slot) {
-      slots[name] = slot;
-    }
-  }
-
-  if (slots[name]) {
-    return slots[name];
-  }
 }
 
 function makeLikeNodeList (arr) {

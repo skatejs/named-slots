@@ -4,28 +4,179 @@
   (global.skatejsNamedSlots = factory());
 }(this, function () {
 
+  function queryForNamedSlot(host, name) {
+    return host.querySelector('slot[name="' + name + '"], [slot-name="' + name + '"]');
+  }
+
+  function queryForUnnamedSlot(host) {
+    return host.querySelector('slot[name=""], slot:not([name]), [slot-name=""]');
+  }
+
+  function getSlot (host, node) {
+    if (!node) {
+      return;
+    }
+
+    var slotName = node.getAttribute && node.getAttribute('slot');
+    var cacheKey = slotName || 'content';
+
+    if (!host.__slots) {
+      host.__slots = {};
+    }
+
+    var slots = host.__slots;
+
+    // We check for a cached slot first because querying is slow.
+    if (slots[cacheKey]) {
+      var _slotElement = slots[cacheKey];
+
+      // However, we check to see if it was detached. If not, just return it.
+      if (_slotElement.parentNode) {
+        return _slotElement;
+      }
+
+      // if it was detached we should make sure it's cleaned up.
+      delete slots[cacheKey];
+      return null;
+    }
+
+    var calculatedName = (host.__shadowId || '') + (slotName || '');
+    var slotElement = slotName ? queryForNamedSlot(host, calculatedName) : queryForUnnamedSlot(host);
+
+    // Cache it because querying is slow.
+    if (slotElement) {
+      slots[cacheKey] = slotElement;
+    }
+
+    return slots[cacheKey] || null;
+  }
+
   var mapPolyfilled = new WeakMap();
 
   var prop = Object.defineProperty.bind(Object);
 
+  var configurable = true;
+
+  // Cached prototypes.
+  var elProto = Element.prototype;
+  var htmlElProto = HTMLElement.prototype;
+  var nodeProto = Node.prototype;
+
+  // Cached descriptor getters.
+  var descEl = Object.getOwnPropertyDescriptor.bind(Object, elProto);
+  var descNode = Object.getOwnPropertyDescriptor.bind(Object, nodeProto);
+
+  // Properties that must be applied to descendants.
+  var descendantAccessors = {
+    // Natives.
+    __nextElementSibling: descEl('nextElementSibling'),
+    __nextSibling: descNode('nextSibling'),
+    __parentElement: descNode('parentElement'),
+    __parentNode: descNode('parentNode'),
+    __previousElementSibling: descEl('nextElementSibling'),
+    __previousSibling: descNode('previousSibling'),
+
+    // Polyfills.
+    parentElement: {
+      configurable: configurable,
+      get: function get() {
+        if (this.__isLightDom) {
+          var parent = this.parentNode;
+          return parent.nodeType === 1 ? parent : null;
+        }
+        return this.__parentElement;
+      }
+    },
+    parentNode: {
+      configurable: configurable,
+      get: function get() {
+        return this.__polyfilledParentNode || this.__parentNode || null;
+      }
+    },
+    nextSibling: {
+      configurable: configurable,
+      get: function get() {
+        if (this.__isLightDom) {
+          var index = undefined;
+          var parChs = this.parentNode.childNodes;
+          var parChsLen = parChs.length;
+          for (var a = 0; a < parChsLen; a++) {
+            if (parChs[a] === this) {
+              index = a;
+              continue;
+            }
+          }
+          return typeof index === 'number' ? parChs[index + 1] : null;
+        }
+        return this.__nextSibling;
+      }
+    },
+    nextElementSibling: {
+      configurable: configurable,
+      get: function get() {
+        if (this.__isLightDom) {
+          var next = undefined;
+          while (next = this.nextSibling) {
+            if (next.nodeType === 1) {
+              return next;
+            }
+          }
+          return null;
+        }
+        return this.__nextElementSibling;
+      }
+    },
+    previousSibling: {
+      configurable: configurable,
+      get: function get() {
+        if (this.__isLightDom) {
+          var index = undefined;
+          var parChs = this.parentNode.childNodes;
+          var parChsLen = parChs.length;
+          for (var a = 0; a < parChsLen; a++) {
+            if (parChs[a] === this) {
+              index = a;
+              continue;
+            }
+          }
+          return typeof index === 'number' ? parChs[index - 1] : null;
+        }
+        return this.__previousSibling;
+      }
+    },
+    previousElementSibling: {
+      configurable: configurable,
+      get: function get() {
+        if (this.__isLightDom) {
+          var prev = undefined;
+          while (prev = this.previousSibling) {
+            if (prev.nodeType === 1) {
+              return prev;
+            }
+          }
+          return null;
+        }
+        return this.__previousElementSibling;
+      }
+    }
+  };
+
+  // WebKit, this is because of you.
+  var canPatchNativeAccessors = !!descendantAccessors.__parentNode.get;
+
   // Helpers.
 
   function applyParentNode(node, parent) {
-    prop(node, 'parentNode', {
-      configurable: true,
-      get: function get() {
-        return parent;
-      }
-    });
+    node.__isLightDom = true;
+    node.__polyfilledParentNode = parent;
+    if (!canPatchNativeAccessors) {
+      Object.defineProperties(node, descendantAccessors);
+    }
   }
 
   function removeParentNode(node) {
-    prop(node, 'parentNode', {
-      configurable: true,
-      get: function get() {
-        return null;
-      }
-    });
+    node.__isLightDom = false;
+    node.__polyfilledParentNode = null;
   }
 
   function arrayItem(idx) {
@@ -39,31 +190,6 @@
         func(elem, node, slot);
       }
     });
-  }
-
-  function getSlot(elem, node) {
-    if (!node) {
-      return;
-    }
-
-    var name = node.getAttribute && node.getAttribute('slot') || 'content';
-
-    if (!elem.__slots) {
-      elem.__slots = {};
-    }
-
-    var slots = elem.__slots;
-
-    if (typeof slots[name] === 'undefined') {
-      var slot = elem.querySelector('[slot-name="' + (elem.__shadowId || '') + (name === 'content' ? '' : name) + '"]');
-      if (slot) {
-        slots[name] = slot;
-      }
-    }
-
-    if (slots[name]) {
-      return slots[name];
-    }
   }
 
   function makeLikeNodeList(arr) {
@@ -130,13 +256,20 @@
       set: function set(val) {
         var div = document.createElement('div');
         var frag = document.createDocumentFragment();
+
+        // TODO: This may not be foolproof with incompatible child nodes.
         div.innerHTML = val;
+
+        // Ensure existing nodes are cleaned up properly.
         while (this.hasChildNodes()) {
           this.removeChild(this.firstChild);
         }
+
+        // Ensures new nodes are set up properly.
         while (div.hasChildNodes()) {
           frag.appendChild(div.firstChild);
         }
+
         this.appendChild(frag);
       }
     },
@@ -168,6 +301,11 @@
         }).join('');
       },
       set: function set(val) {
+        // Ensure existing nodes are cleaned up properly.
+        while (this.hasChildNodes()) {
+          this.removeChild(this.firstChild);
+        }
+
         doForNodesIfSlot(this, val.toString(), function (elem, node, slot) {
           slot.textContent = node;
         });
@@ -211,6 +349,13 @@
       return refNode;
     }
   };
+
+  // Polyfill the prototypes if we can.
+  if (canPatchNativeAccessors) {
+    // Patch the HTMLElement prototype if we can as it's the highest in the
+    // prototype chain we need to worry about.
+    Object.defineProperties(htmlElProto, descendantAccessors);
+  }
 
   // Polyfills an element.
   function polyfill (elem) {

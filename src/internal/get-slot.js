@@ -1,9 +1,35 @@
+import debounce from 'debounce';
+import mapSlotAddedNodes from './map-slot-added-nodes';
+import mapSlotRemovedNodes from './map-slot-removed-nodes';
+
+function polyfillSlot (slot) {
+  slot.__triggerSlotChangeEvent = debounce(triggerSlotChangeEvent);
+  return slot;
+}
+
 function queryForNamedSlot (host, name) {
   return host.querySelector(`slot[name="${name}"], [slot-name="${name}"]`);
 }
 
 function queryForUnnamedSlot (host) {
   return host.querySelector('slot[name=""], slot:not([name]), [slot-name=""]');
+}
+
+function triggerSlotChangeEvent () {
+  const addedNodes = mapSlotAddedNodes.get(this) || null;
+  const removedNodes = mapSlotRemovedNodes.get(this) || null;
+  const ce = new CustomEvent('slotchange', {
+    bubbles: false,
+    cancelable: false,
+    detail: { addedNodes, removedNodes }
+  });
+
+  // Clean up the added / removed nodes before any side-effects can happen from
+  // triggering the event.
+  mapSlotAddedNodes.set(this, null);
+  mapSlotRemovedNodes.set(this, null);
+
+  this.dispatchEvent(ce);
 }
 
 export default function (host, node) {
@@ -39,7 +65,7 @@ export default function (host, node) {
 
   // Cache it because querying is slow.
   if (slotElement) {
-    slots[cacheKey] = slotElement;
+    slots[cacheKey] = polyfillSlot(slotElement);
   }
 
   return slots[cacheKey] || null;

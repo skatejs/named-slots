@@ -2,8 +2,6 @@
 
 A polygap (partial polyfill) for the Shadow DOM Named Slot API using SkateJS.
 
-Working example: http://jsbin.com/yabesi/6
-
 
 
 ## Why
@@ -33,36 +31,38 @@ Your consuemrs may use it like so:
 Your shadow root may be templated out like:
 
 ```html
-<div class="wrapper" slot-name=""></div>
+<div class="wrapper">
+  <slot />
+</div>
 ```
 
 Which would result in:
 
 ```html
 <my-component id="example">
-  <div class="wrapper" slot-name="">
-    <p>paragraph 1</p>
-    <p>paragraph 2</p>
+  <div class="wrapper">
+    <slot>
+      <p>paragraph 1</p>
+      <p>paragraph 2</p>
+    </slot>
   </div>
 </my-component>
 ```
 
-Instead of using `<slot />` elements, we use a `slot-name` attribute to search for slots. This is because a there is no clear path right now in how you would distribute list items into a `<ul />` or rows into a `<tbody />` if they don't accept a `<slot />` element to distribute to.
-
-This is an implementation detail that your consumers do not need to be aware of and ensures that you can distribute nodes everywhere without worrying about how a browser might behave.
+We support the usage of the `<slot />` element as specified in the Shadow DOM spec as well as any element that has a `slot-name` attribute. Using the `slot-name` attribute is non-standard, but we support it because a there is no clear path right now in how you would distribute list items into a `<ul />` or rows into a `<tbody />` if they don't accept a `<slot />` element to distribute to. This is an implementation detail that your consumers do not need to worry about. They still only have to worry about putting the `slot` attribute on whatever element they want to be slotted. Most of the time you'll be using `<slot>`, but for the edge-cases, you have `slot-name`.
 
 
 
 ## Usage
 
-To render a shadow root and distribute initial content, use the `render` function:
+To render a shadow root and distribute initial content, the simplest way is to use the `render` function:
 
 ```js
 import { render } from 'skatejs-named-slots';
 
 const div = document.createElement('div'):
 const template = render(function (elem, shadowRoot) {
-  shadowRoot.innerHTML = '<div class="wrapper" slot-name=""></div>';
+  shadowRoot.innerHTML = '<div class="wrapper"><slot></slot></div>';
 });
 
 // Set initial light DOM.
@@ -88,7 +88,7 @@ import { render } from 'skatejs-named-slots';
 
 skate('my-component', {
   render: render(function (elem, shadowRoot) {
-    shadoRoot.innerHTML = '<div class="wrapper" slot-name=""></div>';
+    shadoRoot.innerHTML = '<div class="wrapper"><slot></slot></div>';
   })
 });
 ```
@@ -100,17 +100,17 @@ skate('my-component', {
 And if you like writing in a more functional way, [Kickflip](https://github.com/skatejs/kickflip) blends this polygap with Skate.
 
 ```js
-import { slot } from 'kickflip/src/vdom';
+import { div, slot } from 'kickflip/src/vdom';
 import kickflip from 'kickflip';
 
 kickflip('my-component', {
   render (elem) {
-    slot({ class: 'wrapper', type: 'div' });
+    div({ class: 'wrapper' }, function () {
+      slot();
+    });
   }
 });
 ```
-
-Kickflip has a `slot()` element helper that ensures a `slot-name` attribute is applied while making it look like you're declaring a `<slot />` element. It will render a `<slot />` element by default unless you specify a `type` option which allows you to render slots as `<ul />`'s or `<tbody />`'s.
 
 
 
@@ -145,6 +145,8 @@ Note:
 - All members which are not standardised or are listed as experimental are not included in these lists.
 - Members are only polyfilled on the specific web component unless otherwise noted.
 - Members must be overridden on the instance rather than prototype because WebKit has a bug that prevents correct descritpors from being returned using [`Object.getOwnPropertyDescriptor()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor) See https://bugs.webkit.org/show_bug.cgi?id=49739 for more info.
+
+
 
 ## Polyfilled
 

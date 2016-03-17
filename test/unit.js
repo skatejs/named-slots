@@ -2,6 +2,7 @@ import polyfill from '../src/index';
 import version from '../src/version';
 
 import './unit/internal/get-slot';
+import './unit/slotchange-event.js';
 
 describe('skatejs-named-slots', function () {
   it('version', function () {

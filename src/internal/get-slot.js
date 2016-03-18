@@ -2,6 +2,11 @@ import debounce from 'debounce';
 import mapSlotAddedNodes from './map-slot-added-nodes';
 import mapSlotRemovedNodes from './map-slot-removed-nodes';
 
+function clearSlotNodeData (slot) {
+  mapSlotAddedNodes.set(slot, null);
+  mapSlotRemovedNodes.set(slot, null);
+}
+
 function polyfillSlot (slot) {
   slot.__triggerSlotChangeEvent = debounce(triggerSlotChangeEvent);
   return slot;
@@ -16,19 +21,21 @@ function queryForUnnamedSlot (host) {
 }
 
 function triggerSlotChangeEvent () {
-  const addedNodes = mapSlotAddedNodes.get(this) || null;
-  const removedNodes = mapSlotRemovedNodes.get(this) || null;
+  const addedNodes = mapSlotAddedNodes.get(this) || [];
+  const removedNodes = mapSlotRemovedNodes.get(this) || [];
+
+  // Don't do anything if nothing changed.
+  if (!addedNodes.length && !removedNodes.length) {
+    return clearSlotNodeData(this);
+  }
+
   const ce = new CustomEvent('slotchange', {
     bubbles: false,
     cancelable: false,
     detail: { addedNodes, removedNodes }
   });
 
-  // Clean up the added / removed nodes before any side-effects can happen from
-  // triggering the event.
-  mapSlotAddedNodes.set(this, null);
-  mapSlotRemovedNodes.set(this, null);
-
+  clearSlotNodeData(this);
   this.dispatchEvent(ce);
 }
 

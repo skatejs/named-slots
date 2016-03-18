@@ -1,13 +1,9 @@
 import getSlot from './internal/get-slot';
-import mapAddedNodeIndex from './internal/map-added-node-index';
 import mapNodeIsLightDom from './internal/map-node-is-light-dom';
 import mapPolyfilled from './internal/map-polyfilled';
 import mapPolyfilledLightNode from './internal/map-polyfilled-light-node';
 import mapPolyfilledParentNode from './internal/map-polyfilled-parent-node';
-import mapRemovedNodeIndex from './internal/map-removed-node-index';
-import mapSlotAddedNodes from './internal/map-slot-added-nodes';
 import mapSlotChangeListeners from './internal/map-slot-change-listeners';
-import mapSlotRemovedNodes from './internal/map-slot-removed-nodes';
 import prop from './internal/prop';
 
 const nodeProto = Node.prototype;
@@ -71,49 +67,6 @@ function nodeToArray (node) {
 
 function toArray (obj) {
   return Array.prototype.slice.call(obj);
-}
-
-
-// Helpers for adding / removing information about slotted nodes.
-
-function addSlotNode (slot, node) {
-  if (!mapSlotChangeListeners.get(slot)) {
-    return;
-  }
-
-  const addedNodes = mapSlotAddedNodes.get(slot) || [];
-  const addedNodeIndex = addedNodes.length;
-  const removedNodes = mapSlotRemovedNodes.get(slot);
-  const removedNodeIndex = mapRemovedNodeIndex.get(node);
-
-  if (typeof removedNodeIndex === 'number') {
-    mapRemovedNodeIndex.set(node, null);
-    removedNodes.splice(removedNodeIndex, 1);
-  } else {
-    addedNodes.push(node);
-    mapSlotAddedNodes.set(slot, addedNodes);
-    mapAddedNodeIndex.set(node, addedNodeIndex);
-  }
-}
-
-function removeSlotNode (slot, node) {
-  if (!mapSlotChangeListeners.get(slot)) {
-    return;
-  }
-
-  const removedNodes = mapSlotRemovedNodes.get(slot) || [];
-  const removedNodeIndex = removedNodes.length;
-  const addedNodes = mapSlotAddedNodes.get(slot);
-  const addedNodeIndex = mapAddedNodeIndex.get(node);
-
-  if (typeof addedNodeIndex === 'number') {
-    mapAddedNodeIndex.set(node, null);
-    addedNodes.splice(addedNodeIndex, 1);
-  } else {
-    removedNodes.push(node);
-    mapSlotRemovedNodes.set(slot, removedNodes);
-    mapRemovedNodeIndex.set(node, removedNodeIndex);
-  }
 }
 
 
@@ -313,7 +266,6 @@ const funcs = {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
       slot.appendChild(node);
       applyParentNode(node, elem);
-      addSlotNode(slot, node);
     });
     return newNode;
   },
@@ -324,7 +276,6 @@ const funcs = {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
       slot.insertBefore(node, refNode);
       applyParentNode(node, elem);
-      addSlotNode(slot, node);
     });
     return newNode;
   },
@@ -332,7 +283,6 @@ const funcs = {
     doForNodesIfSlot(this, refNode, function (elem, node, slot) {
       slot.removeChild(node);
       removeParentNode(node);
-      removeSlotNode(slot, node);
     });
     return refNode;
   },
@@ -354,7 +304,6 @@ const funcs = {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
       slot.insertBefore(node, insertBefore);
       applyParentNode(node, elem);
-      addSlotNode(slot, node);
     });
 
     return refNode;

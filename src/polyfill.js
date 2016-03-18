@@ -1,8 +1,10 @@
 import getSlot from './internal/get-slot';
+import mapAddedNodeIndex from './internal/map-added-node-index';
 import mapNodeIsLightDom from './internal/map-node-is-light-dom';
 import mapPolyfilled from './internal/map-polyfilled';
 import mapPolyfilledLightNode from './internal/map-polyfilled-light-node';
 import mapPolyfilledParentNode from './internal/map-polyfilled-parent-node';
+import mapRemovedNodeIndex from './internal/map-removed-node-index';
 import mapSlotAddedNodes from './internal/map-slot-added-nodes';
 import mapSlotChangeListeners from './internal/map-slot-change-listeners';
 import mapSlotRemovedNodes from './internal/map-slot-removed-nodes';
@@ -10,6 +12,7 @@ import prop from './internal/prop';
 
 const nodeProto = Node.prototype;
 const elProto = Element.prototype;
+const htmlElProto = HTMLElement.prototype;
 
 const configurable = true;
 const canPatchNativeAccessors = !!Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode').get;
@@ -72,9 +75,6 @@ function toArray (obj) {
 
 
 // Helpers for adding / removing information about slotted nodes.
-
-const mapAddedNodeIndex = new WeakMap();
-const mapRemovedNodeIndex = new WeakMap();
 
 function addSlotNode (slot, node) {
   if (!mapSlotChangeListeners.get(slot)) {
@@ -309,24 +309,7 @@ const lightProps = {
 // Method overrides.
 
 const funcs = {
-  addEventListener (name, func, opts) {
-    if (name === 'slotchange') {
-      let listeners = mapSlotChangeListeners.get(this) || 0;
-      mapSlotChangeListeners.set(this, ++listeners);
-    }
-    return this.__addEventListener(name, func, opts);
-  },
-  removeEventListener (name, func, opts) {
-    if (name === 'slotchange') {
-      let listeners = mapSlotChangeListeners.get(this) || 1;
-      mapSlotChangeListeners.set(this, --listeners);
-    }
-    return this.__removeEventListener(name, func, opts);
-  },
   appendChild (newNode) {
-    if (!mapPolyfilled.get(this)) {
-      return this.__appendChild(newNode);
-    }
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
       slot.appendChild(node);
       applyParentNode(node, elem);
@@ -335,15 +318,9 @@ const funcs = {
     return newNode;
   },
   hasChildNodes () {
-    if (!mapPolyfilled.get(this)) {
-      return this.__hasChildNodes();
-    }
     return this.childNodes.length > 0;
   },
   insertBefore (newNode, refNode) {
-    if (!mapPolyfilled.get(this)) {
-      return this.__insertBefore(newNode, refNode);
-    }
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
       slot.insertBefore(node, refNode);
       applyParentNode(node, elem);
@@ -352,9 +329,6 @@ const funcs = {
     return newNode;
   },
   removeChild (refNode) {
-    if (!mapPolyfilled.get(this)) {
-      return this.__removeChild(refNode);
-    }
     doForNodesIfSlot(this, refNode, function (elem, node, slot) {
       slot.removeChild(node);
       removeParentNode(node);
@@ -363,10 +337,6 @@ const funcs = {
     return refNode;
   },
   replaceChild (newNode, refNode) {
-    if (!mapPolyfilled.get(this)) {
-      return this.__replaceChild(newNode, refNode);
-    }
-
     // If the ref node is not in the light DOM, just return it.
     if (refNode.parentNode !== this) {
       return refNode;
@@ -392,14 +362,6 @@ const funcs = {
 };
 
 
-// Polyfill methods and store overridden ones.
-for (let name in funcs) {
-  const proto = nodeProto.hasOwnProperty(name) ? nodeProto : elProto;
-  proto[`__${name}`] = proto[name];
-  proto[name] = funcs[name];
-}
-
-
 // If we can patch native accessors, we can safely apply light DOM accessors to
 // all HTML elements. This is faster than polyfilling them individually as they
 // are added, if possible, and doesn't have a measurable impact on performance
@@ -413,6 +375,27 @@ if (canPatchNativeAccessors) {
 }
 
 
+// Patch add/removeEventListener() so that we can keep track of slotchange
+// events. Since we support <slot> elements and normal elements - due to some
+// quirks that cannot be polyfilled - we add this to HTMLElement.
+const addEventListener = htmlElProto.addEventListener;
+const removeEventListener = htmlElProto.removeEventListener;
+htmlElProto.addEventListener = function (name, func, opts) {
+  if (name === 'slotchange') {
+    let listeners = mapSlotChangeListeners.get(this) || 0;
+    mapSlotChangeListeners.set(this, ++listeners);
+  }
+  return addEventListener.call(this, name, func, opts);
+};
+htmlElProto.removeEventListener = function (name, func, opts) {
+  if (name === 'slotchange') {
+    let listeners = mapSlotChangeListeners.get(this) || 1;
+    mapSlotChangeListeners.set(this, --listeners);
+  }
+  return removeEventListener.call(this, name, func, opts);
+};
+
+
 // Polyfills a host element.
 export default function polyfill (elem) {
   if (mapPolyfilled.get(elem)) {
@@ -421,6 +404,10 @@ export default function polyfill (elem) {
 
   for (let name in hostProps) {
     prop(elem, name, hostProps[name]);
+  }
+
+  for (let name in funcs) {
+    elem[name] = funcs[name];
   }
 
   mapPolyfilled.set(elem, true);

@@ -1,5 +1,5 @@
-import * as hostData from './data';
-import * as lightData from '../light/data';
+import { polyfilled } from './data';
+import { parentNode, slotted } from '../light/data';
 import { appendChild, insertBefore, removeChild } from '../slot/content';
 import assignFuncs from '../util/assign-funcs';
 import assignProps from '../util/assign-props';
@@ -15,14 +15,14 @@ const configurable = true;
 // Fake parentNode helpers.
 
 function applyParentNode (node, parent) {
-  lightData.slotted.set(node, true);
-  lightData.parentNode.set(node, parent);
+  slotted.set(node, true);
+  parentNode.set(node, parent);
   lightPolyfill(node);
 }
 
 function removeParentNode (node) {
-  lightData.slotted.set(node, false);
-  lightData.parentNode.set(node, null);
+  slotted.set(node, false);
+  parentNode.set(node, null);
 }
 
 
@@ -212,10 +212,10 @@ function polyfill (host) {
 }
 
 export default function (host) {
-  if (hostData.polyfilled.get(host)) {
+  if (polyfilled.get(host)) {
     return;
   }
   polyfill(host);
-  hostData.polyfilled.set(host, true);
+  polyfilled.set(host, true);
   return host;
 }

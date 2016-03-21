@@ -6,7 +6,7 @@ import assignProps from '../util/assign-props';
 import fragFromHtml from '../util/frag-from-html';
 import getSlot from './get-slot';
 import htmlFromFrag from '../util/html-from-frag';
-import polyfillLight from '../light/polyfill';
+import lightPolyfill from '../light/polyfill';
 
 
 const configurable = true;
@@ -17,7 +17,7 @@ const configurable = true;
 function applyParentNode (node, parent) {
   lightData.slotted.set(node, true);
   lightData.parentNode.set(node, parent);
-  polyfillLight(node);
+  lightPolyfill(node);
 }
 
 function removeParentNode (node) {

@@ -66,7 +66,7 @@ function toArray (obj) {
 
 // Prop overrides.
 
-const hostProps = {
+const props = {
   childElementCount: {
     configurable,
     get () {
@@ -207,7 +207,7 @@ const funcs = {
 
 
 function polyfill (host) {
-  assignProps(host, hostProps);
+  assignProps(host, props);
   assignFuncs(host, funcs);
 }
 

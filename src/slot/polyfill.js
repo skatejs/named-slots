@@ -1,4 +1,4 @@
-import * as data from './data';
+import { assignedNodes, changeListeners, debouncedTriggerSlotChangeEvent, fallbackNodes, fallbackState, polyfilled } from './data';
 import assignFuncs from '../util/assign-funcs';
 import assignProps from '../util/assign-props';
 import createPlaceholderFragment from '../util/create-placeholder-fragment';
@@ -13,19 +13,19 @@ function copyInitialFallbackContent (slot, frag) {
 }
 
 function getAssignedNodes (slot ) {
-  return data.assignedNodes.get(slot);
+  return assignedNodes.get(slot);
 }
 
 function getAssignedNodesDeep (slot) {
-  return data.assignedNodes.get(slot);
+  return assignedNodes.get(slot);
 }
 
 function getFallbackNodes (slot) {
-  return data.fallbackNodes.get(slot);
+  return fallbackNodes.get(slot);
 }
 
 function shouldAffectSlot (slot) {
-  return data.fallbackState.get(slot);
+  return fallbackState.get(slot);
 }
 
 function triggerSlotChangeEvent (slot) {
@@ -147,15 +147,15 @@ const addEventListener = htmlElProto.addEventListener;
 const removeEventListener = htmlElProto.removeEventListener;
 htmlElProto.addEventListener = function (name, func, opts) {
   if (name === 'slotchange') {
-    let listeners = data.changeListeners.get(this) || 0;
-    data.changeListeners.set(this, ++listeners);
+    let listeners = changeListeners.get(this) || 0;
+    changeListeners.set(this, ++listeners);
   }
   return addEventListener.call(this, name, func, opts);
 };
 htmlElProto.removeEventListener = function (name, func, opts) {
   if (name === 'slotchange') {
-    let listeners = data.changeListeners.get(this) || 1;
-    data.changeListeners.set(this, --listeners);
+    let listeners = changeListeners.get(this) || 1;
+    changeListeners.set(this, --listeners);
   }
   return removeEventListener.call(this, name, func, opts);
 };
@@ -163,10 +163,10 @@ htmlElProto.removeEventListener = function (name, func, opts) {
 function polyfill (slot) {
   const fragAssignedNodes = createPlaceholderFragment();
   const fragFallbackNodes = createPlaceholderFragment();
-  data.assignedNodes.set(slot, fragAssignedNodes);
-  data.fallbackNodes.set(slot, fragFallbackNodes);
-  data.fallbackState.set(slot, true);
-  data.debouncedTriggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
+  assignedNodes.set(slot, fragAssignedNodes);
+  fallbackNodes.set(slot, fragFallbackNodes);
+  fallbackState.set(slot, true);
+  debouncedTriggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
   copyInitialFallbackContent(slot, fragFallbackNodes);
   assignProps(slot, props);
   originalFuncs.forEach(fn => slot['__' + fn] = slot[fn]);
@@ -174,10 +174,10 @@ function polyfill (slot) {
 }
 
 export default function (slot) {
-  if (data.polyfilled.get(slot)) {
+  if (polyfilled.get(slot)) {
     return slot;
   }
   polyfill(slot);
-  data.polyfilled.set(slot, true);
+  polyfilled.set(slot, true);
   return slot;
 }

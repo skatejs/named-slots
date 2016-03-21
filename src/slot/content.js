@@ -1,4 +1,4 @@
-import { assignedNodes, changeListeners, fallbackNodes, fallbackState, debouncedTriggerSlotChangeEvent } from './data';
+import { assignedNodes, changeListeners, debouncedTriggerSlotChangeEvent, fallbackNodes, fallbackState } from './data';
 
 function removeFromSlot (frag, slot) {
   frag.childNodes.forEach(ch => slot.__removeChild(ch));

@@ -23,7 +23,7 @@ describe('add / remove', function () {
 
   bench('prollyfill (default slot)', function () {
     const elem = div();
-    elem.innerHTML = '<div slot-name></div>';
+    elem.innerHTML = '<slot></slot>';
     polyfill(elem);
     return { elem, fn };
   });

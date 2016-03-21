@@ -1,4 +1,5 @@
 import assignFuncs from './internal/assign-funcs';
+import assignProp from './internal/assign-prop';
 import assignProps from './internal/assign-props';
 import canPatchNativeAccessors from './internal/can-patch-native-accessors';
 import copyChildNodes from './internal/copy-child-nodes';
@@ -9,7 +10,6 @@ import mapNodeIsLightDom from './internal/map-node-is-light-dom';
 import mapPolyfilled from './internal/map-polyfilled';
 import mapPolyfilledLightNode from './internal/map-polyfilled-light-node';
 import mapPolyfilledParentNode from './internal/map-polyfilled-parent-node';
-import mapSlotAssignedNodes from './internal/map-slot-assigned-nodes';
 import mapSlotChangeListeners from './internal/map-slot-change-listeners';
 import removeChildNodes from './internal/remove-child-nodes';
 
@@ -307,7 +307,7 @@ const funcs = {
 if (canPatchNativeAccessors) {
   for (let name in lightProps) {
     const proto = nodeProto.hasOwnProperty(name) ? nodeProto : elProto;
-    assignProps(proto, lightProps, '__');
+    assignProp(proto, name, lightProps[name], '__');
   }
 }
 

@@ -1,11 +1,7 @@
-import propGet from './prop-get';
-import propSet from './prop-set';
+import assignProp from './assign-prop';
 
-export default function (elem, props, prefix) {
+export default function (obj, props, prefix) {
   for (let name in props) {
-    if (prefix) {
-      propSet(elem, prefix + name, propGet(elem, name));
-    }
-    propSet(elem, name, props[name]);
+    assignProp(obj, name, props[name], prefix);
   }
 }

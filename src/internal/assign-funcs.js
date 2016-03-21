@@ -1,8 +1,7 @@
-export default function (elem, funcs, prefix) {
-  for (let a in funcs) {
-    if (prefix) {
-      elem[prefix + a] = elem[a];
-    }
-    elem[a] = funcs[a];
+import assignFunc from './assign-func';
+
+export default function (obj, funcs, prefix) {
+  for (let name in funcs) {
+    assignFunc(obj, name, funcs[name], prefix);
   }
 }

@@ -1,6 +1,6 @@
 import * as hostData from './data';
 import * as lightData from '../light/data';
-import * as slotFuncs from '../slot/content';
+import { appendChild, insertBefore, removeChild } from '../slot/content';
 import assignFuncs from '../util/assign-funcs';
 import assignProps from '../util/assign-props';
 import fragFromHtml from '../util/frag-from-html';
@@ -159,7 +159,7 @@ const props = {
 const funcs = {
   appendChild (newNode) {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      slotFuncs.appendChild(slot, node);
+      appendChild(slot, node);
       applyParentNode(node, elem);
     });
     return newNode;
@@ -169,14 +169,14 @@ const funcs = {
   },
   insertBefore (newNode, refNode) {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      slotFuncs.insertBefore(slot, node, refNode);
+      insertBefore(slot, node, refNode);
       applyParentNode(node, elem);
     });
     return newNode;
   },
   removeChild (refNode) {
     doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-      slotFuncs.removeChild(slot, node);
+      removeChild(slot, node);
       removeParentNode(node);
     });
     return refNode;
@@ -197,7 +197,7 @@ const funcs = {
 
     // Add new nodes in place of the reference node.
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      slotFuncs.insertBefore(slot, node, insertBefore);
+      insertBefore(slot, node, insertBefore);
       applyParentNode(node, elem);
     });
 

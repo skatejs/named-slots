@@ -80,7 +80,7 @@ const props = {
       if (slots) {
         for (let name in slots) {
           const slot = slots[name];
-          const childNodes = slot.getAssignedNodes().childNodes;
+          const childNodes = slot.getAssignedNodes();
           const childNodesLen = childNodes.length;
           for (let a = 0; a < childNodesLen; a++) {
             nodes.push(childNodes[a]);

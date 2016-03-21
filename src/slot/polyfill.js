@@ -1,15 +1,17 @@
 import { assignedNodes, changeListeners, debouncedTriggerSlotChangeEvent, fallbackNodes, fallbackState, polyfilled } from './data';
 import assignFuncs from '../util/assign-funcs';
 import assignProps from '../util/assign-props';
-import createPlaceholderFragment from '../util/create-placeholder-fragment';
 import debounce from 'debounce';
+import fragFromHtml from '../util/frag-from-html';
 
-function copyInitialFallbackContent (slot, frag) {
+function getInitialFallbackContent (slot) {
+  const arr = [];
   const chs = slot.childNodes;
   const chsLen = chs.length;
   for (let a = 0; a < chsLen; a++) {
-    frag.appendChild(chs[a]);
+    arr.push(chs[a]);
   }
+  return arr;
 }
 
 function getAssignedNodes (slot ) {
@@ -36,12 +38,54 @@ function triggerSlotChangeEvent (slot) {
 }
 
 const props = {
+  childElementCount: {
+    get () {
+      return this.children.length;
+    }
+  },
+  childNodes: {
+    get () {
+      return fallbackNodes.get(this);
+    }
+  },
+  children: {
+    get () {
+      return this.childNodes.filter(node => node.nodeType === 1);
+    }
+  },
+  firstChild: {
+    get () {
+      return this.childNodes[0] || null;
+    }
+  },
+  firstElementChild: {
+    get () {
+      return this.children[0] || null;
+    }
+  },
   innerHTML: {
     get () {
-      return getFallbackNodes(this).innerHTML;
+      return fallbackNodes.get(this).map(node => node.outerHTML).join('');
     },
     set (innerHTML) {
-      getFallbackNodes(this).innerHTML = innerHTML;
+      fallbackNodes.set(this, []);
+      const chs = fragFromHtml(innerHTML).childNodes;
+      const chsLen = chs.length;
+      for (let a = chsLen - 1; a >= 0; a--) {
+        this.insertBefore(chs[a], this.firstChild);
+      }
+    }
+  },
+  lastChild: {
+    get () {
+      const chs = this.childNodes;
+      return chs[chs.length - 1] || null;
+    }
+  },
+  lastElementChild: {
+    get () {
+      const chs = this.children;
+      return chs[chs.length - 1] || null;
     }
   },
   name: {
@@ -64,76 +108,48 @@ const props = {
           str += ` ${attr.nodeName || attr.name}="${attr.nodeValue}"`;
         }
       }
-      return str + '>' + getFallbackNodes(this).innerHTML + `</${tag}>`;
-    }
-  },
-  childNodes: {
-    get () {
-      return getFallbackNodes(this).childNodes;
-    }
-  },
-  firstChild: {
-    get () {
-      return getFallbackNodes(this).firstChild;
-    }
-  },
-  lastChild: {
-    get () {
-      return getFallbackNodes(this).lastChild;
+      return str + '>' + this.innerHTML + `</${tag}>`;
     }
   },
   textContent: {
     get () {
-      return getFallbackNodes(this).textContent;
+      return fallbackNodes.get(this).map(node => node.textContent).join('');
     },
     set (textContent) {
-      getFallbackNodes(this).textContent = textContent;
+      fallbackNodes.set(this, [document.createTextNode(textContent)]);
     }
   },
-  childElementCount: {
-    get () {
-      return getFallbackNodes(this).childElementCount;
-    }
-  },
-  children: {
-    get () {
-      return getFallbackNodes(this).children;
-    }
-  },
-  firstElementChild: {
-    get () {
-      return getFallbackNodes(this).firstElementChild;
-    }
-  },
-  lastElementChild: {
-    get () {
-      return getFallbackNodes(this).lastElementChild;
-    }
-  }
 };
 
 const funcs = {
   appendChild (newNode) {
     shouldAffectSlot(this) && this.__appendChild(newNode);
-    return getFallbackNodes(this).appendChild(newNode);
+    getFallbackNodes(this).push(newNode);
+    return newNode;
   },
   getAssignedNodes (opts = {}) {
     return opts.deep ? getAssignedNodesDeep(this) : getAssignedNodes(this);
   },
   hasChildNodes () {
-    return getFallbackNodes(this).hasChildNodes();
+    return !!getFallbackNodes(this).length;
   },
   insertBefore (newNode, refNode) {
+    const fb = fallbackNodes.get(this);
     shouldAffectSlot(this) && this.__insertBefore(newNode, refNode);
-    return getFallbackNodes(this).insertBefore(newNode, refNode);
+    fb.splice(fb.indexOf(refNode), 0, newNode);
+    return newNode;
   },
   removeChild (refNode) {
+    const fb = fallbackNodes.get(this);
     shouldAffectSlot(this) && this.__removeChild(refNode);
-    return getFallbackNodes(this).removeChild(refNode);
+    fb.splice(fb.indexOf(refNode), 1);
+    return refNode;
   },
   replaceChild (newNode, refNode) {
+    const fb = fallbackNodes.get(this);
     shouldAffectSlot(this) && this.__replaceChild(newNode, refNode);
-    return getFallbackNodes(this).replaceChild(newNode, refNode);
+    fb.splice(fb.indexOf(refNode), 1, newNode);
+    return refNode;
   }
 };
 
@@ -161,13 +177,10 @@ htmlElProto.removeEventListener = function (name, func, opts) {
 };
 
 function polyfill (slot) {
-  const fragAssignedNodes = createPlaceholderFragment();
-  const fragFallbackNodes = createPlaceholderFragment();
-  assignedNodes.set(slot, fragAssignedNodes);
-  fallbackNodes.set(slot, fragFallbackNodes);
+  assignedNodes.set(slot, []);
+  fallbackNodes.set(slot, getInitialFallbackContent(slot));
   fallbackState.set(slot, true);
   debouncedTriggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
-  copyInitialFallbackContent(slot, fragFallbackNodes);
   assignProps(slot, props);
   originalFuncs.forEach(fn => slot['__' + fn] = slot[fn]);
   assignFuncs(slot, funcs);

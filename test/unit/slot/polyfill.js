@@ -91,7 +91,7 @@ describe('slot/polyfill', function () {
   });
 
   it('HTMLSlotElement.getAssignedNodes()', function () {
-    expect(slot.getAssignedNodes().childNodes.length).to.equal(0);
+    expect(slot.getAssignedNodes().length).to.equal(0);
   });
 
   it('HTMLSlotElement.getAssignedNodes({ deep: true })', function () {

@@ -13,13 +13,13 @@ describe('fallback-content', function () {
 
   describe('without fallback content', function () {
     it('should have no fallback nodes', function () {
-      expect(data.fallbackNodes.get(slot).childNodes.length).to.equal(0);
+      expect(data.fallbackNodes.get(slot).length).to.equal(0);
       expect(slot.childNodes.length).to.equal(0);
     });
 
     it('should have no assigned nodes', function () {
-      expect(data.assignedNodes.get(slot).childNodes.length).to.equal(0);
-      expect(slot.getAssignedNodes().childNodes.length).to.equal(0);
+      expect(data.assignedNodes.get(slot).length).to.equal(0);
+      expect(slot.getAssignedNodes().length).to.equal(0);
     });
 
     it('should be in a fallback state', function () {
@@ -36,14 +36,14 @@ describe('fallback-content', function () {
     });
 
     it('should have fallback nodes', function () {
-      const fallbackNodes = data.fallbackNodes.get(slot).childNodes;
+      const fallbackNodes = data.fallbackNodes.get(slot);
       expect(fallbackNodes.length).to.equal(1);
       expect(fallbackNodes[0]).to.equal(fallback);
     });
 
     it('should have no assigned nodes', function () {
-      expect(data.assignedNodes.get(slot).childNodes.length).to.equal(0);
-      expect(slot.getAssignedNodes().childNodes.length).to.equal(0);
+      expect(data.assignedNodes.get(slot).length).to.equal(0);
+      expect(slot.getAssignedNodes().length).to.equal(0);
     });
 
     it('should be in a fallback state', function () {
@@ -59,7 +59,7 @@ describe('fallback-content', function () {
       });
 
       it('should contain assigned nodes', function () {
-        expect(slot.getAssignedNodes().childNodes[0]).to.equal(newNode);
+        expect(slot.getAssignedNodes()[0]).to.equal(newNode);
       });
 
       it('should not be in a fallback state', function () {
@@ -72,7 +72,7 @@ describe('fallback-content', function () {
         });
 
         it('should not contain the assigned nodes', function () {
-          expect(slot.getAssignedNodes().childNodes.length).to.equal(0);
+          expect(slot.getAssignedNodes().length).to.equal(0);
         });
 
         it('should return to a fallback state', function () {

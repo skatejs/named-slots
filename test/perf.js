@@ -1,5 +1,5 @@
 import bench from '../lib/bench';
-import polyfill from '../../src/polyfill';
+import polyfill from '../../src/host/polyfill';
 
 describe('add / remove', function () {
   const div = document.createElement.bind(document, 'div');

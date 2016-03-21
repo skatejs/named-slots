@@ -137,6 +137,8 @@ const funcs = {
   }
 };
 
+const originalFuncs = ['appendChild', 'insertBefore', 'removeChild', 'replaceChild'];
+
 // Patch add/removeEventListener() so that we can keep track of slotchange
 // events. Since we support <slot> elements and normal elements - due to some
 // quirks that cannot be polyfilled - we add this to HTMLElement.
@@ -167,7 +169,8 @@ function polyfill (slot) {
   data.debouncedTriggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
   copyInitialFallbackContent(slot, fragFallbackNodes);
   assignProps(slot, props);
-  assignFuncs(slot, funcs, '__');
+  originalFuncs.forEach(fn => slot['__' + fn] = slot[fn]);
+  assignFuncs(slot, funcs);
 }
 
 export default function (slot) {

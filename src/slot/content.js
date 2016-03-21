@@ -1,7 +1,7 @@
-import * as data from './data';
+import { assignedNodes, changeListeners, fallbackNodes, fallbackState, debouncedTriggerSlotChangeEvent } from './data';
 
 function get (slot) {
-  return data.assignedNodes.get(slot);
+  return assignedNodes.get(slot);
 }
 
 function removeFromSlot (frag, slot) {
@@ -13,7 +13,7 @@ function moveIntoSlot (frag, slot) {
 }
 
 function shouldAffectSlot (slot) {
-  return !data.fallbackState.get(slot);
+  return !fallbackState.get(slot);
 }
 
 function triggerSideEffects (slot) {
@@ -46,26 +46,26 @@ export function replaceChild (slot, newNode, refNode) {
 }
 
 export function toggle (slot) {
-  const assignedNodes = data.assignedNodes.get(slot);
-  const fallbackNodes = data.fallbackNodes.get(slot);
+  const aNodes = assignedNodes.get(slot);
+  const fNodes = fallbackNodes.get(slot);
 
-  if (data.fallbackState.get(slot)) {
-    if (assignedNodes.hasChildNodes()) {
-      removeFromSlot(fallbackNodes, slot);
-      moveIntoSlot(assignedNodes, slot);
-      data.fallbackState.set(slot, false);
+  if (fallbackState.get(slot)) {
+    if (aNodes.hasChildNodes()) {
+      removeFromSlot(fNodes, slot);
+      moveIntoSlot(aNodes, slot);
+      fallbackState.set(slot, false);
     }
   } else {
-    if (!assignedNodes.hasChildNodes()) {
-      removeFromSlot(assignedNodes, slot);
-      moveIntoSlot(fallbackNodes, slot);
-      data.fallbackState.set(slot, true);
+    if (!aNodes.hasChildNodes()) {
+      removeFromSlot(aNodes, slot);
+      moveIntoSlot(fNodes, slot);
+      fallbackState.set(slot, true);
     }
   }
 }
 
 export function triggerSlotChangeEvent (slot) {
-  if (data.changeListeners.get(slot)) {
-    data.triggerSlotChangeEvent.get(slot)(slot);
+  if (changeListeners.get(slot)) {
+    debouncedTriggerSlotChangeEvent.get(slot)(slot);
   }
 }

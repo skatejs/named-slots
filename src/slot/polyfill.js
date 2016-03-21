@@ -164,7 +164,7 @@ function polyfill (slot) {
   data.assignedNodes.set(slot, fragAssignedNodes);
   data.fallbackNodes.set(slot, fragFallbackNodes);
   data.fallbackState.set(slot, true);
-  data.triggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
+  data.debouncedTriggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
   copyInitialFallbackContent(slot, fragFallbackNodes);
   assignProps(slot, props);
   assignFuncs(slot, funcs, '__');

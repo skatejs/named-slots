@@ -190,14 +190,14 @@ const funcs = {
     // We're dealing with a representation of the light DOM, so we insert nodes
     // relative to the location of the refNode in the light DOM, not the where
     // it appears in the composed DOM.
-    const insertBefore = refNode.nextSibling;
+    const insertBeforeSibling = refNode.nextSibling;
 
     // Clean up the reference node.
     this.removeChild(refNode);
 
     // Add new nodes in place of the reference node.
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      insertBefore(slot, node, insertBefore);
+      insertBefore(slot, node, insertBeforeSibling);
       applyParentNode(node, elem);
     });
 

@@ -1,9 +1,4 @@
-import debounce from 'debounce';
-
-function polyfillSlot (slot) {
-  slot.__triggerSlotChangeEvent = debounce(triggerSlotChangeEvent);
-  return slot;
-}
+import polyfillSlot from './polyfill-slot';
 
 function queryForNamedSlot (host, name) {
   return host.querySelector(`slot[name="${name}"], [slot-name="${name}"]`);
@@ -11,13 +6,6 @@ function queryForNamedSlot (host, name) {
 
 function queryForUnnamedSlot (host) {
   return host.querySelector('slot[name=""], slot:not([name]), [slot-name=""]');
-}
-
-function triggerSlotChangeEvent () {
-  this.dispatchEvent(new CustomEvent('slotchange', {
-    bubbles: false,
-    cancelable: false
-  }));
 }
 
 export default function (host, node) {

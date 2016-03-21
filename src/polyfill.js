@@ -1,17 +1,24 @@
+import assignFuncs from './internal/assign-funcs';
+import assignProps from './internal/assign-props';
+import canPatchNativeAccessors from './internal/can-patch-native-accessors';
+import copyChildNodes from './internal/copy-child-nodes';
+import fragFromHtml from './internal/frag-from-html';
 import getSlot from './internal/get-slot';
+import htmlFromFrag from './internal/html-from-frag';
 import mapNodeIsLightDom from './internal/map-node-is-light-dom';
 import mapPolyfilled from './internal/map-polyfilled';
 import mapPolyfilledLightNode from './internal/map-polyfilled-light-node';
 import mapPolyfilledParentNode from './internal/map-polyfilled-parent-node';
+import mapSlotAssignedNodes from './internal/map-slot-assigned-nodes';
 import mapSlotChangeListeners from './internal/map-slot-change-listeners';
-import prop from './internal/prop';
+import removeChildNodes from './internal/remove-child-nodes';
 
-const nodeProto = Node.prototype;
-const elProto = Element.prototype;
-const htmlElProto = HTMLElement.prototype;
 
 const configurable = true;
-const canPatchNativeAccessors = !!Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode').get;
+const elProto = Element.prototype;
+const htmlElProto = HTMLElement.prototype;
+const nodeProto = Node.prototype;
+
 
 // Fake parentNode helpers.
 
@@ -21,9 +28,7 @@ function applyParentNode (node, parent) {
 
   if (!canPatchNativeAccessors && !mapPolyfilledLightNode.get(node)) {
     mapPolyfilledLightNode.set(node, true);
-    for (let name in lightProps) {
-      prop(node, name, lightProps[name]);
-    }
+    assignProps(node, lightProps);
   }
 }
 
@@ -52,6 +57,10 @@ function doForNodesIfSlot (elem, node, func) {
       if (mapSlotChangeListeners.get(slot)) {
         slot.__triggerSlotChangeEvent();
       }
+    } else if (node.parentNode) {
+      // If the node does not have a slot then we make sure that it is not
+      // inserted anywhere else in the document.
+      node.parentNode.removeChild(node);
     }
   }
 }
@@ -86,7 +95,7 @@ const hostProps = {
       if (slots) {
         for (let name in slots) {
           const slot = slots[name];
-          const childNodes = slot.childNodes;
+          const childNodes = slot.getAssignedNodes();
           const childNodesLen = childNodes.length;
           for (let a = 0; a < childNodesLen; a++) {
             nodes.push(childNodes[a]);
@@ -113,26 +122,12 @@ const hostProps = {
   },
   innerHTML: {
     get () {
-      return this.childNodes.map(node => node.outerHTML || node.textContent).join('');
+      return htmlFromFrag(this);
     },
-    set (val) {
-      const div = document.createElement('div');
-      const frag = document.createDocumentFragment();
-
-      // TODO: This may not be foolproof with incompatible child nodes.
-      div.innerHTML = val;
-
-      // Ensure existing nodes are cleaned up properly.
-      while (this.hasChildNodes()) {
-        this.removeChild(this.firstChild);
-      }
-
-      // Ensures new nodes are set up properly.
-      while (div.hasChildNodes()) {
-        frag.appendChild(div.firstChild);
-      }
-
-      this.appendChild(frag);
+    set (innerHTML) {
+      const copy = fragFromHtml(innerHTML);
+      removeChildNodes(this);
+      copyChildNodes(copy, this);
     }
   },
   lastChild: {
@@ -160,15 +155,9 @@ const hostProps = {
     get () {
       return this.childNodes.map(node => node.textContent).join('');
     },
-    set (val) {
-      // Ensure existing nodes are cleaned up properly.
-      while (this.hasChildNodes()) {
-        this.removeChild(this.firstChild);
-      }
-
-      doForNodesIfSlot(this, val.toString(), function (elem, node, slot) {
-        slot.textContent = node;
-      });
+    set (textContent) {
+      removeChildNodes(this);
+      this.appendChild(document.createTextNode(textContent));
     }
   }
 };
@@ -264,7 +253,7 @@ const lightProps = {
 const funcs = {
   appendChild (newNode) {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      slot.appendChild(node);
+      slot.__appendChild(node);
       applyParentNode(node, elem);
     });
     return newNode;
@@ -274,14 +263,14 @@ const funcs = {
   },
   insertBefore (newNode, refNode) {
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      slot.insertBefore(node, refNode);
+      slot.__insertBefore(node, refNode);
       applyParentNode(node, elem);
     });
     return newNode;
   },
   removeChild (refNode) {
     doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-      slot.removeChild(node);
+      slot.__removeChild(node);
       removeParentNode(node);
     });
     return refNode;
@@ -302,7 +291,7 @@ const funcs = {
 
     // Add new nodes in place of the reference node.
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      slot.insertBefore(node, insertBefore);
+      slot.__insertBefore(node, insertBefore);
       applyParentNode(node, elem);
     });
 
@@ -318,8 +307,7 @@ const funcs = {
 if (canPatchNativeAccessors) {
   for (let name in lightProps) {
     const proto = nodeProto.hasOwnProperty(name) ? nodeProto : elProto;
-    prop(proto, `__${name}`, Object.getOwnPropertyDescriptor(proto, name));
-    prop(proto, name, lightProps[name]);
+    assignProps(proto, lightProps, '__');
   }
 }
 
@@ -345,20 +333,16 @@ htmlElProto.removeEventListener = function (name, func, opts) {
 };
 
 
-// Polyfills a host element.
-export default function polyfill (elem) {
-  if (mapPolyfilled.get(elem)) {
+function polyfill (host) {
+  assignProps(host, hostProps);
+  assignFuncs(host, funcs);
+}
+
+export default function (host) {
+  if (mapPolyfilled.get(host)) {
     return;
   }
-
-  for (let name in hostProps) {
-    prop(elem, name, hostProps[name]);
-  }
-
-  for (let name in funcs) {
-    elem[name] = funcs[name];
-  }
-
-  mapPolyfilled.set(elem, true);
-  return elem;
+  polyfill(host);
+  mapPolyfilled.set(host, true);
+  return host;
 }

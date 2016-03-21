@@ -1,3 +1,0 @@
-describe('fallback-content', function () {
-
-});

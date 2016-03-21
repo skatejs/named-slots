@@ -1,11 +1,9 @@
-import polyfill from './polyfill';
-import polyfilled from './polyfilled';
+import polyfill from './host/polyfill';
 import render from './render';
 import version from './version';
 
 export default polyfill;
 export {
-  polyfilled,
   render,
   version
 };

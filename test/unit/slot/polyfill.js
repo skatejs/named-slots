@@ -1,7 +1,7 @@
 import create from '../lib/create';
-import polyfillSlot from '../../src/internal/polyfill-slot';
+import slotPolyfill from '../../src/slot/polyfill';
 
-describe('polyfill-slot', function () {
+describe('slot/polyfill', function () {
   let fallback;
   let slot;
 
@@ -13,7 +13,7 @@ describe('polyfill-slot', function () {
     expect(slot.firstElementChild).to.equal(fallback, 'before');
 
     // Polyfill the slot.
-    polyfillSlot(slot);
+    slotPolyfill(slot);
   });
 
   it('Element.innerHTML', function () {
@@ -91,7 +91,7 @@ describe('polyfill-slot', function () {
   });
 
   it('HTMLSlotElement.getAssignedNodes()', function () {
-
+    expect(slot.getAssignedNodes().childNodes.length).to.equal(0);
   });
 
   it('HTMLSlotElement.getAssignedNodes({ deep: true })', function () {

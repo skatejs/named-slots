@@ -1,8 +1,8 @@
 import create from '../lib/create';
-import polyfill from '../../src/polyfill';
+import hostPolyfill from '../../src/host/polyfill';
 
 function createHost (attrs, chren) {
-  return polyfill(create('div', attrs, chren));
+  return hostPolyfill(create('div', attrs, chren));
 }
 
 describe('slotchange-event', function () {
@@ -11,7 +11,7 @@ describe('slotchange-event', function () {
   beforeEach(function () {
     slot = create('slot', { emit: '' });
     host = createHost([slot]);
-    polyfill(host);
+    hostPolyfill(host);
   });
 
   it('should fire asynchronously', function (done) {

@@ -1,4 +1,4 @@
-import polyfillSlot from './polyfill-slot';
+import polyfillSlot from '../slot/polyfill';
 
 function queryForNamedSlot (host, name) {
   return host.querySelector(`slot[name="${name}"], [slot-name="${name}"]`);

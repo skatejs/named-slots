@@ -1,8 +1,9 @@
 import polyfill from '../src/index';
 import version from '../src/version';
 
-import './unit/internal/get-slot';
-import './unit/internal/polyfill-slot';
+import './unit/host/get-slot';
+import './unit/slot/polyfill';
+import './unit/slot/fallback-content';
 import './unit/slotchange-event.js';
 
 describe('skatejs-named-slots', function () {
@@ -53,17 +54,17 @@ describe('skatejs-named-slots', function () {
 
       host.appendChild(light1);
 
-      expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(1, 'slot');
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(light1, 'slot');
 
       expect(host.childNodes.length).to.equal(1, 'light');
       expect(host.childNodes[0]).to.equal(light1, 'light');
 
       host.appendChild(light2);
 
-      expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
-      expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(2, 'slot');
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(light1, 'slot');
+      expect(slot.getAssignedNodes().childNodes[1]).to.equal(light2, 'slot');
 
       expect(host.childNodes.length).to.equal(2, 'light');
       expect(host.childNodes[0]).to.equal(light1, 'light');
@@ -84,17 +85,17 @@ describe('skatejs-named-slots', function () {
 
       host.insertBefore(light2);
 
-      expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(1, 'slot');
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(light2, 'slot');
 
       expect(host.childNodes.length).to.equal(1, 'light');
       expect(host.childNodes[0]).to.equal(light2, 'light');
 
       host.insertBefore(light1, light2);
 
-      expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
-      expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(2, 'slot');
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(light1, 'slot');
+      expect(slot.getAssignedNodes().childNodes[1]).to.equal(light2, 'slot');
 
       expect(host.childNodes.length).to.equal(2, 'light');
       expect(host.childNodes[0]).to.equal(light1, 'light');
@@ -108,9 +109,9 @@ describe('skatejs-named-slots', function () {
       host.appendChild(light1);
       host.appendChild(light2);
 
-      expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
-      expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(2, 'slot');
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(light1, 'slot');
+      expect(slot.getAssignedNodes().childNodes[1]).to.equal(light2, 'slot');
 
       expect(host.childNodes.length).to.equal(2, 'light');
       expect(host.childNodes[0]).to.equal(light1, 'light');
@@ -118,15 +119,15 @@ describe('skatejs-named-slots', function () {
 
       host.removeChild(light1);
 
-      expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(1, 'slot');
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(light2, 'slot');
 
       expect(host.childNodes.length).to.equal(1, 'light');
       expect(host.childNodes[0]).to.equal(light2, 'light');
 
       host.removeChild(light2);
 
-      expect(slot.getAssignedNodes().length).to.equal(0, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(0, 'slot');
       expect(host.childNodes.length).to.equal(0, 'light');
     });
 
@@ -136,16 +137,16 @@ describe('skatejs-named-slots', function () {
 
       host.appendChild(light1);
 
-      expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(1, 'slot');
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(light1, 'slot');
 
       expect(host.childNodes.length).to.equal(1, 'light');
       expect(host.childNodes[0]).to.equal(light1, 'light');
 
       host.replaceChild(light2, light1);
 
-      expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
+      expect(slot.getAssignedNodes().childNodes.length).to.equal(1, 'slot');
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(light2, 'slot');
 
       expect(host.childNodes.length).to.equal(1, 'light');
       expect(host.childNodes[0]).to.equal(light2, 'light');
@@ -281,7 +282,7 @@ describe('skatejs-named-slots', function () {
       host.appendChild(childNode);
 
       // Ensure it's in fact in the slot.
-      expect(slot.getAssignedNodes()[0]).to.equal(childNode);
+      expect(slot.getAssignedNodes().childNodes[0]).to.equal(childNode);
 
       // And this will confirm appendChild has set parentNode.
       expect(childNode.parentElement).to.equal(host);

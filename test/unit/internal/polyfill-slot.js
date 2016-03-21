@@ -1,7 +1,7 @@
 import create from '../lib/create';
 import polyfillSlot from '../../src/internal/polyfill-slot';
 
-describe('fallback-content', function () {
+describe('polyfill-slot', function () {
   let fallback;
   let slot;
 

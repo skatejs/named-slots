@@ -1,143 +1,59 @@
 import getSlot from './internal/get-slot';
+import mapNodeIsLightDom from './internal/map-node-is-light-dom';
 import mapPolyfilled from './internal/map-polyfilled';
+import mapPolyfilledLightNode from './internal/map-polyfilled-light-node';
+import mapPolyfilledParentNode from './internal/map-polyfilled-parent-node';
+import mapSlotChangeListeners from './internal/map-slot-change-listeners';
 import prop from './internal/prop';
 
-const configurable = true;
-
-// Cached prototypes.
+const nodeProto = Node.prototype;
 const elProto = Element.prototype;
 const htmlElProto = HTMLElement.prototype;
-const nodeProto = Node.prototype;
 
-// Cached descriptor getters.
-const descEl = Object.getOwnPropertyDescriptor.bind(Object, elProto);
-const descNode = Object.getOwnPropertyDescriptor.bind(Object, nodeProto);
+const configurable = true;
+const canPatchNativeAccessors = !!Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode').get;
 
-// Properties that must be applied to descendants.
-const descendantAccessors = {
-  // Natives.
-  __nextElementSibling: descEl('nextElementSibling'),
-  __nextSibling: descNode('nextSibling'),
-  __parentElement: descNode('parentElement'),
-  __parentNode: descNode('parentNode'),
-  __previousElementSibling: descEl('nextElementSibling'),
-  __previousSibling: descNode('previousSibling'),
-
-  // Polyfills.
-  parentElement: {
-    configurable,
-    get () {
-      if (this.__isLightDom) {
-        const parent = this.parentNode;
-        return parent.nodeType === 1 ? parent : null;
-      }
-      return this.__parentElement;
-    }
-  },
-  parentNode: {
-    configurable,
-    get () {
-      return this.__polyfilledParentNode || this.__parentNode || null;
-    }
-  },
-  nextSibling: {
-    configurable,
-    get () {
-      if (this.__isLightDom) {
-        let index;
-        const parChs = this.parentNode.childNodes;
-        const parChsLen = parChs.length;
-        for (let a = 0; a < parChsLen; a++) {
-          if (parChs[a] === this) {
-            index = a;
-            continue;
-          }
-        }
-        return typeof index === 'number' ? parChs[index + 1] : null;
-      }
-      return this.__nextSibling;
-    }
-  },
-  nextElementSibling: {
-    configurable,
-    get () {
-      if (this.__isLightDom) {
-        let next;
-        while ((next = this.nextSibling)) {
-          if (next.nodeType === 1) {
-            return next;
-          }
-        }
-        return null;
-      }
-      return this.__nextElementSibling;
-    }
-  },
-  previousSibling: {
-    configurable,
-    get () {
-      if (this.__isLightDom) {
-        let index;
-        const parChs = this.parentNode.childNodes;
-        const parChsLen = parChs.length;
-        for (let a = 0; a < parChsLen; a++) {
-          if (parChs[a] === this) {
-            index = a;
-            continue;
-          }
-        }
-        return typeof index === 'number' ? parChs[index - 1] : null;
-      }
-      return this.__previousSibling;
-    }
-  },
-  previousElementSibling: {
-    configurable,
-    get () {
-      if (this.__isLightDom) {
-        let prev;
-        while ((prev = this.previousSibling)) {
-          if (prev.nodeType === 1) {
-            return prev;
-          }
-        }
-        return null;
-      }
-      return this.__previousElementSibling;
-    }
-  }
-};
-
-// WebKit, this is because of you.
-const canPatchNativeAccessors = !!descendantAccessors.__parentNode.get;
-
-
-// Helpers.
+// Fake parentNode helpers.
 
 function applyParentNode (node, parent) {
-  node.__isLightDom = true;
-  node.__polyfilledParentNode = parent;
-  if (!canPatchNativeAccessors) {
-    Object.defineProperties(node, descendantAccessors);
+  mapNodeIsLightDom.set(node, true);
+  mapPolyfilledParentNode.set(node, parent);
+
+  if (!canPatchNativeAccessors && !mapPolyfilledLightNode.get(node)) {
+    mapPolyfilledLightNode.set(node, true);
+    for (let name in lightProps) {
+      prop(node, name, lightProps[name]);
+    }
   }
 }
 
 function removeParentNode (node) {
-  node.__isLightDom = false;
-  node.__polyfilledParentNode = null;
+  mapNodeIsLightDom.set(node, false);
+  mapPolyfilledParentNode.set(node, null);
 }
+
+
+// Slotting helpers.
 
 function arrayItem (idx) {
   return this[idx];
 }
 
 function doForNodesIfSlot (elem, node, func) {
-  nodeToArray(node).forEach(function (node) {
+  const nodes = nodeToArray(node);
+  const nodesLen = nodes.length;
+
+  for (let a = 0; a < nodesLen; a++) {
+    const node = nodes[a];
     const slot = getSlot(elem, node);
+
     if (slot) {
       func(elem, node, slot);
+      if (mapSlotChangeListeners.get(slot)) {
+        slot.__triggerSlotChangeEvent();
+      }
     }
-  });
+  }
 }
 
 function makeLikeNodeList (arr) {
@@ -156,8 +72,9 @@ function toArray (obj) {
 
 // Prop overrides.
 
-const props = {
+const hostProps = {
   childElementCount: {
+    configurable,
     get () {
       return this.children.length;
     }
@@ -256,6 +173,91 @@ const props = {
   }
 };
 
+const lightProps = {
+  parentElement: {
+    configurable,
+    get () {
+      if (mapNodeIsLightDom.get(this)) {
+        const parent = this.parentNode;
+        return parent.nodeType === 1 ? parent : null;
+      }
+      return this.__parentElement;
+    }
+  },
+  parentNode: {
+    configurable,
+    get () {
+      return mapPolyfilledParentNode.get(this) || this.__parentNode || null;
+    }
+  },
+  nextSibling: {
+    configurable,
+    get () {
+      if (mapNodeIsLightDom.get(this)) {
+        let index;
+        const parChs = this.parentNode.childNodes;
+        const parChsLen = parChs.length;
+        for (let a = 0; a < parChsLen; a++) {
+          if (parChs[a] === this) {
+            index = a;
+            continue;
+          }
+        }
+        return typeof index === 'number' ? parChs[index + 1] : null;
+      }
+      return this.__nextSibling;
+    }
+  },
+  nextElementSibling: {
+    configurable,
+    get () {
+      if (mapNodeIsLightDom.get(this)) {
+        let next;
+        while ((next = this.nextSibling)) {
+          if (next.nodeType === 1) {
+            return next;
+          }
+        }
+        return null;
+      }
+      return this.__nextElementSibling;
+    }
+  },
+  previousSibling: {
+    configurable,
+    get () {
+      if (mapNodeIsLightDom.get(this)) {
+        let index;
+        const parChs = this.parentNode.childNodes;
+        const parChsLen = parChs.length;
+        for (let a = 0; a < parChsLen; a++) {
+          if (parChs[a] === this) {
+            index = a;
+            continue;
+          }
+        }
+        return typeof index === 'number' ? parChs[index - 1] : null;
+      }
+      return this.__previousSibling;
+    }
+  },
+  previousElementSibling: {
+    configurable,
+    get () {
+      if (mapNodeIsLightDom.get(this)) {
+        let prev;
+        while ((prev = this.previousSibling)) {
+          if (prev.nodeType === 1) {
+            return prev;
+          }
+        }
+        return null;
+      }
+      return this.__previousElementSibling;
+    }
+  }
+};
+
 
 // Method overrides.
 
@@ -285,36 +287,74 @@ const funcs = {
     return refNode;
   },
   replaceChild (newNode, refNode) {
+    // If the ref node is not in the light DOM, just return it.
+    if (refNode.parentNode !== this) {
+      return refNode;
+    }
+
+    // We're dealing with a representation of the light DOM, so we insert nodes
+    // relative to the location of the refNode in the light DOM, not the where
+    // it appears in the composed DOM.
+    const insertBefore = refNode.nextSibling;
+
+    // Clean up the reference node.
+    this.removeChild(refNode);
+
+    // Add new nodes in place of the reference node.
     doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      slot.replaceChild(node, refNode);
+      slot.insertBefore(node, insertBefore);
       applyParentNode(node, elem);
     });
-    removeParentNode(refNode);
+
     return refNode;
   }
 };
 
 
-// Polyfill the prototypes if we can.
+// If we can patch native accessors, we can safely apply light DOM accessors to
+// all HTML elements. This is faster than polyfilling them individually as they
+// are added, if possible, and doesn't have a measurable impact on performance
+// when they're not marked as light DOM.
 if (canPatchNativeAccessors) {
-  // Patch the HTMLElement prototype if we can as it's the highest in the
-  // prototype chain we need to worry about.
-  Object.defineProperties(htmlElProto, descendantAccessors);
+  for (let name in lightProps) {
+    const proto = nodeProto.hasOwnProperty(name) ? nodeProto : elProto;
+    prop(proto, `__${name}`, Object.getOwnPropertyDescriptor(proto, name));
+    prop(proto, name, lightProps[name]);
+  }
 }
 
 
-// Polyfills an element.
-export default function (elem) {
+// Patch add/removeEventListener() so that we can keep track of slotchange
+// events. Since we support <slot> elements and normal elements - due to some
+// quirks that cannot be polyfilled - we add this to HTMLElement.
+const addEventListener = htmlElProto.addEventListener;
+const removeEventListener = htmlElProto.removeEventListener;
+htmlElProto.addEventListener = function (name, func, opts) {
+  if (name === 'slotchange') {
+    let listeners = mapSlotChangeListeners.get(this) || 0;
+    mapSlotChangeListeners.set(this, ++listeners);
+  }
+  return addEventListener.call(this, name, func, opts);
+};
+htmlElProto.removeEventListener = function (name, func, opts) {
+  if (name === 'slotchange') {
+    let listeners = mapSlotChangeListeners.get(this) || 1;
+    mapSlotChangeListeners.set(this, --listeners);
+  }
+  return removeEventListener.call(this, name, func, opts);
+};
+
+
+// Polyfills a host element.
+export default function polyfill (elem) {
   if (mapPolyfilled.get(elem)) {
     return;
   }
 
-  // Polyfill properties.
-  for (let name in props) {
-    prop(elem, name, props[name]);
+  for (let name in hostProps) {
+    prop(elem, name, hostProps[name]);
   }
 
-  // Polyfill methods.
   for (let name in funcs) {
     elem[name] = funcs[name];
   }

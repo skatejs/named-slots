@@ -1,9 +1,23 @@
+import debounce from 'debounce';
+
+function polyfillSlot (slot) {
+  slot.__triggerSlotChangeEvent = debounce(triggerSlotChangeEvent);
+  return slot;
+}
+
 function queryForNamedSlot (host, name) {
   return host.querySelector(`slot[name="${name}"], [slot-name="${name}"]`);
 }
 
 function queryForUnnamedSlot (host) {
   return host.querySelector('slot[name=""], slot:not([name]), [slot-name=""]');
+}
+
+function triggerSlotChangeEvent () {
+  this.dispatchEvent(new CustomEvent('slotchange', {
+    bubbles: false,
+    cancelable: false
+  }));
 }
 
 export default function (host, node) {
@@ -39,7 +53,7 @@ export default function (host, node) {
 
   // Cache it because querying is slow.
   if (slotElement) {
-    slots[cacheKey] = slotElement;
+    slots[cacheKey] = polyfillSlot(slotElement);
   }
 
   return slots[cacheKey] || null;

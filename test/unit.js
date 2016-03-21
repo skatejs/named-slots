@@ -2,6 +2,7 @@ import polyfill from '../src/index';
 import version from '../src/version';
 
 import './unit/internal/get-slot';
+import './unit/slotchange-event.js';
 
 describe('skatejs-named-slots', function () {
   it('version', function () {
@@ -36,7 +37,8 @@ describe('skatejs-named-slots', function () {
     // Ensure the host is templated out properly.
     expect(host.firstChild).to.equal(shadow, 'before polyfill');
 
-    // Polyfill after templated. This is because the polyfill must
+    // Polyfill after templated. This is because the polyfill will try and
+    // slot anything added after polyfilling.
     polyfill(host);
 
     // Ensure that the polyfill was properly applied.
@@ -45,8 +47,8 @@ describe('skatejs-named-slots', function () {
 
   describe('methods', function () {
     it('appendChild()', function () {
-      const light1 = document.createElement('div');
-      const light2 = document.createElement('div');
+      const light1 = document.createElement('light-1');
+      const light2 = document.createElement('light-2');
 
       host.appendChild(light1);
 

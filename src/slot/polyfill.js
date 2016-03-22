@@ -12,16 +12,8 @@ function getInitialFallbackContent (slot) {
   return arr;
 }
 
-function getAssignedNodes (slot ) {
-  return assignedNodes.get(slot);
-}
-
 function getAssignedNodesDeep (slot) {
   return assignedNodes.get(slot);
-}
-
-function getFallbackNodes (slot) {
-  return fallbackNodes.get(slot);
 }
 
 function shouldAffectSlot (slot) {
@@ -39,7 +31,7 @@ const members = {
   appendChild: {
     value (newNode) {
       shouldAffectSlot(this) && this.__appendChild(newNode);
-      getFallbackNodes(this).push(newNode);
+      this.childNodes.push(newNode);
       return newNode;
     }
   },
@@ -70,12 +62,12 @@ const members = {
   },
   getAssignedNodes: {
     value (opts = {}) {
-      return opts.deep ? getAssignedNodesDeep(this) : getAssignedNodes(this);
+      return opts.deep ? getAssignedNodesDeep(this) : assignedNodes.get(this);
     }
   },
   hasChildNodes: {
     value () {
-      return !!getFallbackNodes(this).length;
+      return !!this.childNodes.length;
     }
   },
   innerHTML: {

@@ -1,5 +1,5 @@
 import { polyfilled } from './data';
-import { parentNode, slotted } from '../light/data';
+import { assignedSlot, parentNode, slotted } from '../light/data';
 import { appendChild, insertBefore, removeChild } from '../slot/content';
 import fragFromHtml from '../util/frag-from-html';
 import getSlot from './get-slot';
@@ -10,17 +10,22 @@ import lightPolyfill from '../light/polyfill';
 const configurable = true;
 
 
-// Fake parentNode helpers.
+// Things like:
+//
+//   - faking `parentNode`
+//   - setting `assignedSlot`
 
-function applyParentNode (node, parent) {
+function setNodeState (node, parent, slot) {
   slotted.set(node, true);
   parentNode.set(node, parent);
+  assignedSlot.set(node, slot);
   lightPolyfill(node);
 }
 
-function removeParentNode (node) {
+function cleanNodeState (node) {
   slotted.set(node, false);
   parentNode.set(node, null);
+  assignedSlot.set(node, null);
 }
 
 
@@ -69,7 +74,7 @@ const members = {
     value (newNode) {
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
         appendChild(slot, node);
-        applyParentNode(node, elem);
+        setNodeState(node, elem, slot);
       });
       return newNode;
     }
@@ -135,7 +140,7 @@ const members = {
     value (newNode, refNode) {
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
         insertBefore(slot, node, refNode);
-        applyParentNode(node, elem);
+        setNodeState(node, elem, slot);
       });
       return newNode;
     }
@@ -165,7 +170,7 @@ const members = {
     value (refNode) {
       doForNodesIfSlot(this, refNode, function (elem, node, slot) {
         removeChild(slot, node);
-        removeParentNode(node);
+        cleanNodeState(node);
       });
       return refNode;
     }
@@ -182,13 +187,14 @@ const members = {
       // it appears in the composed DOM.
       const insertBeforeSibling = refNode.nextSibling;
 
-      // Clean up the reference node.
+      // Remove, but since we're calling our defined removeChild, this also cleans
+      // up the node so we don't have to do it.
       this.removeChild(refNode);
 
       // Add new nodes in place of the reference node.
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
         insertBefore(slot, node, insertBeforeSibling);
-        applyParentNode(node, elem);
+        setNodeState(node, elem, slot);
       });
 
       return refNode;

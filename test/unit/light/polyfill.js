@@ -1,17 +1,19 @@
 import create from '../../lib/create';
-import polyfill from '../../../src/host/polyfill';
+import polyfill from '../../../src/shadow/polyfill';
 
 describe('light/polyfill', function () {
-  let host, light1, light2, slot, text;
+  let host, light1, light2, root, slot, text;
 
   beforeEach(function () {
     slot = create('slot');
-    host = create('div', [slot]);
+    host = create('div');
+    root = polyfill(host);
+
+    root.appendChild(slot);
+
     light1 = create('light1');
     light2 = create('light2');
     text = document.createTextNode('text');
-
-    polyfill(host);
 
     host.appendChild(light1);
     host.appendChild(text);
@@ -47,15 +49,15 @@ describe('light/polyfill', function () {
   });
 
   describe('when removed', function () {
-    let anotherHost, anotherNode, anotherSlot;
+    let anotherHost, anotherNode, anotherRoot, anotherSlot;
 
     beforeEach(function () {
+      anotherHost = create('div');
       anotherNode = create('div');
+      anotherRoot = polyfill(anotherHost);
       anotherSlot = create('slot');
-      anotherHost = create('div', [anotherSlot]);
 
-      polyfill(anotherHost);
-
+      anotherRoot.appendChild(anotherSlot);
       host.removeChild(light1);
     });
 

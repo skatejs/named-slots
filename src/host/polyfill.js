@@ -1,8 +1,9 @@
-import { polyfilled } from './data';
+import { lightNodes, polyfilled, roots } from './data';
 import { assignedSlot, parentNode, slotted } from '../light/data';
+import { slots } from '../shadow/data';
 import { appendChild, insertBefore, removeChild } from '../slot/content';
+import each from '../util/each';
 import fragFromHtml from '../util/frag-from-html';
-import getSlot from './get-slot';
 import htmlFromFrag from '../util/html-from-frag';
 import lightPolyfill from '../light/polyfill';
 
@@ -35,31 +36,33 @@ function arrayItem (idx) {
   return this[idx];
 }
 
-function doForNodesIfSlot (elem, node, func) {
-  const nodes = nodeToArray(node);
-  const nodesLen = nodes.length;
+function doForNodeIfSlot (host, node, func) {
+  const cachedSlots = slots.get(roots.get(host));
+  const slotName = node.getAttribute && node.getAttribute('slot') || 'default';
+  const slot = cachedSlots[slotName];
 
-  for (let a = 0; a < nodesLen; a++) {
-    const node = nodes[a];
-    const slot = getSlot(elem, node);
+  if (slot) {
+    func(host, node, slot);
+  } else if (node.parentNode) {
+    // If the node does not have a slot then we make sure that it is not
+    // inserted anywhere else in the document.
+    node.parentNode.removeChild(node);
+  }
+}
 
-    if (slot) {
-      func(elem, node, slot);
-    } else if (node.parentNode) {
-      // If the node does not have a slot then we make sure that it is not
-      // inserted anywhere else in the document.
-      node.parentNode.removeChild(node);
+function doForNodesIfSlot (host, node, func) {
+  if (node instanceof DocumentFragment) {
+    while (node.hasChildNodes()) {
+      doForNodeIfSlot(host, node.firstChild, func);
     }
+  } else {
+    doForNodeIfSlot(host, node, func);
   }
 }
 
 function makeLikeNodeList (arr) {
   arr.item = arrayItem;
   return arr;
-}
-
-function nodeToArray (node) {
-  return node instanceof DocumentFragment ? toArray(node.childNodes) : [node];
 }
 
 function toArray (obj) {
@@ -72,6 +75,8 @@ function toArray (obj) {
 const members = {
   appendChild: {
     value (newNode) {
+      const ln = lightNodes.get(this);
+      each(newNode, newNode => ln.push(newNode));
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
         appendChild(slot, node);
         setNodeState(node, elem, slot);
@@ -87,19 +92,7 @@ const members = {
   },
   childNodes: {
     get () {
-      let nodes = [];
-      const slots = this.__slots;
-      if (slots) {
-        for (let name in slots) {
-          const slot = slots[name];
-          const childNodes = slot.getAssignedNodes();
-          const childNodesLen = childNodes.length;
-          for (let a = 0; a < childNodesLen; a++) {
-            nodes.push(childNodes[a]);
-          }
-        }
-      }
-      return makeLikeNodeList(nodes);
+      return lightNodes.get(this);
     }
   },
   children: {
@@ -138,6 +131,8 @@ const members = {
   },
   insertBefore: {
     value (newNode, refNode) {
+      const ln = lightNodes.get(this);
+      each(newNode, newNode => ln.splice(ln.indexOf(refNode), 0, newNode));
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
         insertBefore(slot, node, refNode);
         setNodeState(node, elem, slot);
@@ -168,8 +163,10 @@ const members = {
   },
   removeChild: {
     value (refNode) {
-      doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-        removeChild(slot, node);
+      const ln = lightNodes.get(this);
+      ln.splice(ln.indexOf(refNode), 1);
+      doForNodesIfSlot(this, refNode, function (host, node, slot) {
+        removeChild(slot, refNode);
         cleanNodeState(node);
       });
       return refNode;
@@ -177,26 +174,8 @@ const members = {
   },
   replaceChild: {
     value (newNode, refNode) {
-      // If the ref node is not in the light DOM, just return it.
-      if (refNode.parentNode !== this) {
-        return refNode;
-      }
-
-      // We're dealing with a representation of the light DOM, so we insert nodes
-      // relative to the location of the refNode in the light DOM, not the where
-      // it appears in the composed DOM.
-      const insertBeforeSibling = refNode.nextSibling;
-
-      // Remove, but since we're calling our defined removeChild, this also cleans
-      // up the node so we don't have to do it.
+      this.insertBefore(newNode, refNode);
       this.removeChild(refNode);
-
-      // Add new nodes in place of the reference node.
-      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        insertBefore(slot, node, insertBeforeSibling);
-        setNodeState(node, elem, slot);
-      });
-
       return refNode;
     }
   },
@@ -217,6 +196,7 @@ export default function (host) {
   if (polyfilled.get(host)) {
     return;
   }
+  lightNodes.set(host, makeLikeNodeList([]));
   Object.defineProperties(host, members);
   polyfilled.set(host, true);
   return host;

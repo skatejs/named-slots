@@ -1,17 +1,14 @@
 import create from '../lib/create';
-import hostPolyfill from '../../src/host/polyfill';
-
-function createHost (attrs, chren) {
-  return hostPolyfill(create('div', attrs, chren));
-}
+import polyfill from '../../src/shadow/polyfill';
 
 describe('slotchange-event', function () {
-  let host, slot;
+  let host, root, slot;
 
   beforeEach(function () {
-    slot = create('slot', { emit: '' });
-    host = createHost([slot]);
-    hostPolyfill(host);
+    slot = create('slot');
+    host = create('div');
+    root = polyfill(host);
+    root.appendChild(slot);
   });
 
   it('should fire asynchronously', function (done) {

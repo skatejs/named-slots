@@ -1,5 +1,5 @@
 import bench from '../lib/bench';
-import polyfill from '../../src/polyfill';
+import polyfill from '../../src/host/polyfill';
 
 describe('add / remove', function () {
   const div = document.createElement.bind(document, 'div');
@@ -23,7 +23,7 @@ describe('add / remove', function () {
 
   bench('prollyfill (default slot)', function () {
     const elem = div();
-    elem.innerHTML = '<div slot-name></div>';
+    elem.innerHTML = '<slot></slot>';
     polyfill(elem);
     return { elem, fn };
   });

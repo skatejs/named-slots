@@ -1,4 +1,4 @@
-import polyfill from './polyfill';
+import polyfill from './host/polyfill';
 
 // Returns a document fragment of the childNodes of the specified element. Due
 // to the nature of the DOM, this will remove the nodes from the element.

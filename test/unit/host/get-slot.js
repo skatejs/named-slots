@@ -1,5 +1,5 @@
 import create from '../../lib/create';
-import getSlot from '../../../src/internal/get-slot';
+import getSlot from '../../../src/host/get-slot';
 
 describe('internal/get-slot', function () {
   it('returns a <slot>', function () {

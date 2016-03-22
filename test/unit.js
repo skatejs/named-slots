@@ -7,7 +7,7 @@ import './unit/light/polyfill';
 import './unit/shadow/polyfill';
 import './unit/slot/polyfill';
 import './unit/slot/fallback-content';
-import './unit/slotchange-event.js';
+import './unit/slot/change-event.js';
 
 describe('skatejs-named-slots', function () {
   it('version', function () {

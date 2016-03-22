@@ -1,8 +1,6 @@
 import { polyfilled } from './data';
 import { parentNode, slotted } from '../light/data';
 import { appendChild, insertBefore, removeChild } from '../slot/content';
-import assignFuncs from '../util/assign-funcs';
-import assignProps from '../util/assign-props';
 import fragFromHtml from '../util/frag-from-html';
 import getSlot from './get-slot';
 import htmlFromFrag from '../util/html-from-frag';
@@ -64,9 +62,18 @@ function toArray (obj) {
 }
 
 
-// Prop overrides.
+// Member overrides.
 
-const props = {
+const members = {
+  appendChild: {
+    value (newNode) {
+      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+        appendChild(slot, node);
+        applyParentNode(node, elem);
+      });
+      return newNode;
+    }
+  },
   childElementCount: {
     configurable,
     get () {
@@ -105,6 +112,11 @@ const props = {
       return this.children[0] || null;
     }
   },
+  hasChildNodes: {
+    value () {
+      return this.childNodes.length > 0;
+    }
+  },
   innerHTML: {
     get () {
       return htmlFromFrag(this);
@@ -117,6 +129,15 @@ const props = {
       while (copy.hasChildNodes()) {
         this.appendChild(copy.firstChild);
       }
+    }
+  },
+  insertBefore: {
+    value (newNode, refNode) {
+      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+        insertBefore(slot, node, refNode);
+        applyParentNode(node, elem);
+      });
+      return newNode;
     }
   },
   lastChild: {
@@ -140,6 +161,39 @@ const props = {
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
     }
   },
+  removeChild: {
+    value (refNode) {
+      doForNodesIfSlot(this, refNode, function (elem, node, slot) {
+        removeChild(slot, node);
+        removeParentNode(node);
+      });
+      return refNode;
+    }
+  },
+  replaceChild: {
+    value (newNode, refNode) {
+      // If the ref node is not in the light DOM, just return it.
+      if (refNode.parentNode !== this) {
+        return refNode;
+      }
+
+      // We're dealing with a representation of the light DOM, so we insert nodes
+      // relative to the location of the refNode in the light DOM, not the where
+      // it appears in the composed DOM.
+      const insertBeforeSibling = refNode.nextSibling;
+
+      // Clean up the reference node.
+      this.removeChild(refNode);
+
+      // Add new nodes in place of the reference node.
+      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
+        insertBefore(slot, node, insertBeforeSibling);
+        applyParentNode(node, elem);
+      });
+
+      return refNode;
+    }
+  },
   textContent: {
     get () {
       return this.childNodes.map(node => node.textContent).join('');
@@ -153,69 +207,11 @@ const props = {
   }
 };
 
-
-// Method overrides.
-
-const funcs = {
-  appendChild (newNode) {
-    doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      appendChild(slot, node);
-      applyParentNode(node, elem);
-    });
-    return newNode;
-  },
-  hasChildNodes () {
-    return this.childNodes.length > 0;
-  },
-  insertBefore (newNode, refNode) {
-    doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      insertBefore(slot, node, refNode);
-      applyParentNode(node, elem);
-    });
-    return newNode;
-  },
-  removeChild (refNode) {
-    doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-      removeChild(slot, node);
-      removeParentNode(node);
-    });
-    return refNode;
-  },
-  replaceChild (newNode, refNode) {
-    // If the ref node is not in the light DOM, just return it.
-    if (refNode.parentNode !== this) {
-      return refNode;
-    }
-
-    // We're dealing with a representation of the light DOM, so we insert nodes
-    // relative to the location of the refNode in the light DOM, not the where
-    // it appears in the composed DOM.
-    const insertBeforeSibling = refNode.nextSibling;
-
-    // Clean up the reference node.
-    this.removeChild(refNode);
-
-    // Add new nodes in place of the reference node.
-    doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-      insertBefore(slot, node, insertBeforeSibling);
-      applyParentNode(node, elem);
-    });
-
-    return refNode;
-  }
-};
-
-
-function polyfill (host) {
-  assignProps(host, props);
-  assignFuncs(host, funcs);
-}
-
 export default function (host) {
   if (polyfilled.get(host)) {
     return;
   }
-  polyfill(host);
+  Object.defineProperties(host, members);
   polyfilled.set(host, true);
   return host;
 }

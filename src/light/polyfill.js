@@ -1,4 +1,4 @@
-import * as data from './data';
+import { parentNode, polyfilled, slotted } from './data';
 import assignProp from '../util/assign-prop';
 import assignProps from '../util/assign-props';
 import canPatchNativeAccessors from '../util/can-patch-native-accessors';
@@ -8,7 +8,7 @@ const lightProps = {
   parentElement: {
     configurable,
     get () {
-      if (data.slotted.get(this)) {
+      if (slotted.get(this)) {
         const parent = this.parentNode;
         return parent.nodeType === 1 ? parent : null;
       }
@@ -18,13 +18,13 @@ const lightProps = {
   parentNode: {
     configurable,
     get () {
-      return data.parentNode.get(this) || this.__parentNode || null;
+      return parentNode.get(this) || this.__parentNode || null;
     }
   },
   nextSibling: {
     configurable,
     get () {
-      if (data.slotted.get(this)) {
+      if (slotted.get(this)) {
         let index;
         const parChs = this.parentNode.childNodes;
         const parChsLen = parChs.length;
@@ -42,7 +42,7 @@ const lightProps = {
   nextElementSibling: {
     configurable,
     get () {
-      if (data.slotted.get(this)) {
+      if (slotted.get(this)) {
         let next;
         while ((next = this.nextSibling)) {
           if (next.nodeType === 1) {
@@ -57,7 +57,7 @@ const lightProps = {
   previousSibling: {
     configurable,
     get () {
-      if (data.slotted.get(this)) {
+      if (slotted.get(this)) {
         let index;
         const parChs = this.parentNode.childNodes;
         const parChsLen = parChs.length;
@@ -75,7 +75,7 @@ const lightProps = {
   previousElementSibling: {
     configurable,
     get () {
-      if (data.slotted.get(this)) {
+      if (slotted.get(this)) {
         let prev;
         while ((prev = this.previousSibling)) {
           if (prev.nodeType === 1) {
@@ -103,8 +103,8 @@ if (canPatchNativeAccessors) {
 }
 
 export default function (light) {
-  if (!canPatchNativeAccessors && !data.polyfilled.get(light)) {
-    data.polyfilled.set(light, true);
+  if (!canPatchNativeAccessors && !polyfilled.get(light)) {
+    polyfilled.set(light, true);
     assignProps(light, lightProps);
   }
 }

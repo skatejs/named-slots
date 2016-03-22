@@ -1,8 +1,15 @@
-import { parentNode, polyfilled, slotted } from './data';
+import { assignedSlot, parentNode, polyfilled, slotted } from './data';
 import canPatchNativeAccessors from '../util/can-patch-native-accessors';
+import each from '../util/each';
 
 const configurable = true;
-const lightProps = {
+const members = {
+  assignedSlot: {
+    configurable,
+    get () {
+      return assignedSlot.get(this) || null;
+    }
+  },
   parentElement: {
     configurable,
     get () {
@@ -23,16 +30,13 @@ const lightProps = {
     configurable,
     get () {
       if (slotted.get(this)) {
-        let index;
         const parChs = this.parentNode.childNodes;
         const parChsLen = parChs.length;
         for (let a = 0; a < parChsLen; a++) {
           if (parChs[a] === this) {
-            index = a;
-            continue;
+            return parChs[a + 1] || null;
           }
         }
-        return typeof index === 'number' ? parChs[index + 1] : null;
       }
       return this.__nextSibling;
     }
@@ -41,13 +45,26 @@ const lightProps = {
     configurable,
     get () {
       if (slotted.get(this)) {
-        let next;
-        while ((next = this.nextSibling)) {
-          if (next.nodeType === 1) {
+        const parChs = this.parentNode.childNodes;
+        const parChsLen = parChs.length;
+
+        let found = false;
+        for (let a = 0; a < parChsLen; a++) {
+          if (!found && parChs[a] === this) {
+            found = true;
+          }
+
+          if (!found) {
+            continue;
+          }
+
+          const next = parChs[a + 1];
+          if (next && next.nodeType === 1) {
             return next;
+          } else {
+            continue;
           }
         }
-        return null;
       }
       return this.__nextElementSibling;
     }
@@ -56,16 +73,13 @@ const lightProps = {
     configurable,
     get () {
       if (slotted.get(this)) {
-        let index;
         const parChs = this.parentNode.childNodes;
         const parChsLen = parChs.length;
-        for (let a = 0; a < parChsLen; a++) {
+        for (let a = parChsLen - 1; a >= 0; a--) {
           if (parChs[a] === this) {
-            index = a;
-            continue;
+            return parChs[a - 1] || null;
           }
         }
-        return typeof index === 'number' ? parChs[index - 1] : null;
       }
       return this.__previousSibling;
     }
@@ -74,13 +88,26 @@ const lightProps = {
     configurable,
     get () {
       if (slotted.get(this)) {
-        let prev;
-        while ((prev = this.previousSibling)) {
-          if (prev.nodeType === 1) {
-            return prev;
+        const parChs = this.parentNode.childNodes;
+        const parChsLen = parChs.length;
+
+        let found = false;
+        for (let a = parChsLen - 1; a >= 0; a--) {
+          if (!found && parChs[a] === this) {
+            found = true;
+          }
+
+          if (!found) {
+            continue;
+          }
+
+          const next = parChs[a - 1];
+          if (next && next.nodeType === 1) {
+            return next;
+          } else {
+            continue;
           }
         }
-        return null;
       }
       return this.__previousElementSibling;
     }
@@ -94,16 +121,51 @@ const lightProps = {
 const nodeProto = Node.prototype;
 const elProto = Element.prototype;
 if (canPatchNativeAccessors) {
-  for (let name in lightProps) {
+  for (let name in members) {
     const proto = nodeProto.hasOwnProperty(name) ? nodeProto : elProto;
-    Object.defineProperty(proto, '__' + name, Object.getOwnPropertyDescriptor(proto, name));
-    Object.defineProperty(proto, name, lightProps[name]);
+    const nativeDescriptor = Object.getOwnPropertyDescriptor(proto, name);
+    if (nativeDescriptor) {
+      Object.defineProperty(proto, '__' + name, nativeDescriptor);
+    }
+    Object.defineProperty(proto, name, members[name]);
   }
 }
+
+// If we can't patch native accessors, we have to override native methods so
+// that we can reset the parentNode on nodes that have already overriden the
+// property.
+if (!canPatchNativeAccessors) {
+  ['appendChild', 'insertBefore', 'removeChild', 'replaceChild'].forEach(function (name) {
+    nodeProto['__light__' + name] = nodeProto[name];
+  });
+  nodeProto.appendChild = function (newNode) {
+    each(newNode, newNode => polyfilled.get(newNode) && parentNode.set(newNode, this));
+    return this.__light__appendChild(newNode);
+  };
+  nodeProto.insertBefore = function (newNode, refNode) {
+    each(newNode, newNode => polyfilled.get(newNode) && parentNode.set(newNode, this));
+    return this.__light__insertBefore(newNode, refNode);
+  };
+  nodeProto.removeChild = function (refNode) {
+    polyfilled.get(refNode) && parentNode.set(refNode, null);
+    return this.__light__removeChild(refNode);
+  };
+  nodeProto.replaceChild = function (newNode, refNode) {
+    each(newNode, newNode => polyfilled.get(newNode) && parentNode.set(newNode, this));
+    polyfilled.get(refNode) && parentNode.set(refNode, null);
+    return this.__light__replaceChild(newNode, refNode);
+  };
+}
+
+// By default we should always return null from the Element for `assignedSlot`.
+Object.defineProperty(nodeProto, 'assignedSlot', {
+  configurable,
+  get () { return null; }
+});
 
 export default function (light) {
   if (!canPatchNativeAccessors && !polyfilled.get(light)) {
     polyfilled.set(light, true);
-    Object.defineProperties(light, lightProps);
+    Object.defineProperties(light, members);
   }
 }

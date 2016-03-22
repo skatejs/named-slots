@@ -160,8 +160,6 @@ const members = {
   }
 };
 
-const originalFuncs = ['appendChild', 'insertBefore', 'removeChild', 'replaceChild'];
-
 // Patch add/removeEventListener() so that we can keep track of slotchange
 // events. Since we support <slot> elements and normal elements - due to some
 // quirks that cannot be polyfilled - we add this to HTMLElement.
@@ -183,6 +181,7 @@ htmlElProto.removeEventListener = function (name, func, opts) {
   return removeEventListener.call(this, name, func, opts);
 };
 
+const originalFuncs = ['appendChild', 'insertBefore', 'removeChild', 'replaceChild'];
 function polyfill (slot) {
   assignedNodes.set(slot, []);
   fallbackNodes.set(slot, getInitialFallbackContent(slot));

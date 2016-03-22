@@ -1,2 +1,1 @@
-import propGet from './prop-get';
-export default !!propGet(Node.prototype, 'parentNode').get;
+export default !!Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode').get;

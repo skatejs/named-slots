@@ -1,6 +1,4 @@
 import { assignedNodes, changeListeners, debouncedTriggerSlotChangeEvent, fallbackNodes, fallbackState, polyfilled } from './data';
-import assignFuncs from '../util/assign-funcs';
-import assignProps from '../util/assign-props';
 import debounce from 'debounce';
 import fragFromHtml from '../util/frag-from-html';
 
@@ -37,7 +35,14 @@ function triggerSlotChangeEvent (slot) {
   }));
 }
 
-const props = {
+const members = {
+  appendChild: {
+    value (newNode) {
+      shouldAffectSlot(this) && this.__appendChild(newNode);
+      getFallbackNodes(this).push(newNode);
+      return newNode;
+    }
+  },
   childElementCount: {
     get () {
       return this.children.length;
@@ -63,6 +68,16 @@ const props = {
       return this.children[0] || null;
     }
   },
+  getAssignedNodes: {
+    value (opts = {}) {
+      return opts.deep ? getAssignedNodesDeep(this) : getAssignedNodes(this);
+    }
+  },
+  hasChildNodes: {
+    value () {
+      return !!getFallbackNodes(this).length;
+    }
+  },
   innerHTML: {
     get () {
       return fallbackNodes.get(this).map(node => node.outerHTML).join('');
@@ -74,6 +89,14 @@ const props = {
       for (let a = chsLen - 1; a >= 0; a--) {
         this.insertBefore(chs[a], this.firstChild);
       }
+    }
+  },
+  insertBefore: {
+    value (newNode, refNode) {
+      const fb = fallbackNodes.get(this);
+      shouldAffectSlot(this) && this.__insertBefore(newNode, refNode);
+      fb.splice(fb.indexOf(refNode), 0, newNode);
+      return newNode;
     }
   },
   lastChild: {
@@ -111,6 +134,22 @@ const props = {
       return str + '>' + this.innerHTML + `</${tag}>`;
     }
   },
+  removeChild: {
+    value (refNode) {
+      const fb = fallbackNodes.get(this);
+      shouldAffectSlot(this) && this.__removeChild(refNode);
+      fb.splice(fb.indexOf(refNode), 1);
+      return refNode;
+    }
+  },
+  replaceChild: {
+    value (newNode, refNode) {
+      const fb = fallbackNodes.get(this);
+      shouldAffectSlot(this) && this.__replaceChild(newNode, refNode);
+      fb.splice(fb.indexOf(refNode), 1, newNode);
+      return refNode;
+    }
+  },
   textContent: {
     get () {
       return fallbackNodes.get(this).map(node => node.textContent).join('');
@@ -118,38 +157,6 @@ const props = {
     set (textContent) {
       fallbackNodes.set(this, [document.createTextNode(textContent)]);
     }
-  },
-};
-
-const funcs = {
-  appendChild (newNode) {
-    shouldAffectSlot(this) && this.__appendChild(newNode);
-    getFallbackNodes(this).push(newNode);
-    return newNode;
-  },
-  getAssignedNodes (opts = {}) {
-    return opts.deep ? getAssignedNodesDeep(this) : getAssignedNodes(this);
-  },
-  hasChildNodes () {
-    return !!getFallbackNodes(this).length;
-  },
-  insertBefore (newNode, refNode) {
-    const fb = fallbackNodes.get(this);
-    shouldAffectSlot(this) && this.__insertBefore(newNode, refNode);
-    fb.splice(fb.indexOf(refNode), 0, newNode);
-    return newNode;
-  },
-  removeChild (refNode) {
-    const fb = fallbackNodes.get(this);
-    shouldAffectSlot(this) && this.__removeChild(refNode);
-    fb.splice(fb.indexOf(refNode), 1);
-    return refNode;
-  },
-  replaceChild (newNode, refNode) {
-    const fb = fallbackNodes.get(this);
-    shouldAffectSlot(this) && this.__replaceChild(newNode, refNode);
-    fb.splice(fb.indexOf(refNode), 1, newNode);
-    return refNode;
   }
 };
 
@@ -181,9 +188,8 @@ function polyfill (slot) {
   fallbackNodes.set(slot, getInitialFallbackContent(slot));
   fallbackState.set(slot, true);
   debouncedTriggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
-  assignProps(slot, props);
   originalFuncs.forEach(fn => slot['__' + fn] = slot[fn]);
-  assignFuncs(slot, funcs);
+  Object.defineProperties(slot, members);
 }
 
 export default function (slot) {

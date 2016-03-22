@@ -1,6 +1,4 @@
 import { parentNode, polyfilled, slotted } from './data';
-import assignProp from '../util/assign-prop';
-import assignProps from '../util/assign-props';
 import canPatchNativeAccessors from '../util/can-patch-native-accessors';
 
 const configurable = true;
@@ -98,13 +96,14 @@ const elProto = Element.prototype;
 if (canPatchNativeAccessors) {
   for (let name in lightProps) {
     const proto = nodeProto.hasOwnProperty(name) ? nodeProto : elProto;
-    assignProp(proto, name, lightProps[name], '__');
+    Object.defineProperty(proto, '__' + name, Object.getOwnPropetyDescriptor(proto, name));
+    Object.defineProperty(proto, name, lightProps[name]);
   }
 }
 
 export default function (light) {
   if (!canPatchNativeAccessors && !polyfilled.get(light)) {
     polyfilled.set(light, true);
-    assignProps(light, lightProps);
+    Object.defineProperties(light, lightProps);
   }
 }

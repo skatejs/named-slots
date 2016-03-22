@@ -96,7 +96,7 @@ const elProto = Element.prototype;
 if (canPatchNativeAccessors) {
   for (let name in lightProps) {
     const proto = nodeProto.hasOwnProperty(name) ? nodeProto : elProto;
-    Object.defineProperty(proto, '__' + name, Object.getOwnPropetyDescriptor(proto, name));
+    Object.defineProperty(proto, '__' + name, Object.getOwnPropertyDescriptor(proto, name));
     Object.defineProperty(proto, name, lightProps[name]);
   }
 }

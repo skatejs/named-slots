@@ -55,61 +55,28 @@ We support the usage of the `<slot />` element as specified in the Shadow DOM sp
 
 ## Usage
 
-To render a shadow root and distribute initial content, the simplest way is to use the `render` function:
+This polyfill behaves very much like native [`Element.attachShadow()`].
 
 ```js
-import { render } from 'skatejs-named-slots';
-
-const div = document.createElement('div'):
-const template = render(function (elem, shadowRoot) {
-  shadowRoot.innerHTML = '<div class="wrapper"><slot></slot></div>';
-});
-
-// Set initial light DOM.
-div.innerHTML = '<p>paragraph 1</p>';
-
-// Render shadow root template and distribute initial light DOM.
-template(div);
-
-// Add more content.
-div.innerHTML += '<p>paragraph 2</p>';
+const host = document.createElement('div');
+const root div.attachShadow({ mode: 'closed' });
+root.innerHTML = '<h1><slot name="title"></slot></h1><slot></slot>';
+host.innerHTML = '<span slot="title">title</span><p>content</p>';
 ```
 
-A more streamlined approach would be to use it with a library like [Skate](https://github.com/skatejs/skatejs).
+The following would render:
 
-
-
-### With Skate (vanilla)
-
-Using with [Skate](https://github.com/skatejs/skatejs) makes things a lot simpler.
-
-```js
-import { render } from 'skatejs-named-slots';
-
-skate('my-component', {
-  render: render(function (elem, shadowRoot) {
-    shadoRoot.innerHTML = '<div class="wrapper"><slot></slot></div>';
-  })
-});
-```
-
-
-
-### With Kickflip (Skate + Named Slots + Incremental DOM)
-
-And if you like writing in a more functional way, [Kickflip](https://github.com/skatejs/kickflip) blends this polygap with Skate.
-
-```js
-import { div, slot } from 'kickflip/src/vdom';
-import kickflip from 'kickflip';
-
-kickflip('my-component', {
-  render (elem) {
-    div({ class: 'wrapper' }, function () {
-      slot();
-    });
-  }
-});
+```html
+<div>
+  <shadow-root>
+    <h1>
+      <slot name="title">title</slot>
+    </h1>
+    <slot>
+      <p>content</p>
+    </slot>
+  </shadow-root>
+</div>
 ```
 
 

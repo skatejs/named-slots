@@ -4,6 +4,7 @@ import distribute, { undistribute } from '../shadow/distribute';
 import each from '../util/each';
 import fragFromHtml from '../util/frag-from-html';
 import htmlFromFrag from '../util/html-from-frag';
+import lightPolyfill from '../light/polyfill';
 
 const configurable = true;
 
@@ -41,6 +42,7 @@ const members = {
         ln.push(node);
         light.set(node, true);
         parentNode.set(node, host);
+        lightPolyfill(node);
         distribute(node);
       });
       return newNode;
@@ -105,6 +107,7 @@ const members = {
         }
         light.set(node, true);
         parentNode.set(node, host);
+        lightPolyfill(node);
         distribute(node);
       });
       return newNode;

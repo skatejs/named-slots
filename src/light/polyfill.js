@@ -182,8 +182,11 @@ Object.defineProperty(nodeProto, 'assignedSlot', {
 
 
 export default function polyfill (light) {
+  if (polyfilled.get(light)) {
+    return;
+  }
   polyfilled.set(light, true);
-  if (!canPatchNativeAccessors && !polyfilled.get(light)) {
+  if (!canPatchNativeAccessors) {
     Object.defineProperties(light, members);
   }
 }

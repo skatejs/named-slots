@@ -2,7 +2,6 @@ import { assignedSlot } from '../light/data';
 import { assignedNodes, changeListeners, debouncedTriggerSlotChangeEvent, fallbackNodes, fallbackState } from '../slot/data';
 import { roots, slots } from './data';
 import { appendChild, insertBefore, removeChild } from '../util/node';
-import lightPolyfill from '../light/polyfill';
 
 function shouldAffectSlot (slot) {
   return !fallbackState.get(slot);
@@ -58,7 +57,6 @@ export default function (node) {
     const shouldManip = shouldAffectSlot(slot);
 
     assignedSlot.set(node, slot);
-    lightPolyfill(node);
 
     if (ns && ns.assignedSlot === slot) {
       an.splice(an.indexOf(ns), 0, node);

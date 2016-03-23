@@ -70,8 +70,8 @@ describe('skatejs-named-slots', function () {
     });
 
     it('insertBefore()', function () {
-      const light1 = document.createElement('div');
-      const light2 = document.createElement('div');
+      const light1 = document.createElement('light1');
+      const light2 = document.createElement('light2');
 
       host.insertBefore(light2);
       expect(lightNodes.get(host)[0]).to.equal(light2, 'internal light dom');

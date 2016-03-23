@@ -1,57 +1,11 @@
-import { hosts, slots } from './data';
-import { roots } from '../host/data';
-import { slotAppendChild, slotRemoveChild } from '../slot/content';
-import each from '../util/each';
+import { hosts, roots, slots } from './data';
+import { appendChild, insertBefore, removeChild, replaceChild } from '../util/node';
+import distribute, { undistribute } from './distribute';
 import fragFromHtml from '../util/frag-from-html';
 import htmlFromFrag from '../util/html-from-frag';
 import hostPolyfill from '../host/polyfill';
 import slotPolyfill from '../slot/polyfill';
 
-const { appendChild, insertBefore, removeChild, replaceChild } = Node.prototype;
-
-function getLightDomFromHostForSlot (root, slot) {
-  const frag = document.createDocumentFragment();
-  const host = root.host;
-  const hostChs = host.childNodes;
-  const hostChsLen = host.childNodes.length;
-  for (let a = 0; a < hostChsLen; a++) {
-    const ch = hostChs[a];
-    if (ch.nodeType === 3 && !slot || (ch.getAttribute && ch.getAttribute('slot') === slot)) {
-      frag.appendChild(ch);
-    }
-  }
-  return frag;
-}
-
-// Takes the shadow root and caches the slots it has.
-function cacheSlots (root, node) {
-  const oldSlots = slots.get(root);
-  if (node.tagName === 'SLOT') {
-    slotPolyfill(node);
-    oldSlots[node.name || 'default'] = node;
-    each(getLightDomFromHostForSlot(root, node.name), aNode => slotAppendChild(node, aNode));
-  } else {
-    const newSlots = node.querySelectorAll('slot');
-    const newSlotsLen = newSlots.length;
-    for (let a = 0; a < newSlotsLen; a++) {
-      cacheSlots(root, newSlots[a]);
-    }
-  }
-}
-
-function uncacheSlots (root, node) {
-  const oldSlots = slots.get(root);
-  if (node.tagName === 'SLOT') {
-    delete oldSlots[node.name || 'default'];
-    node.getAssignedNodes().forEach(aNode => slotRemoveChild(node, aNode));
-  } else if (node.nodeType === 1) {
-    const newSlots = node.querySelectorAll('slot');
-    const newSlotsLen = newSlots.length;
-    for (let a = 0; a < newSlotsLen; a++) {
-      uncacheSlots(root, newSlots[a]);
-    }
-  }
-}
 
 // Returns a document fragment of the childNodes of the specified element. Due
 // to the nature of the DOM, this will remove the nodes from the element.
@@ -76,6 +30,47 @@ function createShadowRoot (elem) {
 function isBlockLevel (elem) {
   return window.getComputedStyle(elem).display === 'block';
 }
+
+
+// Takes the shadow root and caches the slots it has.
+function cacheSlots (root, node) {
+  const oldSlots = slots.get(root);
+  if (node.tagName === 'SLOT') {
+    slotPolyfill(node);
+    oldSlots[node.name || 'default'] = node;
+
+    const host = hosts.get(root);
+    const hostChs = host.childNodes;
+    const hostChsLen = hostChs.length;
+    for (let a = 0; a < hostChsLen; a++) {
+      const ch = hostChs[a];
+      if (!ch.assignedSlot) {
+        distribute(ch);
+      }
+    }
+  } else {
+    const newSlots = node.querySelectorAll('slot');
+    const newSlotsLen = newSlots.length;
+    for (let a = 0; a < newSlotsLen; a++) {
+      cacheSlots(root, newSlots[a]);
+    }
+  }
+}
+
+function uncacheSlots (root, node) {
+  const oldSlots = slots.get(root);
+  if (node.tagName === 'SLOT') {
+    node.getAssignedNodes().forEach(aNode => undistribute(aNode));
+    delete oldSlots[node.name || 'default'];
+  } else if (node.nodeType === 1) {
+    const newSlots = node.querySelectorAll('slot');
+    const newSlotsLen = newSlots.length;
+    for (let a = 0; a < newSlotsLen; a++) {
+      uncacheSlots(root, newSlots[a]);
+    }
+  }
+}
+
 
 const members = {
   appendChild: {

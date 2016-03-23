@@ -1,3 +1,4 @@
+import { assignedSlot } from '../light/data';
 import { assignedNodes, changeListeners, debouncedTriggerSlotChangeEvent, fallbackNodes, fallbackState } from './data';
 import { appendChild, insertBefore, removeChild, replaceChild } from '../util/node';
 
@@ -39,6 +40,7 @@ function triggerSideEffects (slot) {
 export function slotAppendChild (slot, newNode) {
   const assigned = assignedNodes.get(slot);
   assigned.push(newNode);
+  assignedSlot.set(newNode, slot);
   shouldAffectSlot(slot) && appendChild.call(slot, newNode);
   triggerSideEffects(slot);
 }
@@ -46,6 +48,7 @@ export function slotAppendChild (slot, newNode) {
 export function slotInsertBefore (slot, newNode, refNode) {
   const assigned = assignedNodes.get(slot);
   assigned.splice(assigned.indexOf(refNode), 0, newNode);
+  assignedSlot.set(newNode, slot);
   shouldAffectSlot(slot) && insertBefore.call(slot, newNode, refNode);
   triggerSideEffects(slot);
 }
@@ -53,6 +56,7 @@ export function slotInsertBefore (slot, newNode, refNode) {
 export function slotRemoveChild (slot, refNode) {
   const assigned = assignedNodes.get(slot);
   assigned.splice(assigned.indexOf(refNode), 1);
+  assignedSlot.set(refNode, null);
   shouldAffectSlot(slot) && removeChild.call(slot, refNode);
   triggerSideEffects(slot);
 }
@@ -60,6 +64,8 @@ export function slotRemoveChild (slot, refNode) {
 export function slotReplaceChild (slot, newNode, refNode) {
   const assigned = assignedNodes.get(slot);
   assigned.splice(assigned.indexOf(refNode), 1, newNode);
+  assignedSlot.set(newNode, slot);
+  assignedSlot.set(refNode, null);
   shouldAffectSlot(slot) && replaceChild.call(slot, newNode, refNode);
   triggerSideEffects(slot);
 }

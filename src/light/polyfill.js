@@ -1,7 +1,6 @@
-import { assignedSlot, parentNode, polyfilled, slotted } from './data';
+import { assignedSlot, light, parentNode, polyfilled } from './data';
 import { appendChild, insertBefore, removeChild, replaceChild } from '../util/node';
 import canPatchNativeAccessors from '../util/can-patch-native-accessors';
-import each from '../util/each';
 
 const configurable = true;
 const members = {
@@ -14,7 +13,7 @@ const members = {
   parentElement: {
     configurable,
     get () {
-      if (slotted.get(this)) {
+      if (light.get(this)) {
         const parent = this.parentNode;
         return parent.nodeType === 1 ? parent : null;
       }
@@ -30,7 +29,7 @@ const members = {
   nextSibling: {
     configurable,
     get () {
-      if (slotted.get(this)) {
+      if (light.get(this)) {
         const parChs = this.parentNode.childNodes;
         const parChsLen = parChs.length;
         for (let a = 0; a < parChsLen; a++) {
@@ -45,7 +44,7 @@ const members = {
   nextElementSibling: {
     configurable,
     get () {
-      if (slotted.get(this)) {
+      if (light.get(this)) {
         const parChs = this.parentNode.childNodes;
         const parChsLen = parChs.length;
 
@@ -73,7 +72,7 @@ const members = {
   previousSibling: {
     configurable,
     get () {
-      if (slotted.get(this)) {
+      if (light.get(this)) {
         const parChs = this.parentNode.childNodes;
         const parChsLen = parChs.length;
         for (let a = parChsLen - 1; a >= 0; a--) {
@@ -88,7 +87,7 @@ const members = {
   previousElementSibling: {
     configurable,
     get () {
-      if (slotted.get(this)) {
+      if (light.get(this)) {
         const parChs = this.parentNode.childNodes;
         const parChsLen = parChs.length;
 
@@ -137,20 +136,40 @@ if (canPatchNativeAccessors) {
 // We patch the node prototype to ensure any method that reparents a node
 // cleans up after the polyfills.
 nodeProto.appendChild = function (newNode) {
-  setLightNodeState(newNode, this, null);
+  if (polyfilled.get(newNode)) {
+    assignedSlot.set(newNode, null);
+    light.set(newNode, false);
+    parentNode.set(newNode, this);
+  }
   return appendChild.call(this, newNode);
 };
 nodeProto.insertBefore = function (newNode, refNode) {
-  setLightNodeState(newNode, this, null);
+  if (polyfilled.get(newNode)) {
+    assignedSlot.set(newNode, null);
+    light.set(newNode, false);
+    parentNode.set(newNode, this);
+  }
   return insertBefore.call(this, newNode, refNode);
 };
 nodeProto.removeChild = function (refNode) {
-  cleanLightNodeState(refNode);
+  if (polyfilled.get(refNode)) {
+    assignedSlot.set(refNode, null);
+    light.set(refNode, false);
+    parentNode.set(refNode, null);
+  }
   return removeChild.call(this, refNode);
 };
 nodeProto.replaceChild = function (newNode, refNode) {
-  setLightNodeState(newNode, this, null);
-  cleanLightNodeState(refNode);
+  if (polyfilled.get(newNode)) {
+    assignedSlot.set(newNode, null);
+    light.set(newNode, false);
+    parentNode.set(newNode, this);
+  }
+  if (polyfilled.get(refNode)) {
+    assignedSlot.set(refNode, null);
+    light.set(refNode, false);
+    parentNode.set(refNode, null);
+  }
   return replaceChild.call(this, newNode, refNode);
 };
 
@@ -167,30 +186,4 @@ export default function polyfill (light) {
   if (!canPatchNativeAccessors && !polyfilled.get(light)) {
     Object.defineProperties(light, members);
   }
-}
-
-export function setLightNodeState (node, parent, slot) {
-  if (!polyfilled.get(node)) {
-    return;
-  }
-  each(node, function (node) {
-    if (polyfilled.get(node)) {
-      slotted.set(node, true);
-      parentNode.set(node, parent);
-      assignedSlot.set(node, slot);
-    }
-  });
-}
-
-export function cleanLightNodeState (node) {
-  if (!polyfilled.get(node)) {
-    return;
-  }
-  each(node, function (node) {
-    if (polyfilled.get(node)) {
-      slotted.set(node, false);
-      parentNode.set(node, null);
-      assignedSlot.set(node, null);
-    }
-  });
 }

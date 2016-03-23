@@ -1,10 +1,9 @@
-import { lightNodes, polyfilled, roots } from './data';
-import { slots } from '../shadow/data';
-import { slotAppendChild, slotInsertBefore, slotRemoveChild } from '../slot/content';
+import { lightNodes, polyfilled } from './data';
+import { light, parentNode } from '../light/data';
+import distribute, { undistribute } from '../shadow/distribute';
 import each from '../util/each';
 import fragFromHtml from '../util/frag-from-html';
 import htmlFromFrag from '../util/html-from-frag';
-import lightPolyfill, { cleanLightNodeState, setLightNodeState } from '../light/polyfill';
 
 const configurable = true;
 
@@ -13,30 +12,6 @@ const configurable = true;
 
 function arrayItem (idx) {
   return this[idx];
-}
-
-function doForNodeIfSlot (host, node, func) {
-  const cachedSlots = slots.get(roots.get(host));
-  const slotName = node.getAttribute && node.getAttribute('slot') || 'default';
-  const slot = cachedSlots[slotName];
-
-  if (slot) {
-    func(host, node, slot);
-  } else if (node.parentNode) {
-    // If the node does not have a slot then we make sure that it is not
-    // inserted anywhere else in the document.
-    node.parentNode.removeChild(node);
-  }
-}
-
-function doForNodesIfSlot (host, node, func) {
-  if (node instanceof DocumentFragment) {
-    while (node.hasChildNodes()) {
-      doForNodeIfSlot(host, node.firstChild, func);
-    }
-  } else {
-    doForNodeIfSlot(host, node, func);
-  }
 }
 
 function makeLikeNodeList (arr) {
@@ -48,18 +23,29 @@ function toArray (obj) {
   return Array.prototype.slice.call(obj);
 }
 
-
-// Member overrides.
+// If we append a child to a host, the host tells the shadow root to distribute
+// it. If the root decides it doesn't need to be distributed, it is never
+// removed from the old parent because in polyfill land we store a reference
+// to the node but we don't move it. Due to that, we must explicitly remove the
+// node from its old parent.
+function cleanNode (node) {
+  const parent = node.parentNode;
+  if (parent) {
+    parent.removeChild(node);
+  }
+}
 
 const members = {
   appendChild: {
     value (newNode) {
       const ln = lightNodes.get(this);
-      each(newNode, newNode => ln.push(newNode));
-      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        slotAppendChild(slot, node);
-        lightPolyfill(node);
-        setLightNodeState(node, elem, slot);
+      const host = this;
+      cleanNode(newNode);
+      each(newNode, function (node) {
+        ln.push(node);
+        light.set(node, true);
+        parentNode.set(node, host);
+        distribute(node);
       });
       return newNode;
     }
@@ -112,11 +98,18 @@ const members = {
   insertBefore: {
     value (newNode, refNode) {
       const ln = lightNodes.get(this);
-      each(newNode, newNode => ln.splice(ln.indexOf(refNode), 0, newNode));
-      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        slotInsertBefore(slot, node, refNode);
-        lightPolyfill(node);
-        setLightNodeState(node, elem, slot);
+      const host = this;
+      cleanNode(newNode);
+      each(newNode, function (node) {
+        const index = ln.indexOf(refNode);
+        if (index > -1) {
+          ln.splice(index, 0, node);
+        } else {
+          ln.push(node);
+        }
+        light.set(node, true);
+        parentNode.set(node, host);
+        distribute(node);
       });
       return newNode;
     }
@@ -145,19 +138,22 @@ const members = {
   removeChild: {
     value (refNode) {
       const ln = lightNodes.get(this);
-      ln.splice(ln.indexOf(refNode), 1);
-      doForNodesIfSlot(this, refNode, function (host, node, slot) {
-        slotRemoveChild(slot, refNode);
-        cleanLightNodeState(node);
-      });
+      const index = ln.indexOf(refNode);
+
+      if (index > -1) {
+        undistribute(refNode);
+        light.set(refNode, false);
+        parentNode.set(refNode, null);
+        ln.splice(index, 1);
+      }
+
       return refNode;
     }
   },
   replaceChild: {
     value (newNode, refNode) {
       this.insertBefore(newNode, refNode);
-      this.removeChild(refNode);
-      return refNode;
+      return this.removeChild(refNode);
     }
   },
   textContent: {

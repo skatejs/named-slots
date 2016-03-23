@@ -174,7 +174,7 @@ export function setLightNodeState (node, parent, slot) {
     return;
   }
   each(node, function (node) {
-    if (!polyfilled.get(node)) {
+    if (polyfilled.get(node)) {
       slotted.set(node, true);
       parentNode.set(node, parent);
       assignedSlot.set(node, slot);
@@ -187,7 +187,7 @@ export function cleanLightNodeState (node) {
     return;
   }
   each(node, function (node) {
-    if (!polyfilled.get(node)) {
+    if (polyfilled.get(node)) {
       slotted.set(node, false);
       parentNode.set(node, null);
       assignedSlot.set(node, null);

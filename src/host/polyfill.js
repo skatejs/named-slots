@@ -58,8 +58,8 @@ const members = {
       each(newNode, newNode => ln.push(newNode));
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
         slotAppendChild(slot, node);
-        setLightNodeState(node, elem, slot);
         lightPolyfill(node);
+        setLightNodeState(node, elem, slot);
       });
       return newNode;
     }
@@ -115,6 +115,7 @@ const members = {
       each(newNode, newNode => ln.splice(ln.indexOf(refNode), 0, newNode));
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
         slotInsertBefore(slot, node, refNode);
+        lightPolyfill(node);
         setLightNodeState(node, elem, slot);
       });
       return newNode;

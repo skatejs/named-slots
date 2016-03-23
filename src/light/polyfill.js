@@ -136,16 +136,6 @@ if (canPatchNativeAccessors) {
 
 // We patch the node prototype to ensure any method that reparents a node
 // cleans up after the polyfills.
-function cleanUpNodes (nodes) {
-  each(nodes, function (node) {
-    const parent = node.parentNode;
-    if (parent) {
-      parentNode.set(node, null);
-      slotted.set(node, false);
-
-    }
-  });
-}
 nodeProto.appendChild = function (newNode) {
   setLightNodeState(newNode, this, null);
   return appendChild.call(this, newNode);
@@ -173,25 +163,34 @@ Object.defineProperty(nodeProto, 'assignedSlot', {
 
 
 export default function polyfill (light) {
+  polyfilled.set(light, true);
   if (!canPatchNativeAccessors && !polyfilled.get(light)) {
-    polyfilled.set(light, true);
     Object.defineProperties(light, members);
   }
 }
 
 export function setLightNodeState (node, parent, slot) {
+  if (!polyfilled.get(node)) {
+    return;
+  }
   each(node, function (node) {
-    slotted.set(node, true);
-    parentNode.set(node, parent);
-    assignedSlot.set(node, slot);
-    polyfill(node);
+    if (!polyfilled.get(node)) {
+      slotted.set(node, true);
+      parentNode.set(node, parent);
+      assignedSlot.set(node, slot);
+    }
   });
 }
 
 export function cleanLightNodeState (node) {
+  if (!polyfilled.get(node)) {
+    return;
+  }
   each(node, function (node) {
-    slotted.set(node, false);
-    parentNode.set(node, null);
-    assignedSlot.set(node, null);
+    if (!polyfilled.get(node)) {
+      slotted.set(node, false);
+      parentNode.set(node, null);
+      assignedSlot.set(node, null);
+    }
   });
 }

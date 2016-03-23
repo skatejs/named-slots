@@ -154,6 +154,7 @@ These are members which are already polyfilled.
 
 ### Properties
 
+- `Element.assignedSlot` - Available on every node at time of creation. Available in WebKit after being added to a shadow root.
 - `Element.innerHTML`
 - `Element.outerHTML` - Only the getter is polyfilled.
 - `Node.childNodes`
@@ -174,6 +175,7 @@ These are members which are already polyfilled.
 
 ### Methods
 
+- `HTMLSlotElement.getAssignedNodes()` - Only available after being added to a shadow root.
 - `Node.appendChild()`
 - `Node.hasChildNodes()`
 - `Node.insertBefore()`

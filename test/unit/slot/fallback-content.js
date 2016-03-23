@@ -1,14 +1,15 @@
 import { assignedNodes, fallbackNodes, fallbackState } from '../../src/slot/data';
-import { slotAppendChild, slotRemoveChild } from '../../src/slot/content';
 import create from '../lib/create';
-import polyfill from '../../src/slot/polyfill';
+import polyfill from '../../src/shadow/polyfill';
 
 describe('fallback-content', function () {
-  let slot;
+  let host, root, slot;
 
   beforeEach(function () {
+    host = create('div');
+    root = polyfill(host);
     slot = create('slot');
-    polyfill(slot);
+    root.appendChild(slot);
   });
 
   describe('without fallback content', function () {
@@ -55,7 +56,7 @@ describe('fallback-content', function () {
 
       beforeEach(function () {
         newNode = create('div');
-        slotAppendChild(slot, newNode);
+        host.appendChild(newNode);
       });
 
       it('should contain assigned nodes', function () {
@@ -68,7 +69,7 @@ describe('fallback-content', function () {
 
       describe('are removed', function () {
         beforeEach(function () {
-          slotRemoveChild(slot, newNode);
+          host.removeChild(newNode);
         });
 
         it('should not contain the assigned nodes', function () {

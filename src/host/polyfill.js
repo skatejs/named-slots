@@ -19,10 +19,6 @@ function makeLikeNodeList (arr) {
   return arr;
 }
 
-function toArray (obj) {
-  return Array.prototype.slice.call(obj);
-}
-
 // If we append a child to a host, the host tells the shadow root to distribute
 // it. If the root decides it doesn't need to be distributed, it is never
 // removed from the old parent because in polyfill land we store a reference
@@ -129,7 +125,7 @@ const members = {
   outerHTML: {
     get () {
       const name = this.tagName.toLowerCase();
-      const attributes = toArray(this.attributes).map(function (attr) {
+      const attributes = Array.prototype.slice.call(this.attributes).map(function (attr) {
         return ` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`;
       }).join('');
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;

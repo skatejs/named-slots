@@ -1,4 +1,5 @@
 import { assignedNodes, changeListeners, debouncedTriggerSlotChangeEvent, fallbackNodes, fallbackState } from './data';
+import { appendChild, insertBefore, removeChild, replaceChild } from '../util/node';
 
 function shouldAffectSlot (slot) {
   return !fallbackState.get(slot);
@@ -9,16 +10,16 @@ function toggle (slot) {
     const aNodes = assignedNodes.get(slot);
     if (aNodes.length) {
       const fNodes = fallbackNodes.get(slot);
-      fNodes.forEach(node => slot.__removeChild(node));
-      aNodes.forEach(node => slot.__appendChild(node));
+      fNodes.forEach(node => removeChild.call(slot, node));
+      aNodes.forEach(node => appendChild.call(slot, node));
       fallbackState.set(slot, false);
     }
   } else {
     const aNodes = assignedNodes.get(slot);
     if (!aNodes.length) {
       const fNodes = fallbackNodes.get(slot);
-      aNodes.forEach(node => slot.__removeChild(node));
-      fNodes.forEach(node => slot.__appendChild(node));
+      aNodes.forEach(node => removeChild.call(slot, node));
+      fNodes.forEach(node => appendChild.call(slot, node));
       fallbackState.set(slot, true);
     }
   }
@@ -35,30 +36,30 @@ function triggerSideEffects (slot) {
   triggerEvent(slot);
 }
 
-export function appendChild (slot, newNode) {
+export function slotAppendChild (slot, newNode) {
   const assigned = assignedNodes.get(slot);
   assigned.push(newNode);
-  shouldAffectSlot(slot) && slot.__appendChild(newNode);
+  shouldAffectSlot(slot) && appendChild.call(slot, newNode);
   triggerSideEffects(slot);
 }
 
-export function insertBefore (slot, newNode, refNode) {
+export function slotInsertBefore (slot, newNode, refNode) {
   const assigned = assignedNodes.get(slot);
   assigned.splice(assigned.indexOf(refNode), 0, newNode);
-  shouldAffectSlot(slot) && slot.__insertBefore(newNode, refNode);
+  shouldAffectSlot(slot) && insertBefore.call(slot, newNode, refNode);
   triggerSideEffects(slot);
 }
 
-export function removeChild (slot, refNode) {
+export function slotRemoveChild (slot, refNode) {
   const assigned = assignedNodes.get(slot);
   assigned.splice(assigned.indexOf(refNode), 1);
-  shouldAffectSlot(slot) && slot.__removeChild(refNode);
+  shouldAffectSlot(slot) && removeChild.call(slot, refNode);
   triggerSideEffects(slot);
 }
 
-export function replaceChild (slot, newNode, refNode) {
+export function slotReplaceChild (slot, newNode, refNode) {
   const assigned = assignedNodes.get(slot);
   assigned.splice(assigned.indexOf(refNode), 1, newNode);
-  shouldAffectSlot(slot) && slot.__replaceChild(newNode, refNode);
+  shouldAffectSlot(slot) && replaceChild.call(slot, newNode, refNode);
   triggerSideEffects(slot);
 }

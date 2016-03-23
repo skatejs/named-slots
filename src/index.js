@@ -1,4 +1,4 @@
-import polyfill from './host/polyfill';
+import polyfill from './shadow/polyfill';
 import render from './render';
 import version from './version';
 

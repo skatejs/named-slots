@@ -1,4 +1,5 @@
 import { assignedSlot, parentNode, polyfilled, slotted } from './data';
+import { appendChild, insertBefore, removeChild, replaceChild } from '../util/node';
 import canPatchNativeAccessors from '../util/can-patch-native-accessors';
 import each from '../util/each';
 
@@ -114,6 +115,7 @@ const members = {
   }
 };
 
+
 // If we can patch native accessors, we can safely apply light DOM accessors to
 // all HTML elements. This is faster than polyfilling them individually as they
 // are added, if possible, and doesn't have a measurable impact on performance
@@ -131,31 +133,37 @@ if (canPatchNativeAccessors) {
   }
 }
 
-// If we can't patch native accessors, we have to override native methods so
-// that we can reset the parentNode on nodes that have already overriden the
-// property.
-if (!canPatchNativeAccessors) {
-  ['appendChild', 'insertBefore', 'removeChild', 'replaceChild'].forEach(function (name) {
-    nodeProto['__light__' + name] = nodeProto[name];
+
+// We patch the node prototype to ensure any method that reparents a node
+// cleans up after the polyfills.
+function cleanUpNodes (nodes) {
+  each(nodes, function (node) {
+    const parent = node.parentNode;
+    if (parent) {
+      parentNode.set(node, null);
+      slotted.set(node, false);
+
+    }
   });
-  nodeProto.appendChild = function (newNode) {
-    each(newNode, newNode => polyfilled.get(newNode) && parentNode.set(newNode, this));
-    return this.__light__appendChild(newNode);
-  };
-  nodeProto.insertBefore = function (newNode, refNode) {
-    each(newNode, newNode => polyfilled.get(newNode) && parentNode.set(newNode, this));
-    return this.__light__insertBefore(newNode, refNode);
-  };
-  nodeProto.removeChild = function (refNode) {
-    polyfilled.get(refNode) && parentNode.set(refNode, null);
-    return this.__light__removeChild(refNode);
-  };
-  nodeProto.replaceChild = function (newNode, refNode) {
-    each(newNode, newNode => polyfilled.get(newNode) && parentNode.set(newNode, this));
-    polyfilled.get(refNode) && parentNode.set(refNode, null);
-    return this.__light__replaceChild(newNode, refNode);
-  };
 }
+nodeProto.appendChild = function (newNode) {
+  setLightNodeState(newNode, this, null);
+  return appendChild.call(this, newNode);
+};
+nodeProto.insertBefore = function (newNode, refNode) {
+  setLightNodeState(newNode, this, null);
+  return insertBefore.call(this, newNode, refNode);
+};
+nodeProto.removeChild = function (refNode) {
+  cleanLightNodeState(refNode);
+  return removeChild.call(this, refNode);
+};
+nodeProto.replaceChild = function (newNode, refNode) {
+  setLightNodeState(newNode, this, null);
+  cleanLightNodeState(refNode);
+  return replaceChild.call(this, newNode, refNode);
+};
+
 
 // By default we should always return null from the Element for `assignedSlot`.
 Object.defineProperty(nodeProto, 'assignedSlot', {
@@ -163,9 +171,27 @@ Object.defineProperty(nodeProto, 'assignedSlot', {
   get () { return null; }
 });
 
-export default function (light) {
+
+export default function polyfill (light) {
   if (!canPatchNativeAccessors && !polyfilled.get(light)) {
     polyfilled.set(light, true);
     Object.defineProperties(light, members);
   }
+}
+
+export function setLightNodeState (node, parent, slot) {
+  each(node, function (node) {
+    slotted.set(node, true);
+    parentNode.set(node, parent);
+    assignedSlot.set(node, slot);
+    polyfill(node);
+  });
+}
+
+export function cleanLightNodeState (node) {
+  each(node, function (node) {
+    slotted.set(node, false);
+    parentNode.set(node, null);
+    assignedSlot.set(node, null);
+  });
 }

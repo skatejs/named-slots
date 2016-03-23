@@ -111,4 +111,59 @@ describe('light/polyfill', function () {
       });
     });
   });
+
+  describe('when directly reparented', function () {
+    let anotherHost, anotherNode, anotherRoot, anotherSlot;
+
+    beforeEach(function () {
+      anotherHost = create('div');
+      anotherNode = create('div');
+      anotherRoot = polyfill(anotherHost);
+      anotherSlot = create('slot');
+
+      anotherRoot.appendChild(anotherSlot);
+    });
+
+    describe('to the same host', function () {
+      beforeEach(function () {
+        host.appendChild(light1);
+      });
+
+      it('should reset parentNode', function () {
+        expect(light1.parentNode).to.equal(host);
+      });
+
+      it('should reset assignedSlot', function () {
+        expect(light1.assignedSlot).to.equal(slot);
+      });
+    });
+
+    describe('to a different host', function () {
+      beforeEach(function () {
+        anotherHost.appendChild(light1);
+      });
+
+      it('should reset parentNode', function () {
+        expect(light1.parentNode).to.equal(anotherHost);
+      });
+
+      it('should reset assignedSlot', function () {
+        expect(light1.assignedSlot).to.equal(anotherSlot);
+      });
+    });
+
+    describe('to a different node', function () {
+      beforeEach(function () {
+        anotherNode.appendChild(light1);
+      });
+
+      it('should reset parentNode', function () {
+        expect(light1.parentNode).to.equal(anotherNode);
+      });
+
+      it('should reset assignedSlot', function () {
+        expect(anotherNode.assignedSlot).to.equal(null);
+      });
+    });
+  });
 });

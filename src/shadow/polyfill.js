@@ -1,6 +1,6 @@
 import { hosts, slots } from './data';
 import { roots } from '../host/data';
-import { appendChild as slotAppendChild, removeChild as slotRemoveChild } from '../slot/content';
+import { slotAppendChild, slotRemoveChild } from '../slot/content';
 import each from '../util/each';
 import fragFromHtml from '../util/frag-from-html';
 import htmlFromFrag from '../util/html-from-frag';

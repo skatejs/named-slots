@@ -72,7 +72,7 @@ describe('shadow/polyfill', function () {
     });
   });
 
-  describe('behaviour', function () {
+  describe('setup order', function () {
     it('host -> shadow root -> light dom', function () {
       const light1 = create('div', { slot: 'light1' });
       const light2 = create('div', { slot: 'light2' });

@@ -1,33 +1,12 @@
 import { lightNodes, polyfilled, roots } from './data';
-import { assignedSlot, parentNode, slotted } from '../light/data';
 import { slots } from '../shadow/data';
-import { appendChild, insertBefore, removeChild } from '../slot/content';
+import { slotAppendChild, slotInsertBefore, slotRemoveChild } from '../slot/content';
 import each from '../util/each';
 import fragFromHtml from '../util/frag-from-html';
 import htmlFromFrag from '../util/html-from-frag';
-import lightPolyfill from '../light/polyfill';
-
+import lightPolyfill, { cleanLightNodeState, setLightNodeState } from '../light/polyfill';
 
 const configurable = true;
-
-
-// Things like:
-//
-//   - faking `parentNode`
-//   - setting `assignedSlot`
-
-function setNodeState (node, parent, slot) {
-  slotted.set(node, true);
-  parentNode.set(node, parent);
-  assignedSlot.set(node, slot);
-  lightPolyfill(node);
-}
-
-function cleanNodeState (node) {
-  slotted.set(node, false);
-  parentNode.set(node, null);
-  assignedSlot.set(node, null);
-}
 
 
 // Slotting helpers.
@@ -78,8 +57,9 @@ const members = {
       const ln = lightNodes.get(this);
       each(newNode, newNode => ln.push(newNode));
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        appendChild(slot, node);
-        setNodeState(node, elem, slot);
+        slotAppendChild(slot, node);
+        setLightNodeState(node, elem, slot);
+        lightPolyfill(node);
       });
       return newNode;
     }
@@ -134,8 +114,8 @@ const members = {
       const ln = lightNodes.get(this);
       each(newNode, newNode => ln.splice(ln.indexOf(refNode), 0, newNode));
       doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        insertBefore(slot, node, refNode);
-        setNodeState(node, elem, slot);
+        slotInsertBefore(slot, node, refNode);
+        setLightNodeState(node, elem, slot);
       });
       return newNode;
     }
@@ -166,8 +146,8 @@ const members = {
       const ln = lightNodes.get(this);
       ln.splice(ln.indexOf(refNode), 1);
       doForNodesIfSlot(this, refNode, function (host, node, slot) {
-        removeChild(slot, refNode);
-        cleanNodeState(node);
+        slotRemoveChild(slot, refNode);
+        cleanLightNodeState(node);
       });
       return refNode;
     }

@@ -129,37 +129,39 @@ Note:
 
 ## Polyfilled
 
-These are members which are already polyfilled.
+These are members which are already polyfilled along with notes about their implementation details.
 
 ### Properties
 
 - `Element.assignedSlot` - Available on every node at time of creation. Available in WebKit after being added to a shadow root.
+- `Element.childElementCount`
+- `Element.children` - Same as `Node.childNodes` except that it only contains element nodes.
+- `Element.firstElementChild`
 - `Element.innerHTML`
-- `Element.outerHTML` - Only the getter is polyfilled.
-- `Node.childNodes`
+- `Element.lastElementChild`
+- `Element.nextElementSibling`
+- `Element.outerHTML`
+- `Element.previousElementSibling`
+- `Node.childNodes` - Returns an array instead of a `NodeList`, however, it applies an `item()` function so things expecting it to behave like a `NodeList` don't break.
 - `Node.firstChild`
 - `Node.lastChild`
 - `Node.nextSibling`
-- `Node.nodeValue` - Doesn't need polyfilling because its return value is `null` for all element nodes.
 - `Node.parentElement`
 - `Node.parentNode`
 - `Node.previousSibling`
 - `Node.textContent`
-- `NonDocumentTypeChildNode.nextElementSibling`
-- `NonDocumentTypeChildNode.previousElementSibling`
-- `ParentNode.childElementCount`
-- `ParentNode.children`
-- `ParentNode.firstElementChild`
-- `ParentNode.lastElementChild`
 
 ### Methods
 
+- `Element.attachShadow()`
 - `HTMLSlotElement.getAssignedNodes()` - Only available after being added to a shadow root.
 - `Node.appendChild()`
 - `Node.hasChildNodes()`
 - `Node.insertBefore()`
 - `Node.removeChild()`
 - `Node.replaceChild()`
+
+
 
 ## Maybe
 
@@ -184,6 +186,8 @@ These are members which are not yet polyfilled for a few reasons:
 - `Node.compareDocumentPosition()`
 - `Node.contains()`
 
+
+
 ## Unlikely
 
 These are members which are not polyfilled because it's likely not necessary.
@@ -199,6 +203,7 @@ These are members which are not polyfilled because it's likely not necessary.
 - `Node.baseURI`
 - `Node.nodeName`
 - `Node.nodeType`
+- `Node.nodeValue` - doesn't need polyfilling because it returns `null` on element nodes in native anyways.
 - `Node.ownerDocument`
 
 ### Methods
@@ -216,12 +221,12 @@ These are members which are not polyfilled because it's likely not necessary.
 - `Element.setAttribute()`
 - `Element.setAttributeNS()`
 - `Element.setPointerCapture()`
-- `EventTarget.addEventListener()`
-- `EventTarget.dispatchEvent()`
-- `EventTarget.removeEventListener()`
+- `Node.addEventListener()`
 - `Node.cloneNode()`
+- `Node.dispatchEvent()`
 - `Node.isDefaultNamespace()`
 - `Node.isEqualNode()`
 - `Node.lookupNamespaceURI()`
 - `Node.lookupPrefix()`
 - `Node.normalize()`
+- `Node.removeEventListener()`

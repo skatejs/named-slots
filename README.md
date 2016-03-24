@@ -93,20 +93,6 @@ Which would then render a shadow root as:
 
 
 
-## Performance
-
-Obviously, performance is a concern when polyfilling anything and the past has shown Shadow DOM polyfills to be slow. Since we're not polyfilling everything, and don't ever aim to, we strive to keep an acceptable level of performance.
-
-We've written some simple perf tests to show overhead against native. These vary depending on the browser you run them, so if you're concerned about performance, it's best to run these yourself. You can do so by:
-
-1. Clone the repo
-2. `npm install`
-3. `gulp perf`
-
-For most purposes, the performance should be acceptable. That said, we're always looking at ways to imporove.
-
-
-
 ## Support
 
 The following lists are an exhaustive representation of what this polygap supports and why for the following interfaces:
@@ -230,3 +216,17 @@ These are members which are not polyfilled because it's likely not necessary.
 - `Node.lookupPrefix()`
 - `Node.normalize()`
 - `Node.removeEventListener()`
+
+
+
+## Performance
+
+Obviously, performance is a concern when polyfilling anything and the past has shown Shadow DOM polyfills to be slow. Since we're not polyfilling everything, and don't ever aim to, we strive to keep an acceptable level of performance.
+
+We've written some simple perf tests to show overhead against native. These vary depending on the browser you run them, so if you're concerned about performance, it's best to run these yourself. You can do so by:
+
+1. Clone the repo
+2. `npm install`
+3. `gulp perf`
+
+For most purposes, the performance should be acceptable. That said, we're always looking at ways to imporove.

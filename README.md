@@ -59,24 +59,36 @@ This polyfill is used in the same way as specified in [the spec](http://w3c.gith
 
 ```js
 const host = document.createElement('div');
-const root div.attachShadow({ mode: 'closed' });
+const root = host.attachShadow({ mode: 'closed' });
 root.innerHTML = '<h1><slot name="title"></slot></h1><slot></slot>';
 host.innerHTML = '<span slot="title">title</span><p>content</p>';
 ```
 
-The following would render:
+If the browser you run that code in does not support native Shadow DOM then it would render:
 
 ```html
 <div>
-  <shadow>
+  <_shadow_root_>
     <h1>
       <slot name="title">title</slot>
     </h1>
     <slot>
       <p>content</p>
     </slot>
-  </shadow>
+  </_shadow_root_>
 </div>
+```
+
+The `attachShadow()` method accepts an options dictionary as per the spec and requires that you specify a `mode` that is either `open` or `closed`. For the polyfill, you may also specify an option for using a different name for the shadow root.
+
+```js
+const root = host.attachShadow({ mode: 'open', polyfillShadowRootTagName: 'custom-shadow-root-name' });
+```
+
+Which would then render a shadow root as:
+
+```html
+<custom-shadow-root-name>
 ```
 
 

@@ -299,12 +299,12 @@
     var elProto = Element.prototype;
     if (canPatchNativeAccessors) {
       for (var name$1 in members$3) {
-        var proto$1 = nodeProto.hasOwnProperty(name$1) ? nodeProto : elProto;
-        var nativeDescriptor = Object.getOwnPropertyDescriptor(proto$1, name$1);
+        var proto$2 = nodeProto.hasOwnProperty(name$1) ? nodeProto : elProto;
+        var nativeDescriptor = Object.getOwnPropertyDescriptor(proto$2, name$1);
         if (nativeDescriptor) {
-          Object.defineProperty(proto$1, '__' + name$1, nativeDescriptor);
+          Object.defineProperty(proto$2, '__' + name$1, nativeDescriptor);
         }
-        Object.defineProperty(proto$1, name$1, members$3[name$1]);
+        Object.defineProperty(proto$2, name$1, members$3[name$1]);
       }
     }
 
@@ -356,7 +356,7 @@
       }
     });
 
-    function polyfill$3(light) {
+    function polyfill$2(light) {
       if (polyfilled.get(light)) {
         return;
       }
@@ -401,7 +401,7 @@
             ln.push(node);
             light.set(node, true);
             parentNode.set(node, host);
-            polyfill$3(node);
+            polyfill$2(node);
             distribute(node);
           });
           return newNode;
@@ -468,7 +468,7 @@
             }
             light.set(node, true);
             parentNode.set(node, host);
-            polyfill$3(node);
+            polyfill$2(node);
             distribute(node);
           });
           return newNode;
@@ -531,7 +531,7 @@
       }
     };
 
-    function polyfill$1 (host) {
+    function hostPolyfill (host) {
       if (polyfilled$2.get(host)) {
         return;
       }
@@ -766,7 +766,7 @@
       }
     };
 
-    function polyfill$2(slot) {
+    function polyfill$1(slot) {
       assignedNodes.set(slot, []);
       fallbackNodes.set(slot, getInitialFallbackContent(slot));
       fallbackState.set(slot, true);
@@ -778,10 +778,12 @@
       if (polyfilled$1.get(slot)) {
         return slot;
       }
-      polyfill$2(slot);
+      polyfill$1(slot);
       polyfilled$1.set(slot, true);
       return slot;
     }
+
+    var defaultShadowRootTagName = '_shadow_root_';
 
     // Returns a document fragment of the childNodes of the specified element. Due
     // to the nature of the DOM, this will remove the nodes from the element.
@@ -791,20 +793,6 @@
         frag.appendChild(elem.firstChild);
       }
       return frag;
-    }
-
-    // Creates an shadow root, appends it to the element and returns it.
-    function createShadowRoot(elem) {
-      var root = document.createElement(isBlockLevel(elem) ? 'div' : 'span');
-      elem.appendChild(root);
-      return root;
-    }
-
-    // Returns whether or not the specified element is a block level element or not
-    // We need this to determine the type of element the shadow root should be
-    // since we must use real nodes to simulate a shadow root.
-    function isBlockLevel(elem) {
-      return window.getComputedStyle(elem).display === 'block';
     }
 
     // Takes the shadow root and caches the slots it has.
@@ -902,16 +890,19 @@
       }
     };
 
-    function polyfill (host) {
+    function polyfill(host) {
       var _ref = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var mode = _ref.mode;
+      var polyfillShadowRootTagName = _ref.polyfillShadowRootTagName;
 
-      if (host.shadowRoot) {
-        return host.shadowRoot;
+      var existingShadowRoot = roots.get(host);
+
+      if (existingShadowRoot) {
+        return existingShadowRoot;
       }
 
-      var shadowRoot = createShadowRoot(host);
+      var shadowRoot = document.createElement(polyfillShadowRootTagName || defaultShadowRootTagName);
       var initialLightDom = createFragmentFromChildNodes(host);
 
       // Host and shadow root data.
@@ -934,7 +925,7 @@
       Object.defineProperties(shadowRoot, members);
 
       // Polyfill the host.
-      polyfill$1(host);
+      hostPolyfill(host);
 
       // Finally, insert the initial light DOM content so it's distributed.
       host.appendChild(initialLightDom);
@@ -942,84 +933,13 @@
       return shadowRoot;
     }
 
-    // Returns a document fragment of the childNodes of the specified element. Due
-    // to the nature of the DOM, this will remove the nodes from the element.
-    function createFragmentFromChildNodes$1(elem) {
-      var frag = document.createDocumentFragment();
-      while (elem.hasChildNodes()) {
-        frag.appendChild(elem.firstChild);
-      }
-      return frag;
-    }
-
-    // Creates an shadow root, appends it to the element and returns it.
-    function createShadowRoot$1(elem) {
-      var root = document.createElement(isBlockLevel$1(elem) ? 'div' : 'span');
-      elem.appendChild(root);
-      return root;
-    }
-
-    // Returns whether or not the specified element is a block level element or not
-    // We need this to determine the type of element the shadow root should be
-    // since we must use real nodes to simulate a shadow root.
-    function isBlockLevel$1(elem) {
-      return window.getComputedStyle(elem).display === 'block';
-    }
-
-    // Simple renderer that proxies another renderer. It will polyfill if not yet
-    // polyfilled, or simply run the renderer. Initial content is taken into
-    // consideration.
-    var defaults = { shadowId: '' };
-    function render (fn) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? defaults : arguments[1];
-
-      return function (elem) {
-        var shadowRoot = elem.__shadowRoot;
-
-        if (shadowRoot) {
-          fn(elem, shadowRoot);
-        } else {
-          // We get a fragment of the initial DOM so that we can create the shadow
-          // root.
-          var initialLightDom = createFragmentFromChildNodes$1(elem);
-
-          // Create a shadow ID so that it can be used to get a slot that is unique
-          // to this shadow root. Since we don't polyfill querySelector() et al, we
-          // need a way to be able to refer to slots that are unique to this
-          // shadow root.
-          elem.__shadowId = opts.shadowId;
-
-          // Create the shadow root and return the light DOM. We must get the light
-          // DOM before we template it so that we can distribute it after
-          // polyfilling.
-          elem.__shadowRoot = createShadowRoot$1(elem);
-
-          // Render once we have the initial light DOM as this would likely blow
-          // that away.
-          fn(elem, elem.__shadowRoot);
-
-          // Now polyfill so that we can distribute after.
-          polyfill$1(elem);
-
-          // Distribute the initial light DOM after polyfill so they get put into
-          // the right spots.
-          elem.appendChild(initialLightDom);
-        }
-      };
-    }
-
     var version = '0.0.1';
-
-    Element.prototype.attachShadow = function (opts) {
-      return polyfill(this, opts);
-    };
 
 
 
     var api = Object.freeze({
-      default: polyfill,
-      render: render,
-      version: version
+    	default: polyfill,
+    	version: version
     });
 
     var previousGlobal = window.skatejsNamedSlots;

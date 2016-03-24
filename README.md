@@ -95,29 +95,24 @@ Which would then render a shadow root as:
 
 ## Support
 
-The following lists are an exhaustive representation of what this polygap supports and why for the following interfaces:
-
-- [ChildNode](https://developer.mozilla.org/en/docs/Web/API/ChildNode)
-- [Element](https://developer.mozilla.org/en/docs/Web/API/Element)
-- [EventTarget](https://developer.mozilla.org/en/docs/Web/API/EventTarget)
-- [Node](https://developer.mozilla.org/en/docs/Web/API/Node)
-- [NonDocumentTypeChildNode](https://developer.mozilla.org/en/docs/Web/API/NonDocumentTypeChildNode)
-- [ParentNode](https://developer.mozilla.org/en/docs/Web/API/ParentNode)
-
-Note:
-
-- `HTMLElement` and any prototypes more specific are not polyfilled for simplicity.
-- All members which are not standardised or are listed as experimental are not included in these lists.
-- Members are only polyfilled on the specific web component unless otherwise noted.
-- Members must be overridden on the instance rather than prototype because WebKit has a bug that prevents correct descritpors from being returned using [`Object.getOwnPropertyDescriptor()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor) See https://bugs.webkit.org/show_bug.cgi?id=49739 for more info.
+The following describe what is polyfilled, what is not polyfilled, and why. All members which are not standardised or are listed as experimental are not included in these lists.
 
 
 
-## Polyfilled
+### Overview
+
+- JavaScript API encapsulation for *most* things.
+- Finders like `document.getElementById()` and `element.querySelectorAll()` are *not* polyfilled for performance reasons.
+- All getters and setters that provide encapsulation are polyfilled.
+- CSS encapsulation and selectors are *not* polyfilled.
+
+
+
+### Polyfilled
 
 These are members which are already polyfilled along with notes about their implementation details.
 
-### Properties
+#### Properties
 
 - `Element.assignedSlot` - Available on every node at time of creation. Available in WebKit after being added to a shadow root.
 - `Element.childElementCount`
@@ -137,7 +132,7 @@ These are members which are already polyfilled along with notes about their impl
 - `Node.previousSibling`
 - `Node.textContent`
 
-### Methods
+#### Methods
 
 - `Element.attachShadow()`
 - `HTMLSlotElement.getAssignedNodes()` - Only available after being added to a shadow root.
@@ -149,7 +144,7 @@ These are members which are already polyfilled along with notes about their impl
 
 
 
-## Maybe
+### Maybe
 
 These are members which are not yet polyfilled for a few reasons:
 
@@ -157,11 +152,11 @@ These are members which are not yet polyfilled for a few reasons:
 - They may not behave as expected causing confusion.
 - If only part of the finding methods are polyfilled, not polyfilling some may cause confusion.
 
-### Properties
+#### Properties
 
 - `Element.id`
 
-### Methods
+#### Methods
 
 - `Document.getElementById()`
 - `Element.getElementsByClassName()`
@@ -174,11 +169,11 @@ These are members which are not yet polyfilled for a few reasons:
 
 
 
-## Unlikely
+### Unlikely
 
 These are members which are not polyfilled because it's likely not necessary.
 
-### Properties
+#### Properties
 
 - `Element.accessKey`
 - `Element.attributes`
@@ -192,7 +187,7 @@ These are members which are not polyfilled because it's likely not necessary.
 - `Node.nodeValue` - doesn't need polyfilling because it returns `null` on element nodes in native anyways.
 - `Node.ownerDocument`
 
-### Methods
+#### Methods
 
 - `Element.getAttribute()`
 - `Element.getAttributeNS()`

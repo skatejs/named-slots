@@ -174,7 +174,8 @@ nodeProto.replaceChild = function (newNode, refNode) {
 };
 
 
-// By default we should always return null from the Element for `assignedSlot`.
+// The assignedSlot property is only available on nodes that have been slotted
+// so we always return false and redefine it when it's slotted.
 Object.defineProperty(nodeProto, 'assignedSlot', {
   configurable,
   get () { return null; }

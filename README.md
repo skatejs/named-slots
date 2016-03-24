@@ -55,7 +55,7 @@ We support the usage of the `<slot />` element as specified in the Shadow DOM sp
 
 ## Usage
 
-This polyfill behaves very much like native [`Element.attachShadow()`].
+This polyfill is used in the same way as specified in [the spec](http://w3c.github.io/webcomponents/spec/shadow/).
 
 ```js
 const host = document.createElement('div');
@@ -68,14 +68,14 @@ The following would render:
 
 ```html
 <div>
-  <shadow-root>
+  <shadow>
     <h1>
       <slot name="title">title</slot>
     </h1>
     <slot>
       <p>content</p>
     </slot>
-  </shadow-root>
+  </shadow>
 </div>
 ```
 

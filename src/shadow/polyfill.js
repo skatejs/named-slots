@@ -1,10 +1,14 @@
 import { hosts, roots, slots } from './data';
 import { appendChild, insertBefore, removeChild, replaceChild } from '../util/node';
 import distribute, { undistribute } from './distribute';
+import elemProto from '../util/element';
 import fragFromHtml from '../util/frag-from-html';
 import htmlFromFrag from '../util/html-from-frag';
 import hostPolyfill from '../host/polyfill';
 import slotPolyfill from '../slot/polyfill';
+
+
+const defaultShadowRootTagName = '_shadow_root_';
 
 
 // Returns a document fragment of the childNodes of the specified element. Due
@@ -15,20 +19,6 @@ function createFragmentFromChildNodes (elem) {
     frag.appendChild(elem.firstChild);
   }
   return frag;
-}
-
-// Creates an shadow root, appends it to the element and returns it.
-function createShadowRoot (elem) {
-  const root = document.createElement(isBlockLevel(elem) ? 'div' : 'span');
-  elem.appendChild(root);
-  return root;
-}
-
-// Returns whether or not the specified element is a block level element or not
-// We need this to determine the type of element the shadow root should be
-// since we must use real nodes to simulate a shadow root.
-function isBlockLevel (elem) {
-  return window.getComputedStyle(elem).display === 'block';
 }
 
 
@@ -126,12 +116,27 @@ const members = {
   }
 };
 
-export default function (host, { mode } = {}) {
-  if (host.shadowRoot) {
-    return host.shadowRoot;
+
+// Polyfill the native `attachShadow()` method if it doesn't exist.
+if (!elemProto.attachShadow) {
+  elemProto.attachShadow = function (opts) {
+    const mode = opts && opts.mode;
+    if (mode !== 'closed' && mode !== 'open') {
+      throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
+    }
+    return polyfill(this, opts);
+  };
+}
+
+
+export default function polyfill (host, { mode, polyfillShadowRootTagName } = {}) {
+  const existingShadowRoot = roots.get(host);
+
+  if (existingShadowRoot) {
+    return existingShadowRoot;
   }
 
-  const shadowRoot = createShadowRoot(host);
+  const shadowRoot = document.createElement(polyfillShadowRootTagName || defaultShadowRootTagName);
   const initialLightDom = createFragmentFromChildNodes(host);
 
   // Host and shadow root data.

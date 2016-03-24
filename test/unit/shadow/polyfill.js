@@ -1,18 +1,41 @@
+import '../../../src/index';
 import { slots } from '../../../src/shadow/data';
 import create from '../../lib/create';
-import polyfill from '../../../src/shadow/polyfill';
 
 describe('shadow/polyfill', function () {
-  it('mode: closed (default)', function () {
+  const invalidModeMessage = 'You must specify { mode } as "open" or "closed" to attachShadow().';
+  it('mode: [not specified]', function () {
     const host = create('div');
-    polyfill(host);
+    expect(host.attachShadow.bind(host)).to.throw(invalidModeMessage);
+  });
+
+  it('mode: [invalid value (not "open" or "closed")]', function () {
+    const host = create('div');
+    expect(host.attachShadow.bind(host, { mode: 'invalid' })).to.throw(invalidModeMessage);
+  });
+
+  it('mode: "open"', function () {
+    const host = create('div');
+    const root = host.attachShadow({ mode: 'open' });
+    expect(host.shadowRoot).to.equal(root);
+  });
+
+  it('mode: "closed"', function () {
+    const host = create('div');
+    host.attachShadow({ mode: 'closed' });
     expect(host.shadowRoot).to.equal(null);
   });
 
-  it('mode: open', function () {
+  it('polyfillShadowRootTagName: [default="_shadow_root_"]', function () {
     const host = create('div');
-    const root = polyfill(host, { mode: 'open' });
-    expect(host.shadowRoot).to.equal(root);
+    const root = host.attachShadow({ mode: 'open' });
+    expect(root.tagName).to.equal('_SHADOW_ROOT_');
+  });
+
+  it('polyfillShadowRootTagName: "test-ing"', function () {
+    const host = create('div');
+    const root = host.attachShadow({ mode: 'open', polyfillShadowRootTagName: 'test-ing' });
+    expect(root.tagName).to.equal('TEST-ING');
   });
 
   describe('api', function () {
@@ -20,7 +43,7 @@ describe('shadow/polyfill', function () {
 
     beforeEach(function () {
       host = create('div');
-      root = polyfill(host);
+      root = host.attachShadow({ mode: 'closed' });
     });
 
     it('appendChild', function () {
@@ -79,7 +102,7 @@ describe('shadow/polyfill', function () {
       const slot1 = create('slot', { name: 'light1' });
       const slot2 = create('slot', { name: 'light2' });
       const host = create('div');
-      const root = polyfill(host);
+      const root = host.attachShadow({ mode: 'closed' });
 
       root.appendChild(slot1);
       root.appendChild(slot2);
@@ -98,7 +121,7 @@ describe('shadow/polyfill', function () {
       const slot1 = create('slot', { name: 'light1' });
       const slot2 = create('slot', { name: 'light2' });
       const host = create('div', [light1, light2]);
-      const root = polyfill(host);
+      const root = host.attachShadow({ mode: 'closed' });
 
       // Child nodes should be in the host even if there's no slots.
       expect(host.childNodes.length).to.equal(2);

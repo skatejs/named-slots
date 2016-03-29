@@ -406,7 +406,7 @@ const members = {
         const firstChild = parsed.firstChild;
 
         // When we polyfill everything on HTMLElement.prototype, we overwrite
-        // properties. This makes it so that parentNode reprts null even though
+        // properties. This makes it so that parentNode reports null even though
         // it's actually a parent of the HTML parser. For this reason,
         // cleanNode() won't work and we must manually remove it from the
         // parser before it is moved to the host just in case it's added as a
@@ -479,11 +479,6 @@ const members = {
       });
     }
   },
-  parentNode: {
-    get () {
-      return null;
-    }
-  },
   previousSibling: {
     get () {
       const parentNode = this.parentNode;
@@ -511,6 +506,8 @@ const members = {
 
       if (isHostNode(this)) {
         removeNodeFromHost(this, refNode);
+      } else if (isSlotNode(this)) {
+        removeNodeFromNode(this, refNode);
       } else if ((closestRoot = findClosestShadowRoot(this))) {
         removeNodeFromRoot(closestRoot, refNode);
       } else {
@@ -530,11 +527,6 @@ const members = {
     value (newNode, refNode) {
       this.insertBefore(newNode, refNode);
       return this.removeChild(refNode);
-    }
-  },
-  shadowRoot: {
-    get () {
-      return null;
     }
   },
   textContent: {
@@ -561,13 +553,15 @@ function findDescriptorFor (name) {
   }
 }
 
-const elementProto = HTMLElement.prototype;
-Object.keys(members).forEach(function (memberName) {
-  const memberProperty = members[memberName];
-  const nativeDescriptor = findDescriptorFor(memberName);
-  memberProperty.configurable = true;
-  Object.defineProperty(elementProto, memberName, memberProperty);
-  if (nativeDescriptor && nativeDescriptor.configurable) {
-    Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
-  }
-});
+if (!('attachShadow' in document.createElement('div'))) {
+  const elementProto = HTMLElement.prototype;
+  Object.keys(members).forEach(function (memberName) {
+    const memberProperty = members[memberName];
+    const nativeDescriptor = findDescriptorFor(memberName);
+    memberProperty.configurable = true;
+    Object.defineProperty(elementProto, memberName, memberProperty);
+    if (nativeDescriptor && nativeDescriptor.configurable) {
+      Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+    }
+  });
+}

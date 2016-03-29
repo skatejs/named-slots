@@ -39,7 +39,7 @@ describe('skatejs-named-slots', function () {
       const light2 = document.createElement('light-2');
 
       host.appendChild(light1);
-      expect(host.____childNodes[0]).to.equal(light1, 'internal light dom');
+      expect(host.childNodes[0]).to.equal(light1, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
@@ -48,7 +48,7 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[0]).to.equal(light1, 'light');
 
       host.appendChild(light2);
-      expect(host.____childNodes[1]).to.equal(light2, 'internal light dom');
+      expect(host.childNodes[1]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
@@ -72,7 +72,7 @@ describe('skatejs-named-slots', function () {
       const light2 = document.createElement('light2');
 
       host.insertBefore(light2);
-      expect(host.____childNodes[0]).to.equal(light2, 'internal light dom');
+      expect(host.childNodes[0]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
@@ -81,8 +81,8 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[0]).to.equal(light2, 'light');
 
       host.insertBefore(light1, light2);
-      expect(host.____childNodes[0]).to.equal(light1, 'internal light dom');
-      expect(host.____childNodes[1]).to.equal(light2, 'internal light dom');
+      expect(host.childNodes[0]).to.equal(light1, 'internal light dom');
+      expect(host.childNodes[1]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
@@ -109,8 +109,8 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[1]).to.equal(light2, 'light');
 
       host.removeChild(light1);
-      expect(host.____childNodes.length).to.equal(1);
-      expect(host.____childNodes[0]).to.equal(light2, 'internal light dom');
+      expect(host.childNodes.length).to.equal(1);
+      expect(host.childNodes[0]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
@@ -119,7 +119,7 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[0]).to.equal(light2, 'light');
 
       host.removeChild(light2);
-      expect(host.____childNodes.length).to.equal(0);
+      expect(host.childNodes.length).to.equal(0);
 
       expect(slot.getAssignedNodes().length).to.equal(0, 'slot');
       expect(host.childNodes.length).to.equal(0, 'light');
@@ -138,8 +138,8 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[0]).to.equal(light1, 'light');
 
       host.replaceChild(light2, light1);
-      expect(host.____childNodes.length).to.equal(1);
-      expect(host.____childNodes[0]).to.equal(light2, 'internal light dom');
+      expect(host.childNodes.length).to.equal(1);
+      expect(host.childNodes[0]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
@@ -201,17 +201,17 @@ describe('skatejs-named-slots', function () {
 
       host.innerHTML = '<div slot="custom"></div>';
       expect(host.innerHTML).to.equal('<div slot="custom"></div>');
-      expect(host.____childNodes.length).to.equal(1);
+      expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(0);
 
       host.innerHTML = '<div></div>';
       expect(host.innerHTML).to.equal('<div></div>');
-      expect(host.____childNodes.length).to.equal(1);
+      expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
 
       host.innerHTML = '<div></div>';
       expect(host.innerHTML).to.equal('<div></div>');
-      expect(host.____childNodes.length).to.equal(1);
+      expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
     });
 
@@ -238,17 +238,17 @@ describe('skatejs-named-slots', function () {
 
       host.innerHTML = '<div slot="custom"></div>';
       expect(host.outerHTML).to.equal('<div><div slot="custom"></div></div>');
-      expect(host.____childNodes.length).to.equal(1);
+      expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(0);
 
       host.innerHTML = '<div></div>';
       expect(host.outerHTML).to.equal('<div><div></div></div>');
-      expect(host.____childNodes.length).to.equal(1);
+      expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
 
       host.innerHTML = '<div></div>';
       expect(host.outerHTML).to.equal('<div><div></div></div>');
-      expect(host.____childNodes.length).to.equal(1);
+      expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
     });
 

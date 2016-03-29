@@ -4,6 +4,15 @@ import version from './version';
 
 
 const defaultShadowRootTagName = '_shadow_root_';
+const defaultShadowRootTagNameUc = defaultShadowRootTagName.toUpperCase();
+
+const assignedToSlotMap = new WeakMap();
+const hostToRootMap = new WeakMap();
+const nodeToChildNodesMap = new WeakMap();
+const nodeToSlotMap = new WeakMap();
+const rootToHostMap = new WeakMap();
+const rootToSlotMap = new WeakMap();
+const slotToModeMap = new WeakMap();
 
 
 // Parse HTML natively.
@@ -63,11 +72,11 @@ function cleanNode (node) {
 }
 
 function isHostNode (node) {
-  return !!node.____rootNode;
+  return !!hostToRootMap.get(node);
 }
 
 function isShadowNode (node) {
-  return !!node.____hostNode;
+  return node.tagName === defaultShadowRootTagNameUc;
 }
 
 function isSlotNode (node) {
@@ -108,26 +117,28 @@ function getSlotNameFromNode (node) {
 }
 
 function slotNodeIntoSlot (slot, node, insertBefore) {
-  const slotInsertBeforeIndex = slot.____assignedNodes.indexOf(insertBefore);
-  const assignedNodes = slot.____assignedNodes;
+  const assignedNodes = slot.getAssignedNodes();
   const fallbackNodes = slot.childNodes;
+  const slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
 
-  staticProp(node, 'assignedSlot', slot);
+  nodeToSlotMap.set(node, slot);
 
   // If there's currently no assigned nodes, there will be, so remove all fallback content.
   if (!assignedNodes.length) {
-    slot.____isInFallbackMode = false;
+    slotToModeMap.set(slot, false);
     fallbackNodes.forEach(fallbackNode => slot.__removeChild(fallbackNode));
   }
 
+  const shouldAffectSlot = !slotToModeMap.get(slot);
+
   if (slotInsertBeforeIndex > -1) {
-    if (!slot.____isInFallbackMode) {
+    if (shouldAffectSlot) {
       slot.__insertBefore(node, insertBefore);
     }
 
     assignedNodes.splice(slotInsertBeforeIndex, 0, node);
   } else {
-    if (!slot.____isInFallbackMode) {
+    if (shouldAffectSlot) {
       slot.__appendChild(node);
     }
 
@@ -141,23 +152,24 @@ function slotNodeFromSlot (node) {
   const slot = node.assignedSlot;
 
   if (slot) {
-    const index = slot.____assignedNodes.indexOf(node);
+    const assignedNodes = slot.getAssignedNodes();
+    const index = assignedNodes.indexOf(node);
 
     if (index > -1) {
-      const assignedNodes = slot.____assignedNodes;
-
       assignedNodes.splice(index, 1);
-      staticProp(node, 'assignedSlot', null);
+      nodeToSlotMap.set(node, null);
+
+      const shouldAffectSlot = !slotToModeMap.get(slot);
 
       // We only update the actual DOM representation if we're displaying
       // slotted nodes.
-      if (!slot.____isInFallbackMode) {
+      if (shouldAffectSlot) {
         slot.__removeChild(node);
       }
 
       // If this was the last slotted node, then insert fallback content.
       if (!assignedNodes.length) {
-        slot.____isInFallbackMode = true;
+        slotToModeMap.set(slot, true);
         slot.childNodes.forEach(fallbackNode => slot.__appendChild(fallbackNode));
       }
 
@@ -199,7 +211,9 @@ function addNodeToNode (host, node, insertBefore) {
 
 function addNodeToHost (host, node, insertBefore) {
   registerNode(host, node, insertBefore, function (eachNode) {
-    const slotNode = host.____rootNode.____slotNodes[getSlotNameFromNode(eachNode)];
+    const rootNode = hostToRootMap.get(host);
+    const slotNodes = rootToSlotMap.get(rootNode);
+    const slotNode = slotNodes[getSlotNameFromNode(eachNode)];
     if (slotNode) {
       slotNodeIntoSlot(slotNode, eachNode, insertBefore);
     }
@@ -223,9 +237,9 @@ function addNodeToRoot (root, node, insertBefore) {
 
 function addSlotToRoot (root, node) {
   const slotName = getSlotNameFromSlot(node);
-  node.____isInFallbackMode = true;
-  root.____slotNodes[slotName] = node;
-  root.____hostNode.childNodes.forEach(function (eachNode) {
+  slotToModeMap.set(node, true);
+  rootToSlotMap.get(root)[slotName] = node;
+  rootToHostMap.get(root).childNodes.forEach(function (eachNode) {
     if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
       slotNodeIntoSlot(node, eachNode);
     }
@@ -258,8 +272,8 @@ function removeNodeFromRoot (root, node) {
 }
 
 function removeSlotFromRoot (root, node) {
-  node.____assignedNodes.forEach(slotNodeFromSlot);
-  delete root.____slotNodes[getSlotNameFromSlot(node)];
+  node.getAssignedNodes().forEach(slotNodeFromSlot);
+  delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
 }
 
 function appendChildOrInsertBefore (host, newNode, refNode) {
@@ -279,11 +293,20 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
 }
 
 const members = {
+  // For testing purposes.
   ____assignedNodes: {
     get () {
       return this.______assignedNodes || (this.______assignedNodes = []);
     }
   },
+
+  // For testing purposes.
+  ____isInFallbackMode: {
+    get () {
+      return slotToModeMap.get(this);
+    }
+  },
+
   ____slotChangeListeners: {
     get () {
       if (typeof this.______slotChangeListeners === 'undefined') {
@@ -320,7 +343,7 @@ const members = {
   },
   assignedSlot: {
     get () {
-      return null;
+      return nodeToSlotMap.get(this) || null;
     }
   },
   attachShadow: {
@@ -330,7 +353,7 @@ const members = {
         throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
       }
 
-      const existingShadowRoot = this.____shadowRoot;
+      const existingShadowRoot = hostToRootMap.get(this);
       if (existingShadowRoot) {
         return existingShadowRoot;
       }
@@ -346,10 +369,12 @@ const members = {
       });
 
       // Host and shadow root data.
-      this.____rootNode = shadowRoot;
-      this.____unslottedNodes = this.childNodes.concat();
-      shadowRoot.____hostNode = this;
-      shadowRoot.____slotNodes = [];
+      hostToRootMap.set(this, shadowRoot);
+      rootToSlotMap.set(shadowRoot, {});
+      rootToHostMap.set(shadowRoot, this);
+
+      // Remove all current nodes as they may be slotted later.
+      this.childNodes.forEach(node => this.__removeChild(node));
 
       // The shadow root is actually the only child of the host.
       return this.__appendChild(shadowRoot);
@@ -362,7 +387,9 @@ const members = {
   },
   childNodes: {
     get () {
-      return this.____childNodes || (this.____childNodes = makeLikeNodeList([]));
+      let childNodes = nodeToChildNodesMap.get(this);
+      childNodes || nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
+      return childNodes;
     }
   },
   children: {
@@ -382,7 +409,11 @@ const members = {
   },
   getAssignedNodes: {
     value () {
-      return this.____assignedNodes || [];
+      if (isSlotNode(this)) {
+        let assigned = assignedToSlotMap.get(this);
+        assigned || assignedToSlotMap.set(this, assigned = []);
+        return assigned;
+      }
     }
   },
   hasChildNodes: {

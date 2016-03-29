@@ -6,541 +6,6 @@
 
     function __commonjs(fn, module) { return module = { exports: {} }, fn(module, module.exports), module.exports; }
 
-    var WeakMap = window.WeakMap || function () {
-      var index = 0;
-      function Wm() {
-        this.key = '____weak_map_' + index++;
-      }
-      Wm.prototype = {
-        delete: function _delete(obj) {
-          delete obj[this.key];
-        },
-        get: function get(obj) {
-          return obj[this.key];
-        },
-        has: function has(obj) {
-          return typeof obj[this.key] !== 'undefined';
-        },
-        set: function set(obj, val) {
-          return obj[this.key] = val;
-        }
-      };
-      return Wm;
-    }();
-
-    var hosts = new WeakMap();
-    var roots = new WeakMap();
-    var slots = new WeakMap();
-
-    var proto = Node.prototype;
-    var appendChild = proto.appendChild;
-    var insertBefore = proto.insertBefore;
-    var removeChild = proto.removeChild;
-    var replaceChild = proto.replaceChild;
-
-    var assignedSlot = new WeakMap();
-    var light = new WeakMap();
-    var parentNode = new WeakMap();
-    var polyfilled = new WeakMap();
-
-    var assignedNodes = new WeakMap();
-    var changeListeners = new WeakMap();
-    var debouncedTriggerSlotChangeEvent = new WeakMap();
-    var fallbackNodes = new WeakMap();
-    var fallbackState = new WeakMap();
-    var polyfilled$1 = new WeakMap();
-
-    function shouldAffectSlot(slot) {
-      return !fallbackState.get(slot);
-    }
-
-    function toggle(slot) {
-      if (fallbackState.get(slot)) {
-        var aNodes = assignedNodes.get(slot);
-        if (aNodes.length) {
-          var fNodes = fallbackNodes.get(slot);
-          fNodes.forEach(function (node) {
-            return removeChild.call(slot, node);
-          });
-          aNodes.forEach(function (node) {
-            return appendChild.call(slot, node);
-          });
-          fallbackState.set(slot, false);
-        }
-      } else {
-        var aNodes = assignedNodes.get(slot);
-        if (!aNodes.length) {
-          var fNodes = fallbackNodes.get(slot);
-          aNodes.forEach(function (node) {
-            return removeChild.call(slot, node);
-          });
-          fNodes.forEach(function (node) {
-            return appendChild.call(slot, node);
-          });
-          fallbackState.set(slot, true);
-        }
-      }
-    }
-
-    function triggerEvent(slot) {
-      if (changeListeners.get(slot)) {
-        debouncedTriggerSlotChangeEvent.get(slot)(slot);
-      }
-    }
-
-    function triggerSideEffects(slot) {
-      toggle(slot);
-      triggerEvent(slot);
-    }
-
-    function getSlotName(node) {
-      return (node.getAttribute ? node.getAttribute('slot') : null) || 'default';
-    }
-
-    function getSlotNode(root, node) {
-      var slot = getSlotName(node);
-      return slots.get(root)[slot];
-    }
-
-    function distribute (node) {
-      var host = node.parentNode;
-      var slot = getSlotNode(roots.get(host), node);
-
-      if (slot) {
-        var an = assignedNodes.get(slot);
-        var ns = node.nextSibling;
-        var shouldManip = shouldAffectSlot(slot);
-
-        assignedSlot.set(node, slot);
-
-        if (ns && ns.assignedSlot === slot) {
-          an.splice(an.indexOf(ns), 0, node);
-          shouldManip && insertBefore.call(slot, node, ns);
-        } else {
-          an.push(node);
-          shouldManip && appendChild.call(slot, node);
-        }
-
-        triggerSideEffects(slot);
-      }
-    }
-
-    function undistribute(node) {
-      var host = node.parentNode;
-      var slot = getSlotNode(roots.get(host), node);
-
-      if (slot) {
-        var an = assignedNodes.get(slot);
-        var index = an.indexOf(node);
-
-        if (index > -1) {
-          shouldAffectSlot(slot) && removeChild.call(slot, node);
-          assignedSlot.set(node, null);
-          an.splice(index, 1);
-          triggerSideEffects(slot);
-        }
-      }
-    }
-
-    function fragFromHtml (html) {
-      var frag = document.createElement('div');
-      frag.innerHTML = html;
-      return frag;
-    }
-
-    function htmlFromFrag (frag) {
-      var html = '';
-      var chs = frag.childNodes;
-      var chsLen = chs.length;
-      for (var a = 0; a < chsLen; a++) {
-        html += chs[a].outerHTML;
-      }
-      return html;
-    }
-
-    var lightNodes = new WeakMap();
-    var polyfilled$2 = new WeakMap();
-
-    // Does something for a single node or a DocumentFragment. This is useful when
-    // working with arguments that are passed to DOM methods that work with either.
-    function each (node, func) {
-      if (node instanceof DocumentFragment) {
-        var chs = node.childNodes;
-        var chsLen = chs.length;
-        for (var a = 0; a < chsLen; a++) {
-          func(chs[a]);
-        }
-      } else {
-        func(node);
-      }
-    }
-
-    // Any code referring to this is because it has to work around this bug in
-    // WebKit: https://bugs.webkit.org/show_bug.cgi?id=49739
-    var canPatchNativeAccessors = !!Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode').get;
-
-    var configurable$1 = true;
-    var members$3 = {
-      assignedSlot: {
-        configurable: configurable$1,
-        get: function get() {
-          return assignedSlot.get(this) || null;
-        }
-      },
-      parentElement: {
-        configurable: configurable$1,
-        get: function get() {
-          if (light.get(this)) {
-            var parent = this.parentNode;
-            return parent.nodeType === 1 ? parent : null;
-          }
-          return this.__parentElement;
-        }
-      },
-      parentNode: {
-        configurable: configurable$1,
-        get: function get() {
-          return parentNode.get(this) || this.__parentNode || null;
-        }
-      },
-      nextSibling: {
-        configurable: configurable$1,
-        get: function get() {
-          if (light.get(this)) {
-            var parChs = this.parentNode.childNodes;
-            var parChsLen = parChs.length;
-            for (var a = 0; a < parChsLen; a++) {
-              if (parChs[a] === this) {
-                return parChs[a + 1] || null;
-              }
-            }
-          }
-          return this.__nextSibling;
-        }
-      },
-      nextElementSibling: {
-        configurable: configurable$1,
-        get: function get() {
-          if (light.get(this)) {
-            var parChs = this.parentNode.childNodes;
-            var parChsLen = parChs.length;
-
-            var found = false;
-            for (var a = 0; a < parChsLen; a++) {
-              if (!found && parChs[a] === this) {
-                found = true;
-              }
-
-              if (!found) {
-                continue;
-              }
-
-              var next = parChs[a + 1];
-              if (next && next.nodeType === 1) {
-                return next;
-              } else {
-                continue;
-              }
-            }
-          }
-          return this.__nextElementSibling;
-        }
-      },
-      previousSibling: {
-        configurable: configurable$1,
-        get: function get() {
-          if (light.get(this)) {
-            var parChs = this.parentNode.childNodes;
-            var parChsLen = parChs.length;
-            for (var a = parChsLen - 1; a >= 0; a--) {
-              if (parChs[a] === this) {
-                return parChs[a - 1] || null;
-              }
-            }
-          }
-          return this.__previousSibling;
-        }
-      },
-      previousElementSibling: {
-        configurable: configurable$1,
-        get: function get() {
-          if (light.get(this)) {
-            var parChs = this.parentNode.childNodes;
-            var parChsLen = parChs.length;
-
-            var found = false;
-            for (var a = parChsLen - 1; a >= 0; a--) {
-              if (!found && parChs[a] === this) {
-                found = true;
-              }
-
-              if (!found) {
-                continue;
-              }
-
-              var next = parChs[a - 1];
-              if (next && next.nodeType === 1) {
-                return next;
-              } else {
-                continue;
-              }
-            }
-          }
-          return this.__previousElementSibling;
-        }
-      }
-    };
-
-    // If we can patch native accessors, we can safely apply light DOM accessors to
-    // all HTML elements. This is faster than polyfilling them individually as they
-    // are added, if possible, and doesn't have a measurable impact on performance
-    // when they're not marked as light DOM.
-    var nodeProto = Node.prototype;
-    var elProto = Element.prototype;
-    if (canPatchNativeAccessors) {
-      for (var name$1 in members$3) {
-        var proto$2 = nodeProto.hasOwnProperty(name$1) ? nodeProto : elProto;
-        var nativeDescriptor = Object.getOwnPropertyDescriptor(proto$2, name$1);
-        if (nativeDescriptor) {
-          Object.defineProperty(proto$2, '__' + name$1, nativeDescriptor);
-        }
-        Object.defineProperty(proto$2, name$1, members$3[name$1]);
-      }
-    }
-
-    // We patch the node prototype to ensure any method that reparents a node
-    // cleans up after the polyfills.
-    nodeProto.appendChild = function (newNode) {
-      if (polyfilled.get(newNode)) {
-        assignedSlot.set(newNode, null);
-        light.set(newNode, false);
-        parentNode.set(newNode, this);
-      }
-      return appendChild.call(this, newNode);
-    };
-    nodeProto.insertBefore = function (newNode, refNode) {
-      if (polyfilled.get(newNode)) {
-        assignedSlot.set(newNode, null);
-        light.set(newNode, false);
-        parentNode.set(newNode, this);
-      }
-      return insertBefore.call(this, newNode, refNode);
-    };
-    nodeProto.removeChild = function (refNode) {
-      if (polyfilled.get(refNode)) {
-        assignedSlot.set(refNode, null);
-        light.set(refNode, false);
-        parentNode.set(refNode, null);
-      }
-      return removeChild.call(this, refNode);
-    };
-    nodeProto.replaceChild = function (newNode, refNode) {
-      if (polyfilled.get(newNode)) {
-        assignedSlot.set(newNode, null);
-        light.set(newNode, false);
-        parentNode.set(newNode, this);
-      }
-      if (polyfilled.get(refNode)) {
-        assignedSlot.set(refNode, null);
-        light.set(refNode, false);
-        parentNode.set(refNode, null);
-      }
-      return replaceChild.call(this, newNode, refNode);
-    };
-
-    // By default we should always return null from the Element for `assignedSlot`.
-    Object.defineProperty(nodeProto, 'assignedSlot', {
-      configurable: configurable$1,
-      get: function get() {
-        return null;
-      }
-    });
-
-    function polyfill$2(light) {
-      if (polyfilled.get(light)) {
-        return;
-      }
-      polyfilled.set(light, true);
-      if (!canPatchNativeAccessors) {
-        Object.defineProperties(light, members$3);
-      }
-    }
-
-    var configurable = true;
-
-    // Slotting helpers.
-
-    function arrayItem(idx) {
-      return this[idx];
-    }
-
-    function makeLikeNodeList(arr) {
-      arr.item = arrayItem;
-      return arr;
-    }
-
-    // If we append a child to a host, the host tells the shadow root to distribute
-    // it. If the root decides it doesn't need to be distributed, it is never
-    // removed from the old parent because in polyfill land we store a reference
-    // to the node but we don't move it. Due to that, we must explicitly remove the
-    // node from its old parent.
-    function cleanNode(node) {
-      var parent = node.parentNode;
-      if (parent) {
-        parent.removeChild(node);
-      }
-    }
-
-    var members$1 = {
-      appendChild: {
-        value: function value(newNode) {
-          var ln = lightNodes.get(this);
-          var host = this;
-          cleanNode(newNode);
-          each(newNode, function (node) {
-            ln.push(node);
-            light.set(node, true);
-            parentNode.set(node, host);
-            polyfill$2(node);
-            distribute(node);
-          });
-          return newNode;
-        }
-      },
-      childElementCount: {
-        configurable: configurable,
-        get: function get() {
-          return this.children.length;
-        }
-      },
-      childNodes: {
-        get: function get() {
-          return lightNodes.get(this);
-        }
-      },
-      children: {
-        get: function get() {
-          return makeLikeNodeList(this.childNodes.filter(function (node) {
-            return node.nodeType === 1;
-          }));
-        }
-      },
-      firstChild: {
-        get: function get() {
-          return this.childNodes[0] || null;
-        }
-      },
-      firstElementChild: {
-        get: function get() {
-          return this.children[0] || null;
-        }
-      },
-      hasChildNodes: {
-        value: function value() {
-          return this.childNodes.length > 0;
-        }
-      },
-      innerHTML: {
-        get: function get() {
-          return htmlFromFrag(this);
-        },
-        set: function set(innerHTML) {
-          var copy = fragFromHtml(innerHTML);
-          while (this.hasChildNodes()) {
-            this.removeChild(this.firstChild);
-          }
-          while (copy.hasChildNodes()) {
-            this.appendChild(copy.firstChild);
-          }
-        }
-      },
-      insertBefore: {
-        value: function value(newNode, refNode) {
-          var ln = lightNodes.get(this);
-          var host = this;
-          cleanNode(newNode);
-          each(newNode, function (node) {
-            var index = ln.indexOf(refNode);
-            if (index > -1) {
-              ln.splice(index, 0, node);
-            } else {
-              ln.push(node);
-            }
-            light.set(node, true);
-            parentNode.set(node, host);
-            polyfill$2(node);
-            distribute(node);
-          });
-          return newNode;
-        }
-      },
-      lastChild: {
-        get: function get() {
-          var ch = this.childNodes;
-          return ch[ch.length - 1] || null;
-        }
-      },
-      lastElementChild: {
-        get: function get() {
-          var ch = this.children;
-          return ch[ch.length - 1] || null;
-        }
-      },
-      outerHTML: {
-        get: function get() {
-          var name = this.tagName.toLowerCase();
-          var attributes = Array.prototype.slice.call(this.attributes).map(function (attr) {
-            return ' ' + attr.name + (attr.value ? '="' + attr.value + '"' : '');
-          }).join('');
-          return '<' + name + attributes + '>' + this.innerHTML + '</' + name + '>';
-        }
-      },
-      removeChild: {
-        value: function value(refNode) {
-          var ln = lightNodes.get(this);
-          var index = ln.indexOf(refNode);
-
-          if (index > -1) {
-            undistribute(refNode);
-            light.set(refNode, false);
-            parentNode.set(refNode, null);
-            ln.splice(index, 1);
-          }
-
-          return refNode;
-        }
-      },
-      replaceChild: {
-        value: function value(newNode, refNode) {
-          this.insertBefore(newNode, refNode);
-          return this.removeChild(refNode);
-        }
-      },
-      textContent: {
-        get: function get() {
-          return this.childNodes.map(function (node) {
-            return node.textContent;
-          }).join('');
-        },
-        set: function set(textContent) {
-          while (this.hasChildNodes()) {
-            this.removeChild(this.firstChild);
-          }
-          this.appendChild(document.createTextNode(textContent));
-        }
-      }
-    };
-
-    function hostPolyfill (host) {
-      if (polyfilled$2.get(host)) {
-        return;
-      }
-      lightNodes.set(host, makeLikeNodeList([]));
-      Object.defineProperties(host, members$1);
-      polyfilled$2.set(host, true);
-      return host;
-    }
-
     var index$1 = __commonjs(function (module) {
     module.exports = Date.now || now;
 
@@ -608,37 +73,375 @@
 
     var debounce = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
 
-    function getInitialFallbackContent(slot) {
-      var arr = [];
-      var chs = slot.childNodes;
-      var chsLen = chs.length;
-      for (var a = 0; a < chsLen; a++) {
-        arr.push(chs[a]);
+    // Does something for a single node or a DocumentFragment. This is useful when
+    // working with arguments that are passed to DOM methods that work with either.
+    function each (node, func) {
+      if (node instanceof DocumentFragment) {
+        var chs = node.childNodes;
+        var chsLen = chs.length;
+        for (var a = 0; a < chsLen; a++) {
+          func(chs[a], a);
+        }
+      } else {
+        func(node, 0);
       }
+    }
+
+    var version = '0.0.1';
+
+    var defaultShadowRootTagName = '_shadow_root_';
+
+    // Parse HTML natively.
+
+    var parser = new DOMParser();
+
+    function convertXmlToHtml(node) {
+      var nodeType = node.nodeType;
+
+      if (nodeType === 1) {
+        var copy = document.createElement(node.tagName);
+        for (var a = 0; a < node.attributes.length; a++) {
+          var attr = node.attributes[a];
+          copy.setAttribute(attr.name, attr.value);
+        }
+        for (var a = 0; a < node.childNodes.length; a++) {
+          var childNode = node.childNodes[a];
+          copy.appendChild(convertXmlToHtml(childNode));
+        }
+        return copy;
+      }
+      return node;
+    }
+
+    function parse(html) {
+      var tree = document.createElement('div');
+      var parsed = parser.parseFromString(html, 'text/xml');
+      while (parsed.hasChildNodes()) {
+        var firstChild = parsed.firstChild;
+        parsed.removeChild(firstChild);
+        tree.appendChild(convertXmlToHtml(firstChild));
+      }
+      return tree;
+    }
+
+    // Slotting helpers.
+
+    function arrayItem(idx) {
+      return this[idx];
+    }
+
+    function makeLikeNodeList(arr) {
+      arr.item = arrayItem;
       return arr;
     }
 
-    function getAssignedNodesDeep(slot) {
-      return assignedNodes.get(slot);
+    // If we append a child to a host, the host tells the shadow root to distribute
+    // it. If the root decides it doesn't need to be distributed, it is never
+    // removed from the old parent because in polyfill land we store a reference
+    // to the node but we don't move it. Due to that, we must explicitly remove the
+    // node from its old parent.
+    function cleanNode(node) {
+      var parent = node.parentNode;
+      if (parent) {
+        parent.removeChild(node);
+      }
     }
 
-    function shouldAffectSlot$1(slot) {
-      return fallbackState.get(slot);
+    function isHostNode(node) {
+      return !!node.____rootNode;
     }
 
-    function triggerSlotChangeEvent(slot) {
-      slot.dispatchEvent(new CustomEvent('slotchange', {
-        bubbles: false,
-        cancelable: false
-      }));
+    function isShadowNode(node) {
+      return !!node.____hostNode;
     }
 
-    var members$2 = {
+    function isSlotNode(node) {
+      return node.tagName === 'SLOT';
+    }
+
+    function findClosest(node, func) {
+      while (node) {
+        if (node === document) {
+          break;
+        }
+        if (func(node)) {
+          return node;
+        }
+        node = node.parentNode;
+      }
+    }
+
+    function findClosestShadowRoot(node) {
+      return findClosest(node, isShadowNode);
+    }
+
+    function staticProp(node, prop, value) {
+      Object.defineProperty(node, prop, {
+        configurable: true,
+        get: function get() {
+          return value;
+        }
+      });
+    }
+
+    function getSlotNameFromSlot(node) {
+      return node.getAttribute && node.getAttribute('name') || 'default';
+    }
+
+    function getSlotNameFromNode(node) {
+      return node.getAttribute && node.getAttribute('slot') || 'default';
+    }
+
+    function slotNodeIntoSlot(slot, node, insertBefore) {
+      var slotInsertBeforeIndex = slot.____assignedNodes.indexOf(insertBefore);
+      var assignedNodes = slot.____assignedNodes;
+      var fallbackNodes = slot.childNodes;
+
+      staticProp(node, 'assignedSlot', slot);
+
+      // If there's currently no assigned nodes, there will be, so remove all fallback content.
+      if (!assignedNodes.length) {
+        slot.____isInFallbackMode = false;
+        fallbackNodes.forEach(function (fallbackNode) {
+          return slot.__removeChild(fallbackNode);
+        });
+      }
+
+      if (slotInsertBeforeIndex > -1) {
+        if (!slot.____isInFallbackMode) {
+          slot.__insertBefore(node, insertBefore);
+        }
+
+        assignedNodes.splice(slotInsertBeforeIndex, 0, node);
+      } else {
+        if (!slot.____isInFallbackMode) {
+          slot.__appendChild(node);
+        }
+
+        assignedNodes.push(node);
+      }
+
+      slot.____triggerSlotChangeEvent();
+    }
+
+    function slotNodeFromSlot(node) {
+      var slot = node.assignedSlot;
+
+      if (slot) {
+        var index = slot.____assignedNodes.indexOf(node);
+
+        if (index > -1) {
+          var assignedNodes = slot.____assignedNodes;
+
+          assignedNodes.splice(index, 1);
+          staticProp(node, 'assignedSlot', null);
+
+          // We only update the actual DOM representation if we're displaying
+          // slotted nodes.
+          if (!slot.____isInFallbackMode) {
+            slot.__removeChild(node);
+          }
+
+          // If this was the last slotted node, then insert fallback content.
+          if (!assignedNodes.length) {
+            slot.____isInFallbackMode = true;
+            slot.childNodes.forEach(function (fallbackNode) {
+              return slot.__appendChild(fallbackNode);
+            });
+          }
+
+          slot.____triggerSlotChangeEvent();
+        }
+      }
+    }
+
+    // Adds the node to the list of childNodes on the host and fakes any necessary
+    // information such as parentNode.
+    function registerNode(host, node, insertBefore, func) {
+      var index = host.childNodes.indexOf(insertBefore);
+      each(node, function (eachNode, eachIndex) {
+        func(eachNode, eachIndex);
+        staticProp(eachNode, 'parentNode', host);
+        if (index > -1) {
+          host.childNodes.splice(index + eachIndex, 0, eachNode);
+        } else {
+          host.childNodes.push(eachNode);
+        }
+      });
+    }
+
+    // Cleans up registerNode().
+    function unregisterNode(host, node, func) {
+      var index = host.childNodes.indexOf(node);
+      if (index > -1) {
+        func(node, 0);
+        staticProp(node, 'parentNode', null);
+        host.childNodes.splice(index, 1);
+      }
+    }
+
+    function addNodeToNode(host, node, insertBefore) {
+      registerNode(host, node, insertBefore, function (eachNode) {
+        host.__insertBefore(eachNode, insertBefore);
+      });
+    }
+
+    function addNodeToHost(host, node, insertBefore) {
+      registerNode(host, node, insertBefore, function (eachNode) {
+        var slotNode = host.____rootNode.____slotNodes[getSlotNameFromNode(eachNode)];
+        if (slotNode) {
+          slotNodeIntoSlot(slotNode, eachNode, insertBefore);
+        }
+      });
+    }
+
+    function addNodeToRoot(root, node, insertBefore) {
+      each(node, function (node) {
+        if (isSlotNode(node)) {
+          addSlotToRoot(root, node);
+        } else {
+          var slotNodes = node.querySelectorAll && node.querySelectorAll('slot');
+          var slotNodesLen = slotNodes.length;
+          for (var a = 0; a < slotNodesLen; a++) {
+            addSlotToRoot(root, slotNodes[a]);
+          }
+        }
+      });
+      addNodeToNode(root, node, insertBefore);
+    }
+
+    function addSlotToRoot(root, node) {
+      var slotName = getSlotNameFromSlot(node);
+      node.____isInFallbackMode = true;
+      root.____slotNodes[slotName] = node;
+      root.____hostNode.childNodes.forEach(function (eachNode) {
+        if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
+          slotNodeIntoSlot(node, eachNode);
+        }
+      });
+    }
+
+    function removeNodeFromNode(host, node) {
+      unregisterNode(host, node, function () {
+        host.__removeChild(node);
+      });
+    }
+
+    function removeNodeFromHost(host, node) {
+      unregisterNode(host, node, function () {
+        slotNodeFromSlot(node);
+      });
+    }
+
+    function removeNodeFromRoot(root, node) {
+      unregisterNode(root, node, function () {
+        if (isSlotNode(node)) {
+          removeSlotFromRoot(root, node);
+        } else {
+          var nodes = node.querySelectorAll && node.querySelectorAll('slot');
+          for (var a = 0; a < nodes.length; a++) {
+            removeSlotFromRoot(root, nodes[a]);
+          }
+        }
+      });
+    }
+
+    function removeSlotFromRoot(root, node) {
+      node.____assignedNodes.forEach(slotNodeFromSlot);
+      delete root.____slotNodes[getSlotNameFromSlot(node)];
+    }
+
+    function appendChildOrInsertBefore(host, newNode, refNode) {
+      var closestRoot = undefined;
+
+      cleanNode(newNode);
+
+      if (isHostNode(host)) {
+        addNodeToHost(host, newNode, refNode);
+      } else if (isSlotNode(host)) {
+        addNodeToNode(host, newNode, refNode);
+      } else if (closestRoot = findClosestShadowRoot(host)) {
+        addNodeToRoot(closestRoot, newNode, refNode);
+      } else {
+        addNodeToNode(host, newNode, refNode);
+      }
+    }
+
+    var members = {
+      ____assignedNodes: {
+        get: function get() {
+          return this.______assignedNodes || (this.______assignedNodes = []);
+        }
+      },
+      ____slotChangeListeners: {
+        get: function get() {
+          if (typeof this.______slotChangeListeners === 'undefined') {
+            this.______slotChangeListeners = 0;
+          }
+          return this.______slotChangeListeners;
+        },
+        set: function set(value) {
+          this.______slotChangeListeners = value;
+        }
+      },
+      ____triggerSlotChangeEvent: {
+        value: debounce(function () {
+          if (this.____slotChangeListeners) {
+            this.dispatchEvent(new CustomEvent('slotchange', {
+              bubbles: false,
+              cancelable: false
+            }));
+          }
+        })
+      },
+      addEventListener: {
+        value: function value(name, func, opts) {
+          if (name === 'slotchange') {
+            this.____slotChangeListeners++;
+          }
+          return this.__addEventListener(name, func, opts);
+        }
+      },
       appendChild: {
         value: function value(newNode) {
-          shouldAffectSlot$1(this) && appendChild.call(this, newNode);
-          this.childNodes.push(newNode);
-          return newNode;
+          return appendChildOrInsertBefore(this, newNode);
+        }
+      },
+      assignedSlot: {
+        get: function get() {
+          return null;
+        }
+      },
+      attachShadow: {
+        value: function value(opts) {
+          var mode = opts && opts.mode;
+          if (mode !== 'closed' && mode !== 'open') {
+            throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
+          }
+
+          var existingShadowRoot = this.____shadowRoot;
+          if (existingShadowRoot) {
+            return existingShadowRoot;
+          }
+
+          var shadowRoot = document.createElement(opts.polyfillShadowRootTagName || defaultShadowRootTagName);
+
+          // Emulating the spec { mode }.
+          Object.defineProperty(this, 'shadowRoot', {
+            configurable: true,
+            get: function get() {
+              return mode === 'open' ? shadowRoot : null;
+            }
+          });
+
+          // Host and shadow root data.
+          this.____rootNode = shadowRoot;
+          this.____unslottedNodes = this.childNodes.concat();
+          shadowRoot.____hostNode = this;
+          shadowRoot.____slotNodes = [];
+
+          // The shadow root is actually the only child of the host.
+          return this.__appendChild(shadowRoot);
         }
       },
       childElementCount: {
@@ -648,14 +451,14 @@
       },
       childNodes: {
         get: function get() {
-          return fallbackNodes.get(this);
+          return this.____childNodes || (this.____childNodes = makeLikeNodeList([]));
         }
       },
       children: {
         get: function get() {
-          return this.childNodes.filter(function (node) {
+          return makeLikeNodeList(this.childNodes.filter(function (node) {
             return node.nodeType === 1;
-          });
+          }));
         }
       },
       firstChild: {
@@ -670,49 +473,57 @@
       },
       getAssignedNodes: {
         value: function value() {
-          var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-          return opts.deep ? getAssignedNodesDeep(this) : assignedNodes.get(this);
+          return this.____assignedNodes || [];
         }
       },
       hasChildNodes: {
         value: function value() {
-          return !!this.childNodes.length;
+          return this.childNodes.length > 0;
         }
       },
       innerHTML: {
         get: function get() {
-          return fallbackNodes.get(this).map(function (node) {
-            return node.outerHTML;
-          }).join('');
+          return this.childNodes.reduce(function (prev, curr) {
+            return prev + (curr.nodeType === 1 ? curr.outerHTML : curr.textContent);
+          }, '');
         },
         set: function set(innerHTML) {
-          fallbackNodes.set(this, []);
-          var chs = fragFromHtml(innerHTML).childNodes;
-          var chsLen = chs.length;
-          for (var a = chsLen - 1; a >= 0; a--) {
-            this.insertBefore(chs[a], this.firstChild);
+          var parsed = parse(innerHTML);
+
+          while (this.hasChildNodes()) {
+            this.removeChild(this.firstChild);
+          }
+
+          while (parsed.hasChildNodes()) {
+            var firstChild = parsed.firstChild;
+
+            // When we polyfill everything on HTMLElement.prototype, we overwrite
+            // properties. This makes it so that parentNode reports null even though
+            // it's actually a parent of the HTML parser. For this reason,
+            // cleanNode() won't work and we must manually remove it from the
+            // parser before it is moved to the host just in case it's added as a
+            // light node but not assigned to a slot.
+            parsed.removeChild(firstChild);
+
+            this.appendChild(firstChild);
           }
         }
       },
       insertBefore: {
         value: function value(newNode, refNode) {
-          var fb = fallbackNodes.get(this);
-          shouldAffectSlot$1(this) && insertBefore.call(this, newNode, refNode);
-          fb.splice(fb.indexOf(refNode), 0, newNode);
-          return newNode;
+          return appendChildOrInsertBefore(this, newNode, refNode);
         }
       },
       lastChild: {
         get: function get() {
-          var chs = this.childNodes;
-          return chs[chs.length - 1] || null;
+          var ch = this.childNodes;
+          return ch[ch.length - 1] || null;
         }
       },
       lastElementChild: {
         get: function get() {
-          var chs = this.children;
-          return chs[chs.length - 1] || null;
+          var ch = this.children;
+          return ch[ch.length - 1] || null;
         }
       },
       name: {
@@ -720,239 +531,153 @@
           return this.getAttribute('name');
         },
         set: function set(name) {
-          this.setAttribute('name', name);
+          return this.setAttribute('name', name);
+        }
+      },
+      nextSibling: {
+        get: function get() {
+          var parentNode = this.parentNode;
+          if (parent) {
+            var childNodes = parentNode.childNodes;
+            return childNodes[childNodes.indexOf(this) + 1] || null;
+          }
+          return null;
+        }
+      },
+      nextElementSibling: {
+        get: function get() {
+          var nextSibling = this;
+          while (nextSibling = nextSibling.nextSibling) {
+            if (nextSibling.nodeType === 1) {
+              return nextSibling;
+            }
+          }
+          return null;
         }
       },
       outerHTML: {
         get: function get() {
-          var attrs = this.attributes;
-          var tag = this.tagName.toLowerCase();
-          var str = '<' + tag;
-          if (attrs) {
-            var attrsLen = attrs.length;
-            for (var a = 0; a < attrsLen; a++) {
-              var attr = attrs[a];
-              str += ' ' + (attr.nodeName || attr.name) + '="' + attr.nodeValue + '"';
+          var name = this.tagName.toLowerCase();
+          var attributes = Array.prototype.slice.call(this.attributes).map(function (attr) {
+            return ' ' + attr.name + (attr.value ? '="' + attr.value + '"' : '');
+          }).join('');
+          return '<' + name + attributes + '>' + this.innerHTML + '</' + name + '>';
+        }
+      },
+      parentElement: {
+        get: function get() {
+          return findClosest(this.parentNode, function (node) {
+            return node.nodeType === 1;
+          });
+        }
+      },
+      previousSibling: {
+        get: function get() {
+          var parentNode = this.parentNode;
+          if (parent) {
+            var childNodes = parentNode.childNodes;
+            return childNodes[childNodes.indexOf(this) - 1] || null;
+          }
+          return null;
+        }
+      },
+      previousElementSibling: {
+        get: function get() {
+          var previousSibling = this;
+          while (previousSibling = previousSibling.previousSibling) {
+            if (previousSibling.nodeType === 1) {
+              return previousSibling;
             }
           }
-          return str + '>' + this.innerHTML + ('</' + tag + '>');
+          return null;
         }
       },
       removeChild: {
         value: function value(refNode) {
-          var fb = fallbackNodes.get(this);
-          shouldAffectSlot$1(this) && removeChild.call(this, refNode);
-          fb.splice(fb.indexOf(refNode), 1);
-          return refNode;
+          var closestRoot = undefined;
+
+          if (isHostNode(this)) {
+            removeNodeFromHost(this, refNode);
+          } else if (isSlotNode(this)) {
+            removeNodeFromNode(this, refNode);
+          } else if (closestRoot = findClosestShadowRoot(this)) {
+            removeNodeFromRoot(closestRoot, refNode);
+          } else {
+            removeNodeFromNode(this, refNode);
+          }
+        }
+      },
+      removeEventListener: {
+        value: function value(name, func, opts) {
+          if (name === 'slotchange' && this.____slotChangeListeners) {
+            this.____slotChangeListeners--;
+          }
+          return this.__removeEventListener(name, func, opts);
         }
       },
       replaceChild: {
         value: function value(newNode, refNode) {
-          var fb = fallbackNodes.get(this);
-          shouldAffectSlot$1(this) && replaceChild.call(this, newNode, refNode);
-          fb.splice(fb.indexOf(refNode), 1, newNode);
-          return refNode;
+          this.insertBefore(newNode, refNode);
+          return this.removeChild(refNode);
         }
       },
       textContent: {
         get: function get() {
-          return fallbackNodes.get(this).map(function (node) {
+          return this.childNodes.map(function (node) {
             return node.textContent;
           }).join('');
         },
         set: function set(textContent) {
-          fallbackNodes.set(this, [document.createTextNode(textContent)]);
+          while (this.hasChildNodes()) {
+            this.removeChild(this.firstChild);
+          }
+          this.appendChild(document.createTextNode(textContent));
         }
       }
     };
 
-    function polyfill$1(slot) {
-      assignedNodes.set(slot, []);
-      fallbackNodes.set(slot, getInitialFallbackContent(slot));
-      fallbackState.set(slot, true);
-      debouncedTriggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
-      Object.defineProperties(slot, members$2);
-    }
-
-    function slotPolyfill (slot) {
-      if (polyfilled$1.get(slot)) {
-        return slot;
+    var protos = [Node, Element, EventTarget];
+    function findDescriptorFor(name) {
+      for (var a = 0; a < protos.length; a++) {
+        var proto = protos[a].prototype;
+        if (proto.hasOwnProperty(name)) {
+          return Object.getOwnPropertyDescriptor(proto, name);
+        }
       }
-      polyfill$1(slot);
-      polyfilled$1.set(slot, true);
-      return slot;
     }
 
-    var defaultShadowRootTagName = '_shadow_root_';
-
-    // Returns a document fragment of the childNodes of the specified element. Due
-    // to the nature of the DOM, this will remove the nodes from the element.
-    function createFragmentFromChildNodes(elem) {
-      var frag = document.createDocumentFragment();
-      while (elem.hasChildNodes()) {
-        frag.appendChild(elem.firstChild);
-      }
-      return frag;
-    }
-
-    // Takes the shadow root and caches the slots it has.
-    function cacheSlots(root, node) {
-      var oldSlots = slots.get(root);
-      if (node.tagName === 'SLOT') {
-        slotPolyfill(node);
-        oldSlots[node.name || 'default'] = node;
-
-        var host = hosts.get(root);
-        var hostChs = host.childNodes;
-        var hostChsLen = hostChs.length;
-        for (var a = 0; a < hostChsLen; a++) {
-          var ch = hostChs[a];
-          if (!ch.assignedSlot) {
-            distribute(ch);
+    if (!('attachShadow' in document.createElement('div'))) {
+      (function () {
+        var elementProto = HTMLElement.prototype;
+        Object.keys(members).forEach(function (memberName) {
+          var memberProperty = members[memberName];
+          var nativeDescriptor = findDescriptorFor(memberName);
+          memberProperty.configurable = true;
+          Object.defineProperty(elementProto, memberName, memberProperty);
+          if (nativeDescriptor && nativeDescriptor.configurable) {
+            Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
           }
-        }
-      } else {
-        var newSlots = node.querySelectorAll('slot');
-        var newSlotsLen = newSlots.length;
-        for (var a = 0; a < newSlotsLen; a++) {
-          cacheSlots(root, newSlots[a]);
-        }
-      }
-    }
-
-    function uncacheSlots(root, node) {
-      var oldSlots = slots.get(root);
-      if (node.tagName === 'SLOT') {
-        node.getAssignedNodes().forEach(function (aNode) {
-          return undistribute(aNode);
         });
-        delete oldSlots[node.name || 'default'];
-      } else if (node.nodeType === 1) {
-        var newSlots = node.querySelectorAll('slot');
-        var newSlotsLen = newSlots.length;
-        for (var a = 0; a < newSlotsLen; a++) {
-          uncacheSlots(root, newSlots[a]);
-        }
-      }
+      })();
     }
-
-    var members = {
-      appendChild: {
-        configurable: true,
-        value: function value(newNode) {
-          var ret = appendChild.call(this, newNode);
-          cacheSlots(this, newNode);
-          return ret;
-        }
-      },
-      host: {
-        configurable: true,
-        get: function get() {
-          return hosts.get(this);
-        }
-      },
-      innerHTML: {
-        configurable: true,
-        get: function get() {
-          return htmlFromFrag(this);
-        },
-        set: function set(innerHTML) {
-          var frag = fragFromHtml(innerHTML);
-          while (frag.hasChildNodes()) {
-            this.appendChild(frag.firstChild);
-          }
-        }
-      },
-      insertBefore: {
-        configurable: true,
-        value: function value(newNode, refNode) {
-          var ret = insertBefore.call(this, newNode, refNode);
-          cacheSlots(this, newNode);
-          return ret;
-        }
-      },
-      removeChild: {
-        configurable: true,
-        value: function value(refNode) {
-          var ret = removeChild.call(this, refNode);
-          uncacheSlots(this, refNode);
-          return ret;
-        }
-      },
-      replaceChild: {
-        configurable: true,
-        value: function value(newNode, refNode) {
-          var ret = replaceChild.call(this, newNode, refNode);
-          cacheSlots(this, newNode);
-          uncacheSlots(this, refNode);
-          return ret;
-        }
-      }
-    };
-
-    function polyfill(host) {
-      var _ref = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var mode = _ref.mode;
-      var polyfillShadowRootTagName = _ref.polyfillShadowRootTagName;
-
-      var existingShadowRoot = roots.get(host);
-
-      if (existingShadowRoot) {
-        return existingShadowRoot;
-      }
-
-      var shadowRoot = document.createElement(polyfillShadowRootTagName || defaultShadowRootTagName);
-      var initialLightDom = createFragmentFromChildNodes(host);
-
-      // Host and shadow root data.
-      hosts.set(shadowRoot, host);
-      roots.set(host, shadowRoot);
-      slots.set(shadowRoot, {});
-
-      // Emulating the spec { mode }.
-      Object.defineProperty(host, 'shadowRoot', {
-        configurable: true,
-        get: function get() {
-          return mode === 'open' ? shadowRoot : null;
-        }
-      });
-
-      // The shadow root is actually the only child of the host.
-      host.appendChild(shadowRoot);
-
-      // Now polyfill the shadow root so that we can cache slots.
-      Object.defineProperties(shadowRoot, members);
-
-      // Polyfill the host.
-      hostPolyfill(host);
-
-      // Finally, insert the initial light DOM content so it's distributed.
-      host.appendChild(initialLightDom);
-
-      return shadowRoot;
-    }
-
-    var version = '0.0.1';
 
 
 
     var api = Object.freeze({
-    	default: polyfill,
-    	version: version
+      default: version
     });
 
     var previousGlobal = window.skatejsNamedSlots;
-    polyfill.noConflict = function noConflict() {
+    version.noConflict = function noConflict() {
       window.skatejsNamedSlots = previousGlobal;
       return this;
     };
-    window.skatejsNamedSlots = polyfill;
+    window.skatejsNamedSlots = version;
     for (var name in api) {
-      polyfill[name] = api[name];
+      version[name] = api[name];
     }
 
-    return polyfill;
+    return version;
 
 }));
 //# sourceMappingURL=index.js.map

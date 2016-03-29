@@ -5,9 +5,9 @@ export default function (node, func) {
     const chs = node.childNodes;
     const chsLen = chs.length;
     for (let a = 0; a < chsLen; a++) {
-      func(chs[a]);
+      func(chs[a], a);
     }
   } else {
-    func(node);
+    func(node, 0);
   }
 }

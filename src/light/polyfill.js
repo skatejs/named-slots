@@ -1,29 +1,34 @@
 import { assignedSlot, light, parentNode, polyfilled } from './data';
 import { appendChild, insertBefore, removeChild, replaceChild } from '../util/node';
-import canPatchNativeAccessors from '../util/can-patch-native-accessors';
+import patchNative from '../util/patch-native';
+import nodeProto from '../util/node';
 
 const configurable = true;
-const members = {
+const patchInstance = patchNative({
+  appendChild: {
+    value (newNode) {
+      if (polyfilled.get(newNode)) {
+        assignedSlot.set(newNode, null);
+        light.set(newNode, false);
+        parentNode.set(newNode, this);
+      }
+      return appendChild.call(this, newNode);
+    }
+  },
   assignedSlot: {
     configurable,
     get () {
       return assignedSlot.get(this) || null;
     }
   },
-  parentElement: {
-    configurable,
-    get () {
-      if (light.get(this)) {
-        const parent = this.parentNode;
-        return parent.nodeType === 1 ? parent : null;
+  insertBefore: {
+    value (newNode, refNode) {
+      if (polyfilled.get(newNode)) {
+        assignedSlot.set(newNode, null);
+        light.set(newNode, false);
+        parentNode.set(newNode, this);
       }
-      return this.__parentElement;
-    }
-  },
-  parentNode: {
-    configurable,
-    get () {
-      return parentNode.get(this) || this.__parentNode || null;
+      return insertBefore.call(this, newNode, refNode);
     }
   },
   nextSibling: {
@@ -69,6 +74,22 @@ const members = {
       return this.__nextElementSibling;
     }
   },
+  parentElement: {
+    configurable,
+    get () {
+      if (light.get(this)) {
+        const parent = this.parentNode;
+        return parent.nodeType === 1 ? parent : null;
+      }
+      return this.__parentElement;
+    }
+  },
+  parentNode: {
+    configurable,
+    get () {
+      return parentNode.get(this) || this.__parentNode || null;
+    }
+  },
   previousSibling: {
     configurable,
     get () {
@@ -111,67 +132,33 @@ const members = {
       }
       return this.__previousElementSibling;
     }
-  }
-};
-
-
-// If we can patch native accessors, we can safely apply light DOM accessors to
-// all HTML elements. This is faster than polyfilling them individually as they
-// are added, if possible, and doesn't have a measurable impact on performance
-// when they're not marked as light DOM.
-const nodeProto = Node.prototype;
-const elProto = Element.prototype;
-if (canPatchNativeAccessors) {
-  for (let name in members) {
-    const proto = nodeProto.hasOwnProperty(name) ? nodeProto : elProto;
-    const nativeDescriptor = Object.getOwnPropertyDescriptor(proto, name);
-    if (nativeDescriptor) {
-      Object.defineProperty(proto, '__' + name, nativeDescriptor);
+  },
+  removeChild: {
+    value (refNode) {
+      if (polyfilled.get(refNode)) {
+        assignedSlot.set(refNode, null);
+        light.set(refNode, false);
+        parentNode.set(refNode, null);
+      }
+      return removeChild.call(this, refNode);
     }
-    Object.defineProperty(proto, name, members[name]);
+  },
+  replaceChild: {
+    value (newNode, refNode) {
+      if (polyfilled.get(newNode)) {
+        assignedSlot.set(newNode, null);
+        light.set(newNode, false);
+        parentNode.set(newNode, this);
+      }
+      if (polyfilled.get(refNode)) {
+        assignedSlot.set(refNode, null);
+        light.set(refNode, false);
+        parentNode.set(refNode, null);
+      }
+      return replaceChild.call(this, newNode, refNode);
+    }
   }
-}
-
-
-// We patch the node prototype to ensure any method that reparents a node
-// cleans up after the polyfills.
-nodeProto.appendChild = function (newNode) {
-  if (polyfilled.get(newNode)) {
-    assignedSlot.set(newNode, null);
-    light.set(newNode, false);
-    parentNode.set(newNode, this);
-  }
-  return appendChild.call(this, newNode);
-};
-nodeProto.insertBefore = function (newNode, refNode) {
-  if (polyfilled.get(newNode)) {
-    assignedSlot.set(newNode, null);
-    light.set(newNode, false);
-    parentNode.set(newNode, this);
-  }
-  return insertBefore.call(this, newNode, refNode);
-};
-nodeProto.removeChild = function (refNode) {
-  if (polyfilled.get(refNode)) {
-    assignedSlot.set(refNode, null);
-    light.set(refNode, false);
-    parentNode.set(refNode, null);
-  }
-  return removeChild.call(this, refNode);
-};
-nodeProto.replaceChild = function (newNode, refNode) {
-  if (polyfilled.get(newNode)) {
-    assignedSlot.set(newNode, null);
-    light.set(newNode, false);
-    parentNode.set(newNode, this);
-  }
-  if (polyfilled.get(refNode)) {
-    assignedSlot.set(refNode, null);
-    light.set(refNode, false);
-    parentNode.set(refNode, null);
-  }
-  return replaceChild.call(this, newNode, refNode);
-};
+});
 
 
 // The assignedSlot property is only available on nodes that have been slotted
@@ -184,10 +171,9 @@ Object.defineProperty(nodeProto, 'assignedSlot', {
 
 export default function polyfill (light) {
   if (polyfilled.get(light)) {
-    return;
+    return light;
   }
+  patchInstance(light);
   polyfilled.set(light, true);
-  if (!canPatchNativeAccessors) {
-    Object.defineProperties(light, members);
-  }
+  return light;
 }

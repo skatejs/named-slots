@@ -1,20 +1,22 @@
-export default window.WeakMap || (function () {
+export default (function () {
   let index = 0;
   function Wm () {
     this.key = `____weak_map_${index++}`;
   }
   Wm.prototype = {
     delete (obj) {
-      delete obj[this.key];
+      if (obj) {
+        delete obj[this.key];
+      }
     },
     get (obj) {
-      return obj[this.key];
+      return obj ? obj[this.key] : null;
     },
     has (obj) {
-      return typeof obj[this.key] !== 'undefined';
+      return obj ? typeof obj[this.key] !== 'undefined' : false;
     },
     set (obj, val) {
-      return obj[this.key] = val;
+      return obj ? obj[this.key] = val : null;
     }
   };
   return Wm;

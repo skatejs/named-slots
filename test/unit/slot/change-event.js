@@ -1,5 +1,4 @@
 import create from '../lib/create';
-import polyfill from '../../src/shadow/polyfill';
 
 describe('slotchange-event', function () {
   let host, root, slot;
@@ -7,7 +6,7 @@ describe('slotchange-event', function () {
   beforeEach(function () {
     slot = create('slot');
     host = create('div');
-    root = polyfill(host);
+    root = host.attachShadow({ mode: 'closed' });
     root.appendChild(slot);
   });
 

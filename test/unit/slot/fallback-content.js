@@ -1,30 +1,28 @@
-import { assignedNodes, fallbackNodes, fallbackState } from '../../src/slot/data';
 import create from '../lib/create';
-import polyfill from '../../src/shadow/polyfill';
 
 describe('fallback-content', function () {
   let host, root, slot;
 
   beforeEach(function () {
     host = create('div');
-    root = polyfill(host);
+    root = host.attachShadow({ mode: 'closed' });
     slot = create('slot');
     root.appendChild(slot);
   });
 
   describe('without fallback content', function () {
     it('should have no fallback nodes', function () {
-      expect(fallbackNodes.get(slot).length).to.equal(0);
+      expect(slot.childNodes.length).to.equal(0);
       expect(slot.childNodes.length).to.equal(0);
     });
 
     it('should have no assigned nodes', function () {
-      expect(assignedNodes.get(slot).length).to.equal(0);
+      expect(slot.____assignedNodes.length).to.equal(0);
       expect(slot.getAssignedNodes().length).to.equal(0);
     });
 
     it('should be in a fallback state', function () {
-      expect(fallbackState.get(slot)).to.equal(true);
+      expect(slot.____isInFallbackMode).to.equal(true);
     });
   });
 
@@ -37,18 +35,17 @@ describe('fallback-content', function () {
     });
 
     it('should have fallback nodes', function () {
-      const fb = fallbackNodes.get(slot);
-      expect(fb.length).to.equal(1);
-      expect(fb[0]).to.equal(fallback);
+      expect(slot.childNodes.length).to.equal(1);
+      expect(slot.childNodes[0]).to.equal(fallback);
     });
 
     it('should have no assigned nodes', function () {
-      expect(assignedNodes.get(slot).length).to.equal(0);
+      expect(slot.____assignedNodes.length).to.equal(0);
       expect(slot.getAssignedNodes().length).to.equal(0);
     });
 
     it('should be in a fallback state', function () {
-      expect(fallbackState.get(slot)).to.equal(true);
+      expect(slot.____isInFallbackMode).to.equal(true);
     });
 
     describe('when assigned nodes', function () {
@@ -64,7 +61,7 @@ describe('fallback-content', function () {
       });
 
       it('should not be in a fallback state', function () {
-        expect(fallbackState.get(slot)).to.equal(false);
+        expect(slot.____isInFallbackMode).to.equal(false);
       });
 
       describe('are removed', function () {
@@ -77,7 +74,7 @@ describe('fallback-content', function () {
         });
 
         it('should return to a fallback state', function () {
-          expect(fallbackState.get(slot)).to.equal(true);
+          expect(slot.____isInFallbackMode).to.equal(true);
         });
       });
     });

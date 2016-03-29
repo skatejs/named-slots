@@ -49,7 +49,8 @@ function getSlotNode (root, node) {
 
 export default function (node) {
   const host = node.parentNode;
-  const slot = getSlotNode(roots.get(host), node);
+  const root = roots.get(host);
+  const slot = getSlotNode(root, node);
 
   if (slot) {
     const an = assignedNodes.get(slot);

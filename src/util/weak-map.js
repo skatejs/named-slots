@@ -16,7 +16,18 @@ export default window.WeakMap || (function () {
       return obj ? typeof obj[this.key] !== 'undefined' : false;
     },
     set (obj, val) {
-      return obj ? obj[this.key] = val : null;
+      if (obj) {
+        const key = this.key;
+        if (typeof obj[key] === 'undefined') {
+          Object.defineProperty(obj, key, {
+            configurable: true,
+            enumerable: false,
+            value: val
+          });
+        } else {
+          obj[key] = val;
+        }
+      }
     }
   };
   return Wm;

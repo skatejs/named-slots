@@ -1,14 +1,8 @@
 import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
+import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import debounce from 'debounce';
 import version from './version';
-
-
-// * WebKit only *
-//
-// WebKit doesn't allow access to native accessors which makes polyfilling a
-// huge pain because we have to use separate code paths for modern browsers
-// and it. Modern browsers obviously get the perf benefits and WebKit doesn't.
-const canPatchNativeAccessors = !!Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode').get;
+import WeakMap from './util/weak-map';
 
 // We use a real DOM node for a shadow root. This is because the host node
 // basically becomes a virtual entry point for your element leaving the shadow
@@ -711,14 +705,6 @@ function findDescriptorFor (name) {
   }
 }
 
-function polyfill (elementProto, memberName, memberProperty) {
-  const nativeDescriptor = findDescriptorFor(memberName);
-  Object.defineProperty(elementProto, memberName, memberProperty);
-  if (nativeDescriptor && nativeDescriptor.configurable) {
-    Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
-  }
-}
-
 if (!('attachShadow' in document.createElement('div'))) {
   const elementProto = HTMLElement.prototype;
   Object.keys(members).forEach(function (memberName) {
@@ -729,7 +715,11 @@ if (!('attachShadow' in document.createElement('div'))) {
 
     // Polyfill as much as we can and work around WebKit in other areas.
     if (canPatchNativeAccessors || polyfilAtRuntime.indexOf(memberName) === -1) {
-      polyfill(elementProto, memberName, memberProperty);
+      const nativeDescriptor = findDescriptorFor(memberName);
+      Object.defineProperty(elementProto, memberName, memberProperty);
+      if (nativeDescriptor && nativeDescriptor.configurable) {
+        Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+      }
     }
   });
 }

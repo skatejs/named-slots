@@ -1,14 +1,26 @@
+import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
 import debounce from 'debounce';
-import each from './util/each';
 import version from './version';
 
 
+// WebKit doesn't allow access to native accessors which makes polyfilling a
+// huge pain because we have to use separate code paths for modern browsers
+// and it. Modern browsers obviously get the perf benefits and WebKit doesn't.
+const canPatchNativeAccessors = !!Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode').get;
+
+// We use a real DOM node for a shadow root. This is because the host node
+// basically becomes a virtual entry point for your element leaving the shadow
+// root the only thing that can receive instructions on how the host should
+// render to the browser.
 const defaultShadowRootTagName = '_shadow_root_';
 const defaultShadowRootTagNameUc = defaultShadowRootTagName.toUpperCase();
 
+// Private data stores.
 const assignedToSlotMap = new WeakMap();
+const hostToModeMap = new WeakMap();
 const hostToRootMap = new WeakMap();
 const nodeToChildNodesMap = new WeakMap();
+const nodeToParentNodeMap = new WeakMap();
 const nodeToSlotMap = new WeakMap();
 const rootToHostMap = new WeakMap();
 const rootToSlotMap = new WeakMap();
@@ -17,7 +29,7 @@ const slotToModeMap = new WeakMap();
 
 // Parse HTML natively.
 
-const parser = new DOMParser;
+const parser = new DOMParser();
 
 function convertXmlToHtml (node) {
   const { nodeType } = node;
@@ -59,28 +71,32 @@ function makeLikeNodeList (arr) {
   return arr;
 }
 
-// If we append a child to a host, the host tells the shadow root to distribute
-// it. If the root decides it doesn't need to be distributed, it is never
-// removed from the old parent because in polyfill land we store a reference
-// to the node but we don't move it. Due to that, we must explicitly remove the
-// node from its old parent.
-function cleanNode (node) {
-  const parent = node.parentNode;
-  if (parent) {
-    parent.removeChild(node);
+function getNodeType (node) {
+  if (isHostNode(node)) {
+    return 'host';
   }
+
+  if (isSlotNode(node)) {
+    return 'slot';
+  }
+
+  if (isRootNode(node)) {
+    return 'root';
+  }
+
+  return 'node';
 }
 
 function isHostNode (node) {
   return !!hostToRootMap.get(node);
 }
 
-function isShadowNode (node) {
-  return node.tagName === defaultShadowRootTagNameUc;
-}
-
 function isSlotNode (node) {
   return node.tagName === 'SLOT';
+}
+
+function isRootNode (node) {
+  return node.tagName === defaultShadowRootTagNameUc;
 }
 
 function findClosest (node, func) {
@@ -93,19 +109,6 @@ function findClosest (node, func) {
     }
     node = node.parentNode;
   }
-}
-
-function findClosestShadowRoot (node) {
-  return findClosest(node, isShadowNode);
-}
-
-function staticProp (node, prop, value) {
-  Object.defineProperty(node, prop, {
-    configurable: true,
-    get () {
-      return value;
-    }
-  });
 }
 
 function getSlotNameFromSlot (node) {
@@ -170,7 +173,9 @@ function slotNodeFromSlot (node) {
       // If this was the last slotted node, then insert fallback content.
       if (!assignedNodes.length) {
         slotToModeMap.set(slot, true);
-        slot.childNodes.forEach(fallbackNode => slot.__appendChild(fallbackNode));
+        eachChildNode(slot, function (node) {
+          slot.__appendChild(node);
+        });
       }
 
       slot.____triggerSlotChangeEvent();
@@ -178,13 +183,24 @@ function slotNodeFromSlot (node) {
   }
 }
 
+function indexOfNode (host, node) {
+  const chs = host.childNodes;
+  const chsLen = chs.length;
+  for (let a = 0; a < chsLen; a++) {
+    if (chs[a] === node) {
+      return a;
+    }
+  }
+  return -1;
+}
+
 // Adds the node to the list of childNodes on the host and fakes any necessary
 // information such as parentNode.
 function registerNode (host, node, insertBefore, func) {
-  const index = host.childNodes.indexOf(insertBefore);
-  each(node, function (eachNode, eachIndex) {
+  const index = indexOfNode(host, insertBefore);
+  eachNodeOrFragmentNodes(node, function (eachNode, eachIndex) {
     func(eachNode, eachIndex);
-    staticProp(eachNode, 'parentNode', host);
+    nodeToParentNodeMap.set(eachNode, host);
     if (index > -1) {
       host.childNodes.splice(index + eachIndex, 0, eachNode);
     } else {
@@ -195,10 +211,10 @@ function registerNode (host, node, insertBefore, func) {
 
 // Cleans up registerNode().
 function unregisterNode (host, node, func) {
-  const index = host.childNodes.indexOf(node);
+  const index = indexOfNode(host, node);
   if (index > -1) {
     func(node, 0);
-    staticProp(node, 'parentNode', null);
+    nodeToParentNodeMap.set(node, null);
     host.childNodes.splice(index, 1);
   }
 }
@@ -221,7 +237,7 @@ function addNodeToHost (host, node, insertBefore) {
 }
 
 function addNodeToRoot (root, node, insertBefore) {
-  each(node, function (node) {
+  eachNodeOrFragmentNodes(node, function (node) {
     if (isSlotNode(node)) {
       addSlotToRoot(root, node);
     } else {
@@ -239,7 +255,7 @@ function addSlotToRoot (root, node) {
   const slotName = getSlotNameFromSlot(node);
   slotToModeMap.set(node, true);
   rootToSlotMap.get(root)[slotName] = node;
-  rootToHostMap.get(root).childNodes.forEach(function (eachNode) {
+  eachChildNode(rootToHostMap.get(root), function (eachNode) {
     if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
       slotNodeIntoSlot(node, eachNode);
     }
@@ -277,18 +293,36 @@ function removeSlotFromRoot (root, node) {
 }
 
 function appendChildOrInsertBefore (host, newNode, refNode) {
-  let closestRoot;
+  const nodeType = getNodeType(host);
+  const parentNode = newNode.parentNode;
 
-  cleanNode(newNode);
+  // If we append a child to a host, the host tells the shadow root to distribute
+  // it. If the root decides it doesn't need to be distributed, it is never
+  // removed from the old parent because in polyfill land we store a reference
+  // to the node but we don't move it. Due to that, we must explicitly remove the
+  // node from its old parent.
+  if (parentNode && getNodeType(parentNode) === 'host') {
+    nodeToParentNodeMap.set(newNode, null);
+  }
 
-  if (isHostNode(host)) {
-    addNodeToHost(host, newNode, refNode);
-  } else if (isSlotNode(host)) {
-    addNodeToNode(host, newNode, refNode);
-  } else if ((closestRoot = findClosestShadowRoot(host))) {
-    addNodeToRoot(closestRoot, newNode, refNode);
-  } else {
-    addNodeToNode(host, newNode, refNode);
+  if (nodeType === 'node') {
+    if (canPatchNativeAccessors) {
+      return host.__insertBefore(newNode, refNode);
+    } else {
+      return addNodeToNode(host, newNode, refNode);
+    }
+  }
+
+  if (nodeType === 'slot') {
+    return addNodeToNode(host, newNode, refNode);
+  }
+
+  if (nodeType === 'host') {
+    return addNodeToHost(host, newNode, refNode);
+  }
+
+  if (nodeType === 'root') {
+    return addNodeToRoot(host, newNode, refNode);
   }
 }
 
@@ -330,7 +364,7 @@ const members = {
   },
   addEventListener: {
     value (name, func, opts) {
-      if (name === 'slotchange') {
+      if (name === 'slotchange' && isSlotNode(this)) {
         this.____slotChangeListeners++;
       }
       return this.__addEventListener(name, func, opts);
@@ -353,28 +387,32 @@ const members = {
         throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
       }
 
+      // Return the existing shadow root if it exists.
       const existingShadowRoot = hostToRootMap.get(this);
       if (existingShadowRoot) {
         return existingShadowRoot;
       }
 
+      const host = this;
+      const childNodes = makeLikeNodeList([]);
+      const lightNodes = [].slice.call(this.childNodes);
       const shadowRoot = document.createElement(opts.polyfillShadowRootTagName || defaultShadowRootTagName);
 
-      // Emulating the spec { mode }.
-      Object.defineProperty(this, 'shadowRoot', {
-        configurable: true,
-        get () {
-          return mode === 'open' ? shadowRoot : null;
-        }
-      });
-
       // Host and shadow root data.
+      hostToModeMap.set(this, mode);
       hostToRootMap.set(this, shadowRoot);
-      rootToSlotMap.set(shadowRoot, {});
+      nodeToChildNodesMap.set(this, childNodes);
       rootToHostMap.set(shadowRoot, this);
+      rootToSlotMap.set(shadowRoot, {});
 
-      // Remove all current nodes as they may be slotted later.
-      this.childNodes.forEach(node => this.__removeChild(node));
+      // Existing children should be removed from being displayed, but still
+      // appear to be child nodes. This is how light DOM works; they're still
+      // child nodes but not in the composed DOM yet as there won't be any
+      // slots for them to go into.
+      lightNodes.forEach(function (node) {
+        host.__removeChild(node);
+        childNodes.push(node);
+      });
 
       // The shadow root is actually the only child of the host.
       return this.__appendChild(shadowRoot);
@@ -387,6 +425,9 @@ const members = {
   },
   childNodes: {
     get () {
+      if (canPatchNativeAccessors && getNodeType(this) === 'node') {
+        return this.__childNodes;
+      }
       let childNodes = nodeToChildNodesMap.get(this);
       childNodes || nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
       return childNodes;
@@ -394,7 +435,13 @@ const members = {
   },
   children: {
     get () {
-      return makeLikeNodeList(this.childNodes.filter(node => node.nodeType === 1));
+      const chs = [];
+      eachChildNode(this, function (node) {
+        if (node.nodeType === 1) {
+          chs.push(node);
+        }
+      });
+      return makeLikeNodeList(chs);
     }
   },
   firstChild: {
@@ -423,9 +470,11 @@ const members = {
   },
   innerHTML: {
     get () {
-      return this.childNodes.reduce(function (prev, curr) {
-        return prev + (curr.nodeType === 1 ? curr.outerHTML : curr.textContent);
-      }, '');
+      let innerHTML = '';
+      eachChildNode(this, function (node) {
+        innerHTML += node.nodeType === 1 ? node.outerHTML : node.textContent;
+      });
+      return innerHTML;
     },
     set (innerHTML) {
       const parsed = parse(innerHTML);
@@ -511,6 +560,11 @@ const members = {
       });
     }
   },
+  parentNode: {
+    get () {
+      return nodeToParentNodeMap.get(this) || this.__parentNode || null;
+    }
+  },
   previousSibling: {
     get () {
       const parentNode = this.parentNode;
@@ -534,22 +588,32 @@ const members = {
   },
   removeChild: {
     value (refNode) {
-      let closestRoot;
+      const nodeType = getNodeType(this);
 
-      if (isHostNode(this)) {
-        removeNodeFromHost(this, refNode);
-      } else if (isSlotNode(this)) {
-        removeNodeFromNode(this, refNode);
-      } else if ((closestRoot = findClosestShadowRoot(this))) {
-        removeNodeFromRoot(closestRoot, refNode);
-      } else {
-        removeNodeFromNode(this, refNode);
+      if (nodeType === 'node') {
+        if (canPatchNativeAccessors) {
+          return this.__removeChild(refNode);
+        } else {
+          return removeNodeFromNode(this, refNode);
+        }
+      }
+
+      if (nodeType === 'slot') {
+        return removeNodeFromNode(this, refNode);
+      }
+
+      if (nodeType === 'host') {
+        return removeNodeFromHost(this, refNode);
+      }
+
+      if (nodeType === 'root') {
+        return removeNodeFromRoot(this, refNode);
       }
     }
   },
   removeEventListener: {
     value (name, func, opts) {
-      if (name === 'slotchange' && this.____slotChangeListeners) {
+      if (name === 'slotchange' && this.____slotChangeListeners && isSlotNode(this)) {
         this.____slotChangeListeners--;
       }
       return this.__removeEventListener(name, func, opts);
@@ -561,9 +625,18 @@ const members = {
       return this.removeChild(refNode);
     }
   },
+  shadowRoot: {
+    get () {
+      return hostToModeMap.get(this) === 'open' ? hostToRootMap.get(this) : null;
+    }
+  },
   textContent: {
     get () {
-      return this.childNodes.map(node => node.textContent).join('');
+      let textContent = '';
+      eachChildNode(this, function (node) {
+        textContent += node.textContent;
+      });
+      return textContent;
     },
     set (textContent) {
       while (this.hasChildNodes()) {
@@ -575,10 +648,14 @@ const members = {
 };
 
 
-const protos = [Node, Element, EventTarget];
+const protos = ['Node', 'Element', 'EventTarget'];
 function findDescriptorFor (name) {
   for (let a = 0; a < protos.length; a++) {
-    const proto = protos[a].prototype;
+    const ctor = window[protos[a]];
+    if (!ctor) {
+      continue;
+    }
+    const proto = ctor.prototype;
     if (proto.hasOwnProperty(name)) {
       return Object.getOwnPropertyDescriptor(proto, name);
     }

@@ -1,5 +1,5 @@
+import '../../../src/index';
 import create from '../lib/create';
-import slotPolyfill from '../../src/slot/polyfill';
 
 describe('slot/polyfill', function () {
   let fallback;
@@ -11,9 +11,6 @@ describe('slot/polyfill', function () {
 
     // Ensure it's what we expect before polyfilling.
     expect(slot.firstElementChild).to.equal(fallback, 'before');
-
-    // Polyfill the slot.
-    slotPolyfill(slot);
   });
 
   it('Element.innerHTML', function () {

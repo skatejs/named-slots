@@ -1,6 +1,6 @@
 # named-slots
 
-A polygap (partial polyfill) for the Shadow DOM Named Slot API using SkateJS.
+A polygap (partial polyfill) for the Shadow DOM Named Slot API.
 
 
 

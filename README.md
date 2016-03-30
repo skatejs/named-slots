@@ -55,132 +55,96 @@ We support the usage of the `<slot />` element as specified in the Shadow DOM sp
 
 ## Usage
 
-To render a shadow root and distribute initial content, the simplest way is to use the `render` function:
+This polyfill is used in the same way as specified in [the spec](http://w3c.github.io/webcomponents/spec/shadow/).
 
 ```js
-import { render } from 'skatejs-named-slots';
-
-const div = document.createElement('div'):
-const template = render(function (elem, shadowRoot) {
-  shadowRoot.innerHTML = '<div class="wrapper"><slot></slot></div>';
-});
-
-// Set initial light DOM.
-div.innerHTML = '<p>paragraph 1</p>';
-
-// Render shadow root template and distribute initial light DOM.
-template(div);
-
-// Add more content.
-div.innerHTML += '<p>paragraph 2</p>';
+const host = document.createElement('div');
+const root = host.attachShadow({ mode: 'closed' });
+root.innerHTML = '<h1><slot name="title"></slot></h1><slot></slot>';
+host.innerHTML = '<span slot="title">title</span><p>content</p>';
 ```
 
-A more streamlined approach would be to use it with a library like [Skate](https://github.com/skatejs/skatejs).
+If the browser you run that code in does not support native Shadow DOM then it would render:
 
+```html
+<div>
+  <_shadow_root_>
+    <h1>
+      <slot name="title">title</slot>
+    </h1>
+    <slot>
+      <p>content</p>
+    </slot>
+  </_shadow_root_>
+</div>
+```
 
-
-### With Skate (vanilla)
-
-Using with [Skate](https://github.com/skatejs/skatejs) makes things a lot simpler.
+The `attachShadow()` method accepts an options dictionary as per the spec and requires that you specify a `mode` that is either `open` or `closed`. For the polyfill, you may also specify an option for using a different name for the shadow root.
 
 ```js
-import { render } from 'skatejs-named-slots';
-
-skate('my-component', {
-  render: render(function (elem, shadowRoot) {
-    shadoRoot.innerHTML = '<div class="wrapper"><slot></slot></div>';
-  })
-});
+const root = host.attachShadow({ mode: 'open', polyfillShadowRootTagName: 'custom-shadow-root-name' });
 ```
 
+Which would then render a shadow root as:
 
-
-### With Kickflip (Skate + Named Slots + Incremental DOM)
-
-And if you like writing in a more functional way, [Kickflip](https://github.com/skatejs/kickflip) blends this polygap with Skate.
-
-```js
-import { div, slot } from 'kickflip/src/vdom';
-import kickflip from 'kickflip';
-
-kickflip('my-component', {
-  render (elem) {
-    div({ class: 'wrapper' }, function () {
-      slot();
-    });
-  }
-});
+```html
+<custom-shadow-root-name>
 ```
-
-
-
-## Performance
-
-Obviously, performance is a concern when polyfilling anything and the past has shown Shadow DOM polyfills to be slow. Since we're not polyfilling everything, and don't ever aim to, we strive to keep an acceptable level of performance.
-
-We've written some simple perf tests to show overhead against native. These vary depending on the browser you run them, so if you're concerned about performance, it's best to run these yourself. You can do so by:
-
-1. Clone the repo
-2. `npm install`
-3. `gulp perf`
-
-For most purposes, the performance should be acceptable. That said, we're always looking at ways to imporove.
 
 
 
 ## Support
 
-The following lists are an exhaustive representation of what this polygap supports and why for the following interfaces:
-
-- [ChildNode](https://developer.mozilla.org/en/docs/Web/API/ChildNode)
-- [Element](https://developer.mozilla.org/en/docs/Web/API/Element)
-- [EventTarget](https://developer.mozilla.org/en/docs/Web/API/EventTarget)
-- [Node](https://developer.mozilla.org/en/docs/Web/API/Node)
-- [NonDocumentTypeChildNode](https://developer.mozilla.org/en/docs/Web/API/NonDocumentTypeChildNode)
-- [ParentNode](https://developer.mozilla.org/en/docs/Web/API/ParentNode)
-
-Note:
-
-- `HTMLElement` and any prototypes more specific are not polyfilled for simplicity.
-- All members which are not standardised or are listed as experimental are not included in these lists.
-- Members are only polyfilled on the specific web component unless otherwise noted.
-- Members must be overridden on the instance rather than prototype because WebKit has a bug that prevents correct descritpors from being returned using [`Object.getOwnPropertyDescriptor()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor) See https://bugs.webkit.org/show_bug.cgi?id=49739 for more info.
+The following describe what is polyfilled, what is not polyfilled, and why. All members which are not standardised or are listed as experimental are not included in these lists.
 
 
 
-## Polyfilled
+### Overview
 
-These are members which are already polyfilled.
+- JavaScript API encapsulation for *most* things.
+- Finders like `document.getElementById()` and `element.querySelectorAll()` are *not* polyfilled for performance reasons.
+- All getters and setters that provide encapsulation are polyfilled.
+- CSS encapsulation and selectors are *not* polyfilled.
 
-### Properties
 
+
+### Polyfilled
+
+These are members which are already polyfilled along with notes about their implementation details.
+
+#### Properties
+
+- `Element.assignedSlot` - Available on every node at time of creation. Available in WebKit after being added to a shadow root.
+- `Element.childElementCount`
+- `Element.children` - Same as `Node.childNodes` except that it only contains element nodes.
+- `Element.firstElementChild`
 - `Element.innerHTML`
-- `Element.outerHTML` - Only the getter is polyfilled.
-- `Node.childNodes`
+- `Element.lastElementChild`
+- `Element.nextElementSibling`
+- `Element.outerHTML`
+- `Element.previousElementSibling`
+- `Node.childNodes` - Returns an array instead of a `NodeList`, however, it applies an `item()` function so things expecting it to behave like a `NodeList` don't break.
 - `Node.firstChild`
 - `Node.lastChild`
 - `Node.nextSibling`
-- `Node.nodeValue` - Doesn't need polyfilling because its return value is `null` for all element nodes.
 - `Node.parentElement`
 - `Node.parentNode`
 - `Node.previousSibling`
 - `Node.textContent`
-- `NonDocumentTypeChildNode.nextElementSibling`
-- `NonDocumentTypeChildNode.previousElementSibling`
-- `ParentNode.childElementCount`
-- `ParentNode.children`
-- `ParentNode.firstElementChild`
-- `ParentNode.lastElementChild`
 
-### Methods
+#### Methods
 
+- `Element.attachShadow()`
+- `HTMLSlotElement.getAssignedNodes()` - Only available after being added to a shadow root.
 - `Node.appendChild()`
 - `Node.hasChildNodes()`
 - `Node.insertBefore()`
 - `Node.removeChild()`
 - `Node.replaceChild()`
 
-## Maybe
+
+
+### Maybe
 
 These are members which are not yet polyfilled for a few reasons:
 
@@ -188,11 +152,11 @@ These are members which are not yet polyfilled for a few reasons:
 - They may not behave as expected causing confusion.
 - If only part of the finding methods are polyfilled, not polyfilling some may cause confusion.
 
-### Properties
+#### Properties
 
 - `Element.id`
 
-### Methods
+#### Methods
 
 - `Document.getElementById()`
 - `Element.getElementsByClassName()`
@@ -203,11 +167,13 @@ These are members which are not yet polyfilled for a few reasons:
 - `Node.compareDocumentPosition()`
 - `Node.contains()`
 
-## Unlikely
+
+
+### Unlikely
 
 These are members which are not polyfilled because it's likely not necessary.
 
-### Properties
+#### Properties
 
 - `Element.accessKey`
 - `Element.attributes`
@@ -218,9 +184,10 @@ These are members which are not polyfilled because it's likely not necessary.
 - `Node.baseURI`
 - `Node.nodeName`
 - `Node.nodeType`
+- `Node.nodeValue` - doesn't need polyfilling because it returns `null` on element nodes in native anyways.
 - `Node.ownerDocument`
 
-### Methods
+#### Methods
 
 - `Element.getAttribute()`
 - `Element.getAttributeNS()`
@@ -235,12 +202,26 @@ These are members which are not polyfilled because it's likely not necessary.
 - `Element.setAttribute()`
 - `Element.setAttributeNS()`
 - `Element.setPointerCapture()`
-- `EventTarget.addEventListener()`
-- `EventTarget.dispatchEvent()`
-- `EventTarget.removeEventListener()`
+- `Node.addEventListener()`
 - `Node.cloneNode()`
+- `Node.dispatchEvent()`
 - `Node.isDefaultNamespace()`
 - `Node.isEqualNode()`
 - `Node.lookupNamespaceURI()`
 - `Node.lookupPrefix()`
 - `Node.normalize()`
+- `Node.removeEventListener()`
+
+
+
+## Performance
+
+Obviously, performance is a concern when polyfilling anything and the past has shown Shadow DOM polyfills to be slow. Since we're not polyfilling everything, and don't ever aim to, we strive to keep an acceptable level of performance.
+
+We've written some simple perf tests to show overhead against native. These vary depending on the browser you run them, so if you're concerned about performance, it's best to run these yourself. You can do so by:
+
+1. Clone the repo
+2. `npm install`
+3. `gulp perf`
+
+For most purposes, the performance should be acceptable. That said, we're always looking at ways to imporove.

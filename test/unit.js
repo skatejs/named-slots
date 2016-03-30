@@ -1,10 +1,13 @@
-import polyfill from '../src/index';
+import { lightNodes } from '../src/host/data';
+import create from './lib/create';
+import polyfill from '../src/shadow/polyfill';
 import version from '../src/version';
 
-import './unit/host/get-slot';
+import './unit/light/polyfill';
+import './unit/shadow/polyfill';
 import './unit/slot/polyfill';
 import './unit/slot/fallback-content';
-import './unit/slotchange-event.js';
+import './unit/slot/change-event.js';
 
 describe('skatejs-named-slots', function () {
   it('version', function () {
@@ -13,9 +16,7 @@ describe('skatejs-named-slots', function () {
 });
 
 describe('skatejs-named-slots', function () {
-  let host;
-  let shadow;
-  let slot;
+  let host, root, slot;
 
   function add () {
     host.appendChild(document.createElement('div'));
@@ -27,24 +28,11 @@ describe('skatejs-named-slots', function () {
 
   beforeEach(function () {
     host = document.createElement('div');
-    shadow = document.createElement('div');
-    slot = document.createElement('div');
+    root = polyfill(host);
+    slot = create('slot');
 
-    // Template out the host by adding the shadow root and the slot to the
-    // shadow root.
-    slot.setAttribute('slot-name', '');
-    shadow.appendChild(slot);
-    host.appendChild(shadow);
-
-    // Ensure the host is templated out properly.
-    expect(host.firstChild).to.equal(shadow, 'before polyfill');
-
-    // Polyfill after templated. This is because the polyfill will try and
-    // slot anything added after polyfilling.
-    polyfill(host);
-
-    // Ensure that the polyfill was properly applied.
-    expect(host.firstChild).to.equal(null, 'after polyfill');
+    // Now it has something to assign nodes to.
+    root.appendChild(slot);
   });
 
   describe('methods', function () {
@@ -53,6 +41,7 @@ describe('skatejs-named-slots', function () {
       const light2 = document.createElement('light-2');
 
       host.appendChild(light1);
+      expect(lightNodes.get(host)[0]).to.equal(light1, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
@@ -61,6 +50,7 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[0]).to.equal(light1, 'light');
 
       host.appendChild(light2);
+      expect(lightNodes.get(host)[1]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
@@ -80,10 +70,11 @@ describe('skatejs-named-slots', function () {
     });
 
     it('insertBefore()', function () {
-      const light1 = document.createElement('div');
-      const light2 = document.createElement('div');
+      const light1 = document.createElement('light1');
+      const light2 = document.createElement('light2');
 
       host.insertBefore(light2);
+      expect(lightNodes.get(host)[0]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
@@ -92,6 +83,8 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[0]).to.equal(light2, 'light');
 
       host.insertBefore(light1, light2);
+      expect(lightNodes.get(host)[0]).to.equal(light1, 'internal light dom');
+      expect(lightNodes.get(host)[1]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
@@ -118,6 +111,8 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[1]).to.equal(light2, 'light');
 
       host.removeChild(light1);
+      expect(lightNodes.get(host).length).to.equal(1);
+      expect(lightNodes.get(host)[0]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
@@ -126,6 +121,7 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[0]).to.equal(light2, 'light');
 
       host.removeChild(light2);
+      expect(lightNodes.get(host).length).to.equal(0);
 
       expect(slot.getAssignedNodes().length).to.equal(0, 'slot');
       expect(host.childNodes.length).to.equal(0, 'light');
@@ -144,6 +140,8 @@ describe('skatejs-named-slots', function () {
       expect(host.childNodes[0]).to.equal(light1, 'light');
 
       host.replaceChild(light2, light1);
+      expect(lightNodes.get(host).length).to.equal(1);
+      expect(lightNodes.get(host)[0]).to.equal(light2, 'internal light dom');
 
       expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
       expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
@@ -202,12 +200,21 @@ describe('skatejs-named-slots', function () {
 
     it('innerHTML', function () {
       expect(host.innerHTML).to.equal('');
+
       host.innerHTML = '<div slot="custom"></div>';
-      expect(host.innerHTML).to.equal('');
+      expect(host.innerHTML).to.equal('<div slot="custom"></div>');
+      expect(lightNodes.get(host).length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(0);
+
       host.innerHTML = '<div></div>';
       expect(host.innerHTML).to.equal('<div></div>');
+      expect(lightNodes.get(host).length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(1);
+
       host.innerHTML = '<div></div>';
       expect(host.innerHTML).to.equal('<div></div>');
+      expect(lightNodes.get(host).length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(1);
     });
 
     it('lastChild', function () {
@@ -230,105 +237,21 @@ describe('skatejs-named-slots', function () {
 
     it('outerHTML', function () {
       expect(host.outerHTML).to.equal('<div></div>');
+
       host.innerHTML = '<div slot="custom"></div>';
-      expect(host.outerHTML).to.equal('<div></div>');
+      expect(host.outerHTML).to.equal('<div><div slot="custom"></div></div>');
+      expect(lightNodes.get(host).length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(0);
+
       host.innerHTML = '<div></div>';
       expect(host.outerHTML).to.equal('<div><div></div></div>');
+      expect(lightNodes.get(host).length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(1);
+
       host.innerHTML = '<div></div>';
       expect(host.outerHTML).to.equal('<div><div></div></div>');
-    });
-
-    it('nextSibling, previousSibling', function () {
-      const ch1 = document.createElement('div');
-      const ch2 = document.createElement('div');
-
-      // So they can get distributed.
-      ch1.setAttribute('slot', 'slot1');
-      ch2.setAttribute('slot', 'slot2');
-
-      // Create separate slots so each node can go into a separate one.
-      shadow.innerHTML = '<div slot-name="slot1"></div><div slot-name="slot2"></div>';
-
-      // Distribute.
-      host.appendChild(ch1);
-      host.appendChild(ch2);
-
-      expect(ch1.nextSibling).to.equal(ch2);
-      expect(ch2.previousSibling).to.equal(ch1);
-    });
-
-    it('nextElementSibling, previousElementSibling', function () {
-      const ch1 = document.createElement('div');
-      const ch2 = document.createElement('div');
-
-      // So they can get distributed.
-      ch1.setAttribute('slot', 'slot1');
-      ch2.setAttribute('slot', 'slot2');
-
-      // Create separate slots so each node can go into a separate one.
-      shadow.innerHTML = '<div slot-name="slot1"></div><div slot-name="slot2"></div>';
-
-      // Distribute.
-      host.appendChild(ch1);
-      host.appendChild(ch2);
-
-      expect(ch1.nextElementSibling).to.equal(ch2);
-      expect(ch2.previousElementSibling).to.equal(ch1);
-    });
-
-    it('parentElement, parentNode', function () {
-      const childNode = document.createElement('div');
-
-      host.appendChild(childNode);
-
-      // Ensure it's in fact in the slot.
-      expect(slot.getAssignedNodes()[0]).to.equal(childNode);
-
-      // And this will confirm appendChild has set parentNode.
-      expect(childNode.parentElement).to.equal(host);
-      expect(childNode.parentNode).to.equal(host);
-
-      // We ensure that removeChild cleans up the parentNode.
-      host.removeChild(childNode);
-      expect(childNode.parentNode).to.equal(null);
-
-
-      // Other means of adding.
-
-      // insertBefore
-      const childNodeInsertBefore = document.createElement('div');
-      host.appendChild(childNodeInsertBefore);
-      host.insertBefore(childNode, childNodeInsertBefore);
-      expect(childNode.parentNode).to.equal(host);
-      expect(childNodeInsertBefore.parentNode).to.equal(host);
-      host.removeChild(childNode);
-      host.removeChild(childNodeInsertBefore);
-
-      // replaceChild
-      const childNodeReplaceChild = document.createElement('div');
-      host.appendChild(childNodeReplaceChild);
-      host.replaceChild(childNode, childNodeReplaceChild);
-      expect(childNode.parentNode).to.equal(host);
-      expect(childNodeReplaceChild.parentNode).to.equal(null);
-      host.removeChild(childNode);
-
-
-      // Other means of removing.
-
-      // innerHTML
-      host.appendChild(childNode);
-      host.innerHTML = '';
-      expect(childNode.parentNode).to.equal(null);
-
-      // textContent
-      host.appendChild(childNode);
-      host.textContent = '';
-      expect(childNode.parentNode).to.equal(null);
-
-      // parentNode.removeChild()
-      host.appendChild(childNode);
-      childNode.parentNode.removeChild(childNode);
-      expect(childNode.parentNode).to.equal(null);
+      expect(lightNodes.get(host).length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(1);
     });
 
     it('textContent', function () {

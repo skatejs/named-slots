@@ -1,5 +1,7 @@
 import { assignedNodes, changeListeners, debouncedTriggerSlotChangeEvent, fallbackNodes, fallbackState, polyfilled } from './data';
+import { appendChild, insertBefore, removeChild, replaceChild } from '../util/node';
 import debounce from 'debounce';
+import element, { addEventListener, removeEventListener } from '../util/element';
 import fragFromHtml from '../util/frag-from-html';
 
 function getInitialFallbackContent (slot) {
@@ -30,7 +32,7 @@ function triggerSlotChangeEvent (slot) {
 const members = {
   appendChild: {
     value (newNode) {
-      shouldAffectSlot(this) && this.__appendChild(newNode);
+      shouldAffectSlot(this) && appendChild.call(this, newNode);
       this.childNodes.push(newNode);
       return newNode;
     }
@@ -86,7 +88,7 @@ const members = {
   insertBefore: {
     value (newNode, refNode) {
       const fb = fallbackNodes.get(this);
-      shouldAffectSlot(this) && this.__insertBefore(newNode, refNode);
+      shouldAffectSlot(this) && insertBefore.call(this, newNode, refNode);
       fb.splice(fb.indexOf(refNode), 0, newNode);
       return newNode;
     }
@@ -129,7 +131,7 @@ const members = {
   removeChild: {
     value (refNode) {
       const fb = fallbackNodes.get(this);
-      shouldAffectSlot(this) && this.__removeChild(refNode);
+      shouldAffectSlot(this) && removeChild.call(this, refNode);
       fb.splice(fb.indexOf(refNode), 1);
       return refNode;
     }
@@ -137,7 +139,7 @@ const members = {
   replaceChild: {
     value (newNode, refNode) {
       const fb = fallbackNodes.get(this);
-      shouldAffectSlot(this) && this.__replaceChild(newNode, refNode);
+      shouldAffectSlot(this) && replaceChild.call(this, newNode, refNode);
       fb.splice(fb.indexOf(refNode), 1, newNode);
       return refNode;
     }
@@ -154,18 +156,15 @@ const members = {
 
 // Patch add/removeEventListener() so that we can keep track of slotchange
 // events. Since we support <slot> elements and normal elements - due to some
-// quirks that cannot be polyfilled - we add this to HTMLElement.
-const htmlElProto = HTMLElement.prototype;
-const addEventListener = htmlElProto.addEventListener;
-const removeEventListener = htmlElProto.removeEventListener;
-htmlElProto.addEventListener = function (name, func, opts) {
+// quirks that cannot be polyfilled - we polyfill this for every element.
+element.addEventListener = function (name, func, opts) {
   if (name === 'slotchange') {
     let listeners = changeListeners.get(this) || 0;
     changeListeners.set(this, ++listeners);
   }
   return addEventListener.call(this, name, func, opts);
 };
-htmlElProto.removeEventListener = function (name, func, opts) {
+element.removeEventListener = function (name, func, opts) {
   if (name === 'slotchange') {
     let listeners = changeListeners.get(this) || 1;
     changeListeners.set(this, --listeners);
@@ -173,13 +172,11 @@ htmlElProto.removeEventListener = function (name, func, opts) {
   return removeEventListener.call(this, name, func, opts);
 };
 
-const originalFuncs = ['appendChild', 'insertBefore', 'removeChild', 'replaceChild'];
 function polyfill (slot) {
   assignedNodes.set(slot, []);
   fallbackNodes.set(slot, getInitialFallbackContent(slot));
   fallbackState.set(slot, true);
   debouncedTriggerSlotChangeEvent.set(slot, debounce(triggerSlotChangeEvent));
-  originalFuncs.forEach(fn => slot['__' + fn] = slot[fn]);
   Object.defineProperties(slot, members);
 }
 

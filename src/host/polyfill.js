@@ -1,27 +1,12 @@
-import { polyfilled } from './data';
-import { parentNode, slotted } from '../light/data';
-import { appendChild, insertBefore, removeChild } from '../slot/content';
+import { lightNodes, polyfilled } from './data';
+import { light, parentNode } from '../light/data';
+import distribute, { undistribute } from '../shadow/distribute';
+import each from '../util/each';
 import fragFromHtml from '../util/frag-from-html';
-import getSlot from './get-slot';
 import htmlFromFrag from '../util/html-from-frag';
 import lightPolyfill from '../light/polyfill';
 
-
 const configurable = true;
-
-
-// Fake parentNode helpers.
-
-function applyParentNode (node, parent) {
-  slotted.set(node, true);
-  parentNode.set(node, parent);
-  lightPolyfill(node);
-}
-
-function removeParentNode (node) {
-  slotted.set(node, false);
-  parentNode.set(node, null);
-}
 
 
 // Slotting helpers.
@@ -30,46 +15,35 @@ function arrayItem (idx) {
   return this[idx];
 }
 
-function doForNodesIfSlot (elem, node, func) {
-  const nodes = nodeToArray(node);
-  const nodesLen = nodes.length;
-
-  for (let a = 0; a < nodesLen; a++) {
-    const node = nodes[a];
-    const slot = getSlot(elem, node);
-
-    if (slot) {
-      func(elem, node, slot);
-    } else if (node.parentNode) {
-      // If the node does not have a slot then we make sure that it is not
-      // inserted anywhere else in the document.
-      node.parentNode.removeChild(node);
-    }
-  }
-}
-
 function makeLikeNodeList (arr) {
   arr.item = arrayItem;
   return arr;
 }
 
-function nodeToArray (node) {
-  return node instanceof DocumentFragment ? toArray(node.childNodes) : [node];
+// If we append a child to a host, the host tells the shadow root to distribute
+// it. If the root decides it doesn't need to be distributed, it is never
+// removed from the old parent because in polyfill land we store a reference
+// to the node but we don't move it. Due to that, we must explicitly remove the
+// node from its old parent.
+function cleanNode (node) {
+  const parent = node.parentNode;
+  if (parent) {
+    parent.removeChild(node);
+  }
 }
-
-function toArray (obj) {
-  return Array.prototype.slice.call(obj);
-}
-
-
-// Member overrides.
 
 const members = {
   appendChild: {
     value (newNode) {
-      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        appendChild(slot, node);
-        applyParentNode(node, elem);
+      const ln = lightNodes.get(this);
+      const host = this;
+      cleanNode(newNode);
+      each(newNode, function (node) {
+        ln.push(node);
+        light.set(node, true);
+        parentNode.set(node, host);
+        lightPolyfill(node);
+        distribute(node);
       });
       return newNode;
     }
@@ -82,19 +56,7 @@ const members = {
   },
   childNodes: {
     get () {
-      let nodes = [];
-      const slots = this.__slots;
-      if (slots) {
-        for (let name in slots) {
-          const slot = slots[name];
-          const childNodes = slot.getAssignedNodes();
-          const childNodesLen = childNodes.length;
-          for (let a = 0; a < childNodesLen; a++) {
-            nodes.push(childNodes[a]);
-          }
-        }
-      }
-      return makeLikeNodeList(nodes);
+      return lightNodes.get(this);
     }
   },
   children: {
@@ -133,9 +95,20 @@ const members = {
   },
   insertBefore: {
     value (newNode, refNode) {
-      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        insertBefore(slot, node, refNode);
-        applyParentNode(node, elem);
+      const ln = lightNodes.get(this);
+      const host = this;
+      cleanNode(newNode);
+      each(newNode, function (node) {
+        const index = ln.indexOf(refNode);
+        if (index > -1) {
+          ln.splice(index, 0, node);
+        } else {
+          ln.push(node);
+        }
+        light.set(node, true);
+        parentNode.set(node, host);
+        lightPolyfill(node);
+        distribute(node);
       });
       return newNode;
     }
@@ -155,7 +128,7 @@ const members = {
   outerHTML: {
     get () {
       const name = this.tagName.toLowerCase();
-      const attributes = toArray(this.attributes).map(function (attr) {
+      const attributes = Array.prototype.slice.call(this.attributes).map(function (attr) {
         return ` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`;
       }).join('');
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
@@ -163,35 +136,23 @@ const members = {
   },
   removeChild: {
     value (refNode) {
-      doForNodesIfSlot(this, refNode, function (elem, node, slot) {
-        removeChild(slot, node);
-        removeParentNode(node);
-      });
+      const ln = lightNodes.get(this);
+      const index = ln.indexOf(refNode);
+
+      if (index > -1) {
+        undistribute(refNode);
+        light.set(refNode, false);
+        parentNode.set(refNode, null);
+        ln.splice(index, 1);
+      }
+
       return refNode;
     }
   },
   replaceChild: {
     value (newNode, refNode) {
-      // If the ref node is not in the light DOM, just return it.
-      if (refNode.parentNode !== this) {
-        return refNode;
-      }
-
-      // We're dealing with a representation of the light DOM, so we insert nodes
-      // relative to the location of the refNode in the light DOM, not the where
-      // it appears in the composed DOM.
-      const insertBeforeSibling = refNode.nextSibling;
-
-      // Clean up the reference node.
-      this.removeChild(refNode);
-
-      // Add new nodes in place of the reference node.
-      doForNodesIfSlot(this, newNode, function (elem, node, slot) {
-        insertBefore(slot, node, insertBeforeSibling);
-        applyParentNode(node, elem);
-      });
-
-      return refNode;
+      this.insertBefore(newNode, refNode);
+      return this.removeChild(refNode);
     }
   },
   textContent: {
@@ -211,6 +172,7 @@ export default function (host) {
   if (polyfilled.get(host)) {
     return;
   }
+  lightNodes.set(host, makeLikeNodeList([]));
   Object.defineProperties(host, members);
   polyfilled.set(host, true);
   return host;

@@ -1,4 +1,4 @@
-export default (function () {
+export default window.WeakMap || (function () {
   let index = 0;
   function Wm () {
     this.key = `____weak_map_${index++}`;

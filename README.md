@@ -49,8 +49,6 @@ Which would result in:
 </my-component>
 ```
 
-We support the usage of the `<slot />` element as specified in the Shadow DOM spec as well as any element that has a `slot-name` attribute. Using the `slot-name` attribute is non-standard, but we support it because a there is no clear path right now in how you would distribute list items into a `<ul />` or rows into a `<tbody />` if they don't accept a `<slot />` element to distribute to. This is an implementation detail that your consumers do not need to worry about. They still only have to worry about putting the `slot` attribute on whatever element they want to be slotted. Most of the time you'll be using `<slot>`, but for the edge-cases, you have `slot-name`.
-
 
 
 ## Usage

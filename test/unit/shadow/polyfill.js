@@ -1,9 +1,9 @@
 import '../../../src/index';
-import { slots } from '../../../src/shadow/data';
 import create from '../../lib/create';
 
 describe('shadow/polyfill', function () {
   const invalidModeMessage = 'You must specify { mode } as "open" or "closed" to attachShadow().';
+
   it('mode: [not specified]', function () {
     const host = create('div');
     expect(host.attachShadow.bind(host)).to.throw(invalidModeMessage);
@@ -51,13 +51,13 @@ describe('shadow/polyfill', function () {
       const slot2 = create('slot', { name: 'test' });
       root.appendChild(slot1);
       root.appendChild(slot2);
-      expect(slots.get(root).default).to.equal(slot1);
-      expect(slots.get(root).test).to.equal(slot2);
+      expect(root.childNodes[0]).to.equal(slot1);
+      expect(root.childNodes[1]).to.equal(slot2);
     });
 
     it('innerHTML', function () {
       root.innerHTML = '<slot name="test"></slot>';
-      expect(slots.get(root).test.name).to.equal('test');
+      expect(root.childNodes[0].name).to.equal('test');
     });
 
     it('insertBefore', function () {
@@ -65,8 +65,8 @@ describe('shadow/polyfill', function () {
       const slot2 = create('slot', { name: 'test' });
       root.appendChild(slot2);
       root.insertBefore(slot1, slot2);
-      expect(slots.get(root).default).to.equal(slot1);
-      expect(slots.get(root).test).to.equal(slot2);
+      expect(root.childNodes[0]).to.equal(slot1);
+      expect(root.childNodes[1]).to.equal(slot2);
     });
 
     it('removeChild', function () {
@@ -77,10 +77,11 @@ describe('shadow/polyfill', function () {
       root.appendChild(slot2);
 
       root.removeChild(slot1);
-      expect(slots.get(root).default).to.equal(undefined);
+      expect(root.childNodes.length).to.equal(1);
+      expect(root.childNodes[0].name).to.equal('test');
 
       root.removeChild(slot2);
-      expect(slots.get(root).test).to.equal(undefined);
+      expect(root.childNodes.length).to.equal(0);
     });
 
     it('replaceChild', function () {
@@ -89,9 +90,8 @@ describe('shadow/polyfill', function () {
 
       root.appendChild(slot2);
       root.replaceChild(slot1, slot2);
-
-      expect(slots.get(root).default).to.equal(slot1);
-      expect(slots.get(root).test).to.equal(undefined);
+      expect(root.childNodes.length).to.equal(1);
+      expect(root.childNodes[0].name).to.equal(null);
     });
   });
 

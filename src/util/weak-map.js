@@ -5,16 +5,29 @@ export default window.WeakMap || (function () {
   }
   Wm.prototype = {
     delete (obj) {
-      delete obj[this.key];
+      if (obj) {
+        delete obj[this.key];
+      }
     },
     get (obj) {
-      return obj[this.key];
+      return obj ? obj[this.key] : null;
     },
     has (obj) {
-      return typeof obj[this.key] !== 'undefined';
+      return obj ? typeof obj[this.key] !== 'undefined' : false;
     },
     set (obj, val) {
-      return obj[this.key] = val;
+      if (obj) {
+        const key = this.key;
+        if (typeof obj[key] === 'undefined') {
+          Object.defineProperty(obj, key, {
+            configurable: true,
+            enumerable: false,
+            value: val
+          });
+        } else {
+          obj[key] = val;
+        }
+      }
     }
   };
   return Wm;

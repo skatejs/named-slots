@@ -1,5 +1,5 @@
+import '../../../src/index';
 import create from '../../lib/create';
-import polyfill from '../../../src/shadow/polyfill';
 
 describe('light/polyfill', function () {
   let host, light1, light2, root, slot, text;
@@ -7,7 +7,7 @@ describe('light/polyfill', function () {
   beforeEach(function () {
     slot = create('slot');
     host = create('div');
-    root = polyfill(host);
+    root = host.attachShadow({ mode: 'closed' });
 
     root.appendChild(slot);
 
@@ -54,7 +54,7 @@ describe('light/polyfill', function () {
     beforeEach(function () {
       anotherHost = create('div');
       anotherNode = create('div');
-      anotherRoot = polyfill(anotherHost);
+      anotherRoot = anotherHost.attachShadow({ mode: 'closed' });
       anotherSlot = create('slot');
 
       anotherRoot.appendChild(anotherSlot);
@@ -118,7 +118,7 @@ describe('light/polyfill', function () {
     beforeEach(function () {
       anotherHost = create('div');
       anotherNode = create('div');
-      anotherRoot = polyfill(anotherHost);
+      anotherRoot = anotherHost.attachShadow({ mode: 'closed' });
       anotherSlot = create('slot');
 
       anotherRoot.appendChild(anotherSlot);

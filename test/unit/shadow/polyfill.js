@@ -93,6 +93,11 @@ describe('shadow/polyfill', function () {
       expect(root.childNodes.length).to.equal(1);
       expect(root.childNodes[0].name).to.equal(null);
     });
+
+    it('adding non-element nodes should not cause an error', function () {
+      const text = document.createTextNode('test');
+      root.appendChild(text);
+    });
   });
 
   describe('setup order', function () {

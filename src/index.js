@@ -273,9 +273,11 @@ function addNodeToRoot (root, node, insertBefore) {
       addSlotToRoot(root, node);
     } else {
       const slotNodes = node.querySelectorAll && node.querySelectorAll('slot');
-      const slotNodesLen = slotNodes.length;
-      for (let a = 0; a < slotNodesLen; a++) {
-        addSlotToRoot(root, slotNodes[a]);
+      if (slotNodes) {
+        const slotNodesLen = slotNodes.length;
+        for (let a = 0; a < slotNodesLen; a++) {
+          addSlotToRoot(root, slotNodes[a]);
+        }
       }
     }
   });

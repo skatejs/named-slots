@@ -412,9 +412,11 @@
           addSlotToRoot(root, node);
         } else {
           var slotNodes = node.querySelectorAll && node.querySelectorAll('slot');
-          var slotNodesLen = slotNodes.length;
-          for (var a = 0; a < slotNodesLen; a++) {
-            addSlotToRoot(root, slotNodes[a]);
+          if (slotNodes) {
+            var slotNodesLen = slotNodes.length;
+            for (var a = 0; a < slotNodesLen; a++) {
+              addSlotToRoot(root, slotNodes[a]);
+            }
           }
         }
       });

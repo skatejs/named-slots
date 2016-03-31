@@ -19,7 +19,7 @@ A polygap (partial polyfill) for the Shadow DOM Named Slot API.
 
 Instead of polyfilling everything, we polyfill only the bare minimum that is required to supply the consumers of your custom elements with an API where they can distribute content to / from your element.
 
-Your consuemrs may use it like so:
+Your consumers may use it like so:
 
 ```html
 <my-component id="example">

@@ -1,6 +1,6 @@
 {
   "name": "skatejs-named-slots",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A polygap (partial polyfill) for the Shadow DOM Named Slot API.",
   "main": "lib/index.js",
   "jsnext:main": "src/index.js",

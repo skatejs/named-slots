@@ -6,6 +6,37 @@
 
     function __commonjs(fn, module) { return module = { exports: {} }, fn(module, module.exports), module.exports; }
 
+    function eachChildNode(node, func) {
+      if (!node) {
+        return;
+      }
+
+      var chs = node.childNodes;
+      var chsLen = chs.length;
+      for (var a = 0; a < chsLen; a++) {
+        var ret = func(chs[a], a, chs);
+        if (typeof ret !== 'undefined') {
+          return ret;
+        }
+      }
+    }
+
+    function eachNodeOrFragmentNodes(node, func) {
+      if (node instanceof DocumentFragment) {
+        var chs = node.childNodes;
+        var chsLen = chs.length;
+        for (var a = 0; a < chsLen; a++) {
+          func(chs[a], a);
+        }
+      } else {
+        func(node, 0);
+      }
+    }
+
+    // Any code referring to this is because it has to work around this bug in
+    // WebKit: https://bugs.webkit.org/show_bug.cgi?id=49739
+    var canPatchNativeAccessors = !!Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode').get;
+
     var index$1 = __commonjs(function (module) {
     module.exports = Date.now || now;
 
@@ -73,25 +104,78 @@
 
     var debounce = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
 
-    // Does something for a single node or a DocumentFragment. This is useful when
-    // working with arguments that are passed to DOM methods that work with either.
-    function each (node, func) {
-      if (node instanceof DocumentFragment) {
-        var chs = node.childNodes;
-        var chsLen = chs.length;
-        for (var a = 0; a < chsLen; a++) {
-          func(chs[a], a);
-        }
-      } else {
-        func(node, 0);
-      }
-    }
-
     var version = '0.0.1';
 
-    var defaultShadowRootTagName = '_shadow_root_';
+    var WeakMap = window.WeakMap || function () {
+      var index = 0;
+      function Wm() {
+        this.key = '____weak_map_' + index++;
+      }
+      Wm.prototype = {
+        delete: function _delete(obj) {
+          if (obj) {
+            delete obj[this.key];
+          }
+        },
+        get: function get(obj) {
+          return obj ? obj[this.key] : null;
+        },
+        has: function has(obj) {
+          return obj ? typeof obj[this.key] !== 'undefined' : false;
+        },
+        set: function set(obj, val) {
+          if (obj) {
+            var key = this.key;
+            if (typeof obj[key] === 'undefined') {
+              Object.defineProperty(obj, key, {
+                configurable: true,
+                enumerable: false,
+                value: val
+              });
+            } else {
+              obj[key] = val;
+            }
+          }
+        }
+      };
+      return Wm;
+    }();
 
-    // Parse HTML natively.
+    // We use a real DOM node for a shadow root. This is because the host node
+    // basically becomes a virtual entry point for your element leaving the shadow
+    // root the only thing that can receive instructions on how the host should
+    // render to the browser.
+    var defaultShadowRootTagName = '_shadow_root_';
+    var defaultShadowRootTagNameUc = defaultShadowRootTagName.toUpperCase();
+
+    // * WebKit only *
+    //
+    // These members we need cannot override as we require native access to their
+    // original values at some point.
+    var polyfilAtRuntime = ['childNodes', 'parentNode'];
+
+    // These are the protos that we need to search for native descriptors on.
+    var protos = ['Node', 'Element', 'EventTarget'];
+
+    // Private data stores.
+    var assignedToSlotMap = new WeakMap();
+    var hostToModeMap = new WeakMap();
+    var hostToRootMap = new WeakMap();
+    var nodeToChildNodesMap = new WeakMap();
+    var nodeToParentNodeMap = new WeakMap();
+    var nodeToSlotMap = new WeakMap();
+    var rootToHostMap = new WeakMap();
+    var rootToSlotMap = new WeakMap();
+    var slotToModeMap = new WeakMap();
+
+    // * WebKit only *
+    //
+    // We require some way to parse HTML natively because we can't use the native
+    // accessors. To do this we parse as XML and conver each node in the tree to
+    // HTML nodes.
+    //
+    // This works because we polyfill at the HTMLElement level and XML nodes are
+    // considered Element nodes and we don't polyfill at that level.
 
     var parser = new DOMParser();
 
@@ -124,6 +208,15 @@
       return tree;
     }
 
+    function staticProp(obj, name, value) {
+      Object.defineProperty(obj, name, {
+        configurable: true,
+        get: function get() {
+          return value;
+        }
+      });
+    }
+
     // Slotting helpers.
 
     function arrayItem(idx) {
@@ -135,28 +228,32 @@
       return arr;
     }
 
-    // If we append a child to a host, the host tells the shadow root to distribute
-    // it. If the root decides it doesn't need to be distributed, it is never
-    // removed from the old parent because in polyfill land we store a reference
-    // to the node but we don't move it. Due to that, we must explicitly remove the
-    // node from its old parent.
-    function cleanNode(node) {
-      var parent = node.parentNode;
-      if (parent) {
-        parent.removeChild(node);
+    function getNodeType(node) {
+      if (isHostNode(node)) {
+        return 'host';
       }
+
+      if (isSlotNode(node)) {
+        return 'slot';
+      }
+
+      if (isRootNode(node)) {
+        return 'root';
+      }
+
+      return 'node';
     }
 
     function isHostNode(node) {
-      return !!node.____rootNode;
-    }
-
-    function isShadowNode(node) {
-      return !!node.____hostNode;
+      return !!hostToRootMap.get(node);
     }
 
     function isSlotNode(node) {
       return node.tagName === 'SLOT';
+    }
+
+    function isRootNode(node) {
+      return node.tagName === defaultShadowRootTagNameUc;
     }
 
     function findClosest(node, func) {
@@ -171,19 +268,6 @@
       }
     }
 
-    function findClosestShadowRoot(node) {
-      return findClosest(node, isShadowNode);
-    }
-
-    function staticProp(node, prop, value) {
-      Object.defineProperty(node, prop, {
-        configurable: true,
-        get: function get() {
-          return value;
-        }
-      });
-    }
-
     function getSlotNameFromSlot(node) {
       return node.getAttribute && node.getAttribute('name') || 'default';
     }
@@ -193,28 +277,29 @@
     }
 
     function slotNodeIntoSlot(slot, node, insertBefore) {
-      var slotInsertBeforeIndex = slot.____assignedNodes.indexOf(insertBefore);
-      var assignedNodes = slot.____assignedNodes;
-      var fallbackNodes = slot.childNodes;
+      var assignedNodes = slot.getAssignedNodes();
+      var slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
 
-      staticProp(node, 'assignedSlot', slot);
+      nodeToSlotMap.set(node, slot);
 
       // If there's currently no assigned nodes, there will be, so remove all fallback content.
       if (!assignedNodes.length) {
-        slot.____isInFallbackMode = false;
-        fallbackNodes.forEach(function (fallbackNode) {
+        slotToModeMap.set(slot, false);
+        [].slice.call(slot.childNodes).forEach(function (fallbackNode) {
           return slot.__removeChild(fallbackNode);
         });
       }
 
+      var shouldAffectSlot = !slotToModeMap.get(slot);
+
       if (slotInsertBeforeIndex > -1) {
-        if (!slot.____isInFallbackMode) {
+        if (shouldAffectSlot) {
           slot.__insertBefore(node, insertBefore);
         }
 
         assignedNodes.splice(slotInsertBeforeIndex, 0, node);
       } else {
-        if (!slot.____isInFallbackMode) {
+        if (shouldAffectSlot) {
           slot.__appendChild(node);
         }
 
@@ -228,25 +313,26 @@
       var slot = node.assignedSlot;
 
       if (slot) {
-        var index = slot.____assignedNodes.indexOf(node);
+        var assignedNodes = slot.getAssignedNodes();
+        var index = assignedNodes.indexOf(node);
 
         if (index > -1) {
-          var assignedNodes = slot.____assignedNodes;
-
           assignedNodes.splice(index, 1);
-          staticProp(node, 'assignedSlot', null);
+          nodeToSlotMap.set(node, null);
+
+          var shouldAffectSlot = !slotToModeMap.get(slot);
 
           // We only update the actual DOM representation if we're displaying
           // slotted nodes.
-          if (!slot.____isInFallbackMode) {
+          if (shouldAffectSlot) {
             slot.__removeChild(node);
           }
 
           // If this was the last slotted node, then insert fallback content.
           if (!assignedNodes.length) {
-            slot.____isInFallbackMode = true;
-            slot.childNodes.forEach(function (fallbackNode) {
-              return slot.__appendChild(fallbackNode);
+            slotToModeMap.set(slot, true);
+            eachChildNode(slot, function (node) {
+              slot.__appendChild(node);
             });
           }
 
@@ -255,13 +341,30 @@
       }
     }
 
+    function indexOfNode(host, node) {
+      var chs = host.childNodes;
+      var chsLen = chs.length;
+      for (var a = 0; a < chsLen; a++) {
+        if (chs[a] === node) {
+          return a;
+        }
+      }
+      return -1;
+    }
+
     // Adds the node to the list of childNodes on the host and fakes any necessary
     // information such as parentNode.
     function registerNode(host, node, insertBefore, func) {
-      var index = host.childNodes.indexOf(insertBefore);
-      each(node, function (eachNode, eachIndex) {
+      var index = indexOfNode(host, insertBefore);
+      eachNodeOrFragmentNodes(node, function (eachNode, eachIndex) {
         func(eachNode, eachIndex);
-        staticProp(eachNode, 'parentNode', host);
+
+        if (canPatchNativeAccessors) {
+          nodeToParentNodeMap.set(eachNode, host);
+        } else {
+          staticProp(eachNode, 'parentNode', host);
+        }
+
         if (index > -1) {
           host.childNodes.splice(index + eachIndex, 0, eachNode);
         } else {
@@ -272,10 +375,16 @@
 
     // Cleans up registerNode().
     function unregisterNode(host, node, func) {
-      var index = host.childNodes.indexOf(node);
+      var index = indexOfNode(host, node);
       if (index > -1) {
         func(node, 0);
-        staticProp(node, 'parentNode', null);
+
+        if (canPatchNativeAccessors) {
+          nodeToParentNodeMap.set(node, null);
+        } else {
+          staticProp(node, 'parentNode', null);
+        }
+
         host.childNodes.splice(index, 1);
       }
     }
@@ -288,7 +397,9 @@
 
     function addNodeToHost(host, node, insertBefore) {
       registerNode(host, node, insertBefore, function (eachNode) {
-        var slotNode = host.____rootNode.____slotNodes[getSlotNameFromNode(eachNode)];
+        var rootNode = hostToRootMap.get(host);
+        var slotNodes = rootToSlotMap.get(rootNode);
+        var slotNode = slotNodes[getSlotNameFromNode(eachNode)];
         if (slotNode) {
           slotNodeIntoSlot(slotNode, eachNode, insertBefore);
         }
@@ -296,7 +407,7 @@
     }
 
     function addNodeToRoot(root, node, insertBefore) {
-      each(node, function (node) {
+      eachNodeOrFragmentNodes(node, function (node) {
         if (isSlotNode(node)) {
           addSlotToRoot(root, node);
         } else {
@@ -312,9 +423,9 @@
 
     function addSlotToRoot(root, node) {
       var slotName = getSlotNameFromSlot(node);
-      node.____isInFallbackMode = true;
-      root.____slotNodes[slotName] = node;
-      root.____hostNode.childNodes.forEach(function (eachNode) {
+      slotToModeMap.set(node, true);
+      rootToSlotMap.get(root)[slotName] = node;
+      eachChildNode(rootToHostMap.get(root), function (eachNode) {
         if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
           slotNodeIntoSlot(node, eachNode);
         }
@@ -347,32 +458,67 @@
     }
 
     function removeSlotFromRoot(root, node) {
-      node.____assignedNodes.forEach(slotNodeFromSlot);
-      delete root.____slotNodes[getSlotNameFromSlot(node)];
+      node.getAssignedNodes().forEach(slotNodeFromSlot);
+      delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
     }
 
     function appendChildOrInsertBefore(host, newNode, refNode) {
-      var closestRoot = undefined;
+      var nodeType = getNodeType(host);
+      var parentNode = newNode.parentNode;
 
-      cleanNode(newNode);
+      if (!canPatchNativeAccessors && !host.childNodes.push) {
+        staticProp(host, 'childNodes', []);
+      }
 
-      if (isHostNode(host)) {
-        addNodeToHost(host, newNode, refNode);
-      } else if (isSlotNode(host)) {
-        addNodeToNode(host, newNode, refNode);
-      } else if (closestRoot = findClosestShadowRoot(host)) {
-        addNodeToRoot(closestRoot, newNode, refNode);
-      } else {
-        addNodeToNode(host, newNode, refNode);
+      // If we append a child to a host, the host tells the shadow root to distribute
+      // it. If the root decides it doesn't need to be distributed, it is never
+      // removed from the old parent because in polyfill land we store a reference
+      // to the node but we don't move it. Due to that, we must explicitly remove the
+      // node from its old parent.
+      if (parentNode && getNodeType(parentNode) === 'host') {
+        if (canPatchNativeAccessors) {
+          nodeToParentNodeMap.set(newNode, null);
+        } else {
+          staticProp(newNode, 'parentNode', null);
+        }
+      }
+
+      if (nodeType === 'node') {
+        if (canPatchNativeAccessors) {
+          return host.__insertBefore(newNode, refNode);
+        } else {
+          return addNodeToNode(host, newNode, refNode);
+        }
+      }
+
+      if (nodeType === 'slot') {
+        return addNodeToNode(host, newNode, refNode);
+      }
+
+      if (nodeType === 'host') {
+        return addNodeToHost(host, newNode, refNode);
+      }
+
+      if (nodeType === 'root') {
+        return addNodeToRoot(host, newNode, refNode);
       }
     }
 
     var members = {
+      // For testing purposes.
       ____assignedNodes: {
         get: function get() {
           return this.______assignedNodes || (this.______assignedNodes = []);
         }
       },
+
+      // For testing purposes.
+      ____isInFallbackMode: {
+        get: function get() {
+          return slotToModeMap.get(this);
+        }
+      },
+
       ____slotChangeListeners: {
         get: function get() {
           if (typeof this.______slotChangeListeners === 'undefined') {
@@ -396,7 +542,7 @@
       },
       addEventListener: {
         value: function value(name, func, opts) {
-          if (name === 'slotchange') {
+          if (name === 'slotchange' && isSlotNode(this)) {
             this.____slotChangeListeners++;
           }
           return this.__addEventListener(name, func, opts);
@@ -409,36 +555,46 @@
       },
       assignedSlot: {
         get: function get() {
-          return null;
+          return nodeToSlotMap.get(this) || null;
         }
       },
       attachShadow: {
         value: function value(opts) {
+          var _this = this;
+
           var mode = opts && opts.mode;
           if (mode !== 'closed' && mode !== 'open') {
             throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
           }
 
-          var existingShadowRoot = this.____shadowRoot;
+          // Return the existing shadow root if it exists.
+          var existingShadowRoot = hostToRootMap.get(this);
           if (existingShadowRoot) {
             return existingShadowRoot;
           }
 
+          var lightNodes = makeLikeNodeList([].slice.call(this.childNodes));
           var shadowRoot = document.createElement(opts.polyfillShadowRootTagName || defaultShadowRootTagName);
 
-          // Emulating the spec { mode }.
-          Object.defineProperty(this, 'shadowRoot', {
-            configurable: true,
-            get: function get() {
-              return mode === 'open' ? shadowRoot : null;
-            }
-          });
-
           // Host and shadow root data.
-          this.____rootNode = shadowRoot;
-          this.____unslottedNodes = this.childNodes.concat();
-          shadowRoot.____hostNode = this;
-          shadowRoot.____slotNodes = [];
+          hostToModeMap.set(this, mode);
+          hostToRootMap.set(this, shadowRoot);
+          rootToHostMap.set(shadowRoot, this);
+          rootToSlotMap.set(shadowRoot, {});
+
+          if (canPatchNativeAccessors) {
+            nodeToChildNodesMap.set(this, lightNodes);
+          } else {
+            staticProp(this, 'childNodes', lightNodes);
+          }
+
+          // Existing children should be removed from being displayed, but still
+          // appear to be child nodes. This is how light DOM works; they're still
+          // child nodes but not in the composed DOM yet as there won't be any
+          // slots for them to go into.
+          eachChildNode(this, function (node) {
+            return _this.__removeChild(node);
+          });
 
           // The shadow root is actually the only child of the host.
           return this.__appendChild(shadowRoot);
@@ -451,14 +607,23 @@
       },
       childNodes: {
         get: function get() {
-          return this.____childNodes || (this.____childNodes = makeLikeNodeList([]));
+          if (canPatchNativeAccessors && getNodeType(this) === 'node') {
+            return this.__childNodes;
+          }
+          var childNodes = nodeToChildNodesMap.get(this);
+          childNodes || nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
+          return childNodes;
         }
       },
       children: {
         get: function get() {
-          return makeLikeNodeList(this.childNodes.filter(function (node) {
-            return node.nodeType === 1;
-          }));
+          var chs = [];
+          eachChildNode(this, function (node) {
+            if (node.nodeType === 1) {
+              chs.push(node);
+            }
+          });
+          return makeLikeNodeList(chs);
         }
       },
       firstChild: {
@@ -473,7 +638,11 @@
       },
       getAssignedNodes: {
         value: function value() {
-          return this.____assignedNodes || [];
+          if (isSlotNode(this)) {
+            var assigned = assignedToSlotMap.get(this);
+            assigned || assignedToSlotMap.set(this, assigned = []);
+            return assigned;
+          }
         }
       },
       hasChildNodes: {
@@ -483,9 +652,11 @@
       },
       innerHTML: {
         get: function get() {
-          return this.childNodes.reduce(function (prev, curr) {
-            return prev + (curr.nodeType === 1 ? curr.outerHTML : curr.textContent);
-          }, '');
+          var innerHTML = '';
+          eachChildNode(this, function (node) {
+            innerHTML += node.nodeType === 1 ? node.outerHTML : node.textContent;
+          });
+          return innerHTML;
         },
         set: function set(innerHTML) {
           var parsed = parse(innerHTML);
@@ -536,23 +707,26 @@
       },
       nextSibling: {
         get: function get() {
-          var parentNode = this.parentNode;
-          if (parent) {
-            var childNodes = parentNode.childNodes;
-            return childNodes[childNodes.indexOf(this) + 1] || null;
-          }
-          return null;
+          var host = this;
+          return eachChildNode(this.parentNode, function (child, index, nodes) {
+            if (host === child) {
+              return nodes[index + 1] || null;
+            }
+          });
         }
       },
       nextElementSibling: {
         get: function get() {
-          var nextSibling = this;
-          while (nextSibling = nextSibling.nextSibling) {
-            if (nextSibling.nodeType === 1) {
-              return nextSibling;
+          var host = this;
+          var found = undefined;
+          return eachChildNode(this.parentNode, function (child) {
+            if (found && child.nodeType === 1) {
+              return child;
             }
-          }
-          return null;
+            if (host === child) {
+              found = true;
+            }
+          });
         }
       },
       outerHTML: {
@@ -571,45 +745,63 @@
           });
         }
       },
+      parentNode: {
+        get: function get() {
+          return nodeToParentNodeMap.get(this) || this.__parentNode || null;
+        }
+      },
       previousSibling: {
         get: function get() {
-          var parentNode = this.parentNode;
-          if (parent) {
-            var childNodes = parentNode.childNodes;
-            return childNodes[childNodes.indexOf(this) - 1] || null;
-          }
-          return null;
+          var host = this;
+          return eachChildNode(this.parentNode, function (child, index, nodes) {
+            if (host === child) {
+              return nodes[index - 1] || null;
+            }
+          });
         }
       },
       previousElementSibling: {
         get: function get() {
-          var previousSibling = this;
-          while (previousSibling = previousSibling.previousSibling) {
-            if (previousSibling.nodeType === 1) {
-              return previousSibling;
+          var host = this;
+          var found = undefined;
+          return eachChildNode(this.parentNode, function (child) {
+            if (found && host === child) {
+              return found;
             }
-          }
-          return null;
+            if (child.nodeType === 1) {
+              found = child;
+            }
+          });
         }
       },
       removeChild: {
         value: function value(refNode) {
-          var closestRoot = undefined;
+          var nodeType = getNodeType(this);
 
-          if (isHostNode(this)) {
-            removeNodeFromHost(this, refNode);
-          } else if (isSlotNode(this)) {
-            removeNodeFromNode(this, refNode);
-          } else if (closestRoot = findClosestShadowRoot(this)) {
-            removeNodeFromRoot(closestRoot, refNode);
-          } else {
-            removeNodeFromNode(this, refNode);
+          if (nodeType === 'node') {
+            if (canPatchNativeAccessors) {
+              return this.__removeChild(refNode);
+            } else {
+              return removeNodeFromNode(this, refNode);
+            }
+          }
+
+          if (nodeType === 'slot') {
+            return removeNodeFromNode(this, refNode);
+          }
+
+          if (nodeType === 'host') {
+            return removeNodeFromHost(this, refNode);
+          }
+
+          if (nodeType === 'root') {
+            return removeNodeFromRoot(this, refNode);
           }
         }
       },
       removeEventListener: {
         value: function value(name, func, opts) {
-          if (name === 'slotchange' && this.____slotChangeListeners) {
+          if (name === 'slotchange' && this.____slotChangeListeners && isSlotNode(this)) {
             this.____slotChangeListeners--;
           }
           return this.__removeEventListener(name, func, opts);
@@ -621,11 +813,18 @@
           return this.removeChild(refNode);
         }
       },
+      shadowRoot: {
+        get: function get() {
+          return hostToModeMap.get(this) === 'open' ? hostToRootMap.get(this) : null;
+        }
+      },
       textContent: {
         get: function get() {
-          return this.childNodes.map(function (node) {
-            return node.textContent;
-          }).join('');
+          var textContent = '';
+          eachChildNode(this, function (node) {
+            textContent += node.textContent;
+          });
+          return textContent;
         },
         set: function set(textContent) {
           while (this.hasChildNodes()) {
@@ -636,10 +835,13 @@
       }
     };
 
-    var protos = [Node, Element, EventTarget];
     function findDescriptorFor(name) {
       for (var a = 0; a < protos.length; a++) {
-        var proto = protos[a].prototype;
+        var ctor = window[protos[a]];
+        if (!ctor) {
+          continue;
+        }
+        var proto = ctor.prototype;
         if (proto.hasOwnProperty(name)) {
           return Object.getOwnPropertyDescriptor(proto, name);
         }
@@ -651,11 +853,17 @@
         var elementProto = HTMLElement.prototype;
         Object.keys(members).forEach(function (memberName) {
           var memberProperty = members[memberName];
-          var nativeDescriptor = findDescriptorFor(memberName);
+
+          // All properties should be configurable.
           memberProperty.configurable = true;
-          Object.defineProperty(elementProto, memberName, memberProperty);
-          if (nativeDescriptor && nativeDescriptor.configurable) {
-            Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+
+          // Polyfill as much as we can and work around WebKit in other areas.
+          if (canPatchNativeAccessors || polyfilAtRuntime.indexOf(memberName) === -1) {
+            var nativeDescriptor = findDescriptorFor(memberName);
+            Object.defineProperty(elementProto, memberName, memberProperty);
+            if (nativeDescriptor && nativeDescriptor.configurable) {
+              Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+            }
           }
         });
       })();

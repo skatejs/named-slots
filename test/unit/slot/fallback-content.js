@@ -48,13 +48,6 @@ describe('fallback-content', function () {
       expect(slot.____isInFallbackMode).to.equal(true);
     });
 
-    it('should not slot text nodes that are empty or have only whitespace', function () {
-      host.appendChild(document.createTextNode(''));
-      host.appendChild(document.createTextNode(' '));
-      host.appendChild(document.createTextNode('\n'));
-      expect(slot.getAssignedNodes().length).to.equal(0);
-    });
-
     describe('when assigned nodes', function () {
       let newNode;
 

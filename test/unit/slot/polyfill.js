@@ -94,4 +94,19 @@ describe('slot/polyfill', function () {
   it('HTMLSlotElement.getAssignedNodes({ deep: true })', function () {
 
   });
+
+  it('should not slot text nodes that are empty or have only whitespace', function () {
+    const host = create('div');
+    const root = host.attachShadow({ mode: 'closed' });
+    const slot = create('slot');
+    root.appendChild(slot);
+
+    host.appendChild(document.createTextNode(''));
+    host.appendChild(document.createTextNode(' '));
+    host.appendChild(document.createTextNode('\n'));
+    host.appendChild(document.createTextNode('testing'));
+    expect(slot.getAssignedNodes().length).to.equal(2);
+    expect(slot.getAssignedNodes()[0].textContent).to.equal('');
+    expect(slot.getAssignedNodes()[1].textContent).to.equal('testing');
+  });
 });

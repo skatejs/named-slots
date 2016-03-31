@@ -280,6 +280,11 @@
       var assignedNodes = slot.getAssignedNodes();
       var slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
 
+      // Don't slot empty text nodes. This messes up fallback content.
+      if (node.nodeType === 3 && node.textContent.trim().length === 0) {
+        return;
+      }
+
       nodeToSlotMap.set(node, slot);
 
       // If there's currently no assigned nodes, there will be, so remove all fallback content.

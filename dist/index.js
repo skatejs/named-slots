@@ -905,7 +905,7 @@
     for (var name in api) {
       version[name] = api[name];
     }
-    version.version = '0.1.4';
+    version.version = '0.1.5';
 
     return version;
 

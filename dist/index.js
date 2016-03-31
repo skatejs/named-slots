@@ -280,8 +280,22 @@
       var assignedNodes = slot.getAssignedNodes();
       var slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
 
-      // Don't slot empty text nodes. This messes up fallback content.
-      if (node.nodeType === 3 && node.textContent.trim().length === 0) {
+      // Don't slot nodes that have content but are only whitespace. This is an
+      // anomaly that I don't think the spec deals with.
+      //
+      // The problem is:
+      //
+      // - If you insert HTML with indentation into the page, there will be
+      //   whitespace and if that's inserted it messes with fallback content
+      //   calculation where there is formatting, but no meaningful content, so in
+      //   theory it should fallback. Since you can attach a shadow root after we
+      //   mean to insert an empty text node and have it "count", we can't really
+      //   discard nodes that are considered formatting at the time of attachment.
+      // - You can insert a text node and modify its text content later.
+      //   Incremental DOM seems to do this. Every way I look at it, it seems
+      //   problematic that we should have to screen for content, but I don't seems
+      //   much of a way around it at the moment.
+      if (node.nodeType === 3 && node.textContent && node.textContent.trim().length === 0) {
         return;
       }
 

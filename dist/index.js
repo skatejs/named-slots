@@ -152,7 +152,7 @@
     //
     // These members we need cannot override as we require native access to their
     // original values at some point.
-    var polyfilAtRuntime = ['childNodes', 'parentNode'];
+    var polyfillAtRuntime = ['childNodes', 'parentNode'];
 
     // These are the protos that we need to search for native descriptors on.
     var protos = ['Node', 'Element', 'EventTarget'];
@@ -188,8 +188,8 @@
           var attr = node.attributes[a];
           copy.setAttribute(attr.name, attr.value);
         }
-        for (var a = 0; a < node.childNodes.length; a++) {
-          var childNode = node.childNodes[a];
+        for (var _a = 0; _a < node.childNodes.length; _a++) {
+          var childNode = node.childNodes[_a];
           copy.appendChild(convertXmlToHtml(childNode));
         }
         return copy;
@@ -483,9 +483,27 @@
       delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
     }
 
+    function getRootNode(host) {
+      //TODO terribly inefficient
+      if (isRootNode(host)) {
+        return host;
+      } else {
+        if (!host.parentNode) {
+          return;
+        }
+
+        return getRootNode(host.parentNode);
+      }
+    }
+
     function appendChildOrInsertBefore(host, newNode, refNode) {
       var nodeType = getNodeType(host);
       var parentNode = newNode.parentNode;
+      var rootNode = getRootNode(host);
+
+      if (rootNode && getNodeType(newNode) === 'slot') {
+        addSlotToRoot(rootNode, newNode);
+      }
 
       if (!canPatchNativeAccessors && !host.childNodes.push) {
         staticProp(host, 'childNodes', []);
@@ -739,7 +757,7 @@
       nextElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && child.nodeType === 1) {
               return child;
@@ -784,7 +802,7 @@
       previousElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && host === child) {
               return found;
@@ -879,7 +897,7 @@
           memberProperty.configurable = true;
 
           // Polyfill as much as we can and work around WebKit in other areas.
-          if (canPatchNativeAccessors || polyfilAtRuntime.indexOf(memberName) === -1) {
+          if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
             var nativeDescriptor = findDescriptorFor(memberName);
             Object.defineProperty(elementProto, memberName, memberProperty);
             if (nativeDescriptor && nativeDescriptor.configurable) {

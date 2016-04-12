@@ -15,7 +15,7 @@ const defaultShadowRootTagNameUc = defaultShadowRootTagName.toUpperCase();
 //
 // These members we need cannot override as we require native access to their
 // original values at some point.
-const polyfilAtRuntime = ['childNodes', 'parentNode'];
+const polyfillAtRuntime = ['childNodes', 'parentNode'];
 
 // These are the protos that we need to search for native descriptors on.
 const protos = ['Node', 'Element', 'EventTarget'];
@@ -344,9 +344,26 @@ function removeSlotFromRoot (root, node) {
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
 }
 
+function getRootNode (host) { //TODO terribly inefficient
+  if (isRootNode(host)) {
+    return host;
+  } else {
+    if (!host.parentNode) {
+      return;
+    }
+
+    return getRootNode(host.parentNode);
+  }
+}
+
 function appendChildOrInsertBefore (host, newNode, refNode) {
   const nodeType = getNodeType(host);
   const parentNode = newNode.parentNode;
+  const rootNode = getRootNode(host);
+
+  if (rootNode && getNodeType(newNode) === 'slot') {
+    addSlotToRoot(rootNode, newNode);
+  }
 
   if (!canPatchNativeAccessors && !host.childNodes.push) {
     staticProp(host, 'childNodes', []);
@@ -735,7 +752,7 @@ if (!('attachShadow' in document.createElement('div'))) {
     memberProperty.configurable = true;
 
     // Polyfill as much as we can and work around WebKit in other areas.
-    if (canPatchNativeAccessors || polyfilAtRuntime.indexOf(memberName) === -1) {
+    if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
       Object.defineProperty(elementProto, memberName, memberProperty);
       if (nativeDescriptor && nativeDescriptor.configurable) {

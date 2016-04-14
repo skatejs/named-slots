@@ -171,7 +171,7 @@
     // * WebKit only *
     //
     // We require some way to parse HTML natively because we can't use the native
-    // accessors. To do this we parse as XML and conver each node in the tree to
+    // accessors. To do this we parse as XML and convert each node in the tree to
     // HTML nodes.
     //
     // This works because we polyfill at the HTMLElement level and XML nodes are
@@ -188,8 +188,8 @@
           var attr = node.attributes[a];
           copy.setAttribute(attr.name, attr.value);
         }
-        for (var a = 0; a < node.childNodes.length; a++) {
-          var childNode = node.childNodes[a];
+        for (var _a = 0; _a < node.childNodes.length; _a++) {
+          var childNode = node.childNodes[_a];
           copy.appendChild(convertXmlToHtml(childNode));
         }
         return copy;
@@ -199,7 +199,9 @@
 
     function parse(html) {
       var tree = document.createElement('div');
-      var parsed = parser.parseFromString(html, 'text/xml');
+      var wrappedHtml = '<div>' + html + '</div>'; // We need to wrap HTML as the XML parser requires one parent node
+      var wrappedParsed = parser.parseFromString(wrappedHtml, 'text/xml');
+      var parsed = wrappedParsed.firstChild;
       while (parsed.hasChildNodes()) {
         var firstChild = parsed.firstChild;
         parsed.removeChild(firstChild);
@@ -739,7 +741,7 @@
       nextElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && child.nodeType === 1) {
               return child;
@@ -784,7 +786,7 @@
       previousElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && host === child) {
               return found;

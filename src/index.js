@@ -35,7 +35,7 @@ const slotToModeMap = new WeakMap();
 // * WebKit only *
 //
 // We require some way to parse HTML natively because we can't use the native
-// accessors. To do this we parse as XML and conver each node in the tree to
+// accessors. To do this we parse as XML and convert each node in the tree to
 // HTML nodes.
 //
 // This works because we polyfill at the HTMLElement level and XML nodes are
@@ -62,7 +62,9 @@ function convertXmlToHtml (node) {
 
 function parse (html) {
   const tree = document.createElement('div');
-  const parsed = parser.parseFromString(html, 'text/xml');
+  const wrappedHtml = `<div>${html}</div>`; // We need to wrap HTML as the XML parser requires one parent node
+  const wrappedParsed = parser.parseFromString(wrappedHtml, 'text/xml');
+  const parsed = wrappedParsed.firstChild;
   while (parsed.hasChildNodes()) {
     const firstChild = parsed.firstChild;
     parsed.removeChild(firstChild);

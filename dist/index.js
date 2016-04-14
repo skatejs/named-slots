@@ -171,7 +171,7 @@
     // * WebKit only *
     //
     // We require some way to parse HTML natively because we can't use the native
-    // accessors. To do this we parse as XML and conver each node in the tree to
+    // accessors. To do this we parse as XML and convert each node in the tree to
     // HTML nodes.
     //
     // This works because we polyfill at the HTMLElement level and XML nodes are
@@ -199,7 +199,9 @@
 
     function parse(html) {
       var tree = document.createElement('div');
-      var parsed = parser.parseFromString(html, 'text/xml');
+      var wrappedHtml = '<div>' + html + '</div>'; // We need to wrap HTML as the XML parser requires one parent node
+      var wrappedParsed = parser.parseFromString(wrappedHtml, 'text/xml');
+      var parsed = wrappedParsed.firstChild;
       while (parsed.hasChildNodes()) {
         var firstChild = parsed.firstChild;
         parsed.removeChild(firstChild);

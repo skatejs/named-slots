@@ -35,44 +35,20 @@ const slotToModeMap = new WeakMap();
 // * WebKit only *
 //
 // We require some way to parse HTML natively because we can't use the native
-// accessors. To do this we parse as XML and convert each node in the tree to
-// HTML nodes.
-//
-// This works because we polyfill at the HTMLElement level and XML nodes are
-// considered Element nodes and we don't polyfill at that level.
+// accessors.
 
 const parser = new DOMParser();
 
-function convertXmlToHtml (node) {
-  const { nodeType } = node;
-  if (nodeType === 1) {
-    const copy = document.createElement(node.tagName);
-    for (let a = 0; a < node.attributes.length; a++) {
-      const attr = node.attributes[a];
-      copy.setAttribute(attr.name, attr.value);
-    }
-    for (let a = 0; a < node.childNodes.length; a++) {
-      const childNode = node.childNodes[a];
-      copy.appendChild(convertXmlToHtml(childNode));
-    }
-    return copy;
-  }
-  return node;
-}
-
 function parse (html) {
   const tree = document.createElement('div');
-  const wrappedHtml = `<div>${html}</div>`; // We need to wrap HTML as the XML parser requires one parent node
-  const wrappedParsed = parser.parseFromString(wrappedHtml, 'text/xml');
-  const parsed = wrappedParsed.firstChild;
+  const parsed = parser.parseFromString(html, 'text/html').body;
   while (parsed.hasChildNodes()) {
     const firstChild = parsed.firstChild;
     parsed.removeChild(firstChild);
-    tree.appendChild(convertXmlToHtml(firstChild));
+    tree.appendChild(firstChild);
   }
   return tree;
 }
-
 
 function staticProp (obj, name, value) {
   Object.defineProperty(obj, name, {

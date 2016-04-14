@@ -152,7 +152,7 @@
     //
     // These members we need cannot override as we require native access to their
     // original values at some point.
-    var polyfilAtRuntime = ['childNodes', 'parentNode'];
+    var polyfillAtRuntime = ['childNodes', 'parentNode'];
 
     // These are the protos that we need to search for native descriptors on.
     var protos = ['Node', 'Element', 'EventTarget'];
@@ -485,9 +485,27 @@
       delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
     }
 
+    function getRootNode(host) {
+      //TODO terribly inefficient
+      if (isRootNode(host)) {
+        return host;
+      } else {
+        if (!host.parentNode) {
+          return;
+        }
+
+        return getRootNode(host.parentNode);
+      }
+    }
+
     function appendChildOrInsertBefore(host, newNode, refNode) {
       var nodeType = getNodeType(host);
       var parentNode = newNode.parentNode;
+      var rootNode = getRootNode(host);
+
+      if (rootNode && getNodeType(newNode) === 'slot') {
+        addSlotToRoot(rootNode, newNode);
+      }
 
       if (!canPatchNativeAccessors && !host.childNodes.push) {
         staticProp(host, 'childNodes', []);
@@ -881,7 +899,7 @@
           memberProperty.configurable = true;
 
           // Polyfill as much as we can and work around WebKit in other areas.
-          if (canPatchNativeAccessors || polyfilAtRuntime.indexOf(memberName) === -1) {
+          if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
             var nativeDescriptor = findDescriptorFor(memberName);
             Object.defineProperty(elementProto, memberName, memberProperty);
             if (nativeDescriptor && nativeDescriptor.configurable) {

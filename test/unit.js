@@ -3,9 +3,10 @@ import version from '../src/version';
 
 import './unit/light/polyfill';
 import './unit/shadow/polyfill';
-import './unit/slot/polyfill';
-import './unit/slot/fallback-content';
 import './unit/slot/change-event.js';
+import './unit/slot/distribution';
+import './unit/slot/fallback-content';
+import './unit/slot/polyfill';
 
 describe('skatejs-named-slots', function () {
   it('version', function () {

@@ -35,7 +35,7 @@
 
     // Any code referring to this is because it has to work around this bug in
     // WebKit: https://bugs.webkit.org/show_bug.cgi?id=49739
-    var canPatchNativeAccessors = !!Object.getOwnPropertyDescriptor(window.Node.prototype, 'parentNode').get;
+    var canPatchNativeAccessors = !!(Object.getOwnPropertyDescriptor(window.Node.prototype, 'parentNode') && Object.getOwnPropertyDescriptor(window.Node.prototype, 'parentNode').get);
 
     var index$1 = __commonjs(function (module) {
     module.exports = Date.now || now;

@@ -173,7 +173,7 @@
     // We require some way to parse HTML natively because we can't use the native
     // accessors.
     //
-    // We must create the elements manually, as they do not get initialised as
+    // We must create the elements manually, as they will not get initialised as
     // custom elements if we parse it as text/html
 
     var parser = new DOMParser();

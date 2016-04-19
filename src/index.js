@@ -36,8 +36,28 @@ const slotToModeMap = new WeakMap();
 //
 // We require some way to parse HTML natively because we can't use the native
 // accessors.
+//
+// We must create the elements manually, as they will not get initialised as
+// custom elements if we parse it as text/html
 
 const parser = new DOMParser();
+
+function createElements (node) {
+  const { nodeType } = node;
+  if (nodeType === 1) {
+    const copy = document.createElement(node.tagName);
+    for (let a = 0; a < node.attributes.length; a++) {
+      const attr = node.attributes[a];
+      copy.setAttribute(attr.name, attr.value);
+    }
+    for (let a = 0; a < node.childNodes.length; a++) {
+      const childNode = node.childNodes[a];
+      copy.appendChild(createElements(childNode));
+    }
+    return copy;
+  }
+  return node;
+}
 
 function parse (html) {
   const tree = document.createElement('div');
@@ -45,7 +65,7 @@ function parse (html) {
   while (parsed.hasChildNodes()) {
     const firstChild = parsed.firstChild;
     parsed.removeChild(firstChild);
-    tree.appendChild(firstChild);
+    tree.appendChild(createElements(firstChild));
   }
   return tree;
 }

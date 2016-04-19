@@ -4,7 +4,7 @@ describe('webcomponents/initialisation', function () {
 
   it('web components are initialised with the polyfill', function () {
     if (document.registerElement) {
-      var x = document.registerElement('x-wc', {
+      document.registerElement('x-wc', {
         prototype: {
           hasPrototype: true,
           createdCallback: function () {

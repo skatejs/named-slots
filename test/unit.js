@@ -8,30 +8,12 @@ import './unit/slot/distribution';
 import './unit/slot/fallback-content';
 import './unit/slot/polyfill';
 import './unit/webcomponents/initialisation';
-import canPatchNativeAccessors from '../src/util/can-patch-native-accessors';
 
 describe('skatejs-named-slots', function () {
   it('version', function () {
     expect(version).to.be.a('string');
   });
 });
-
-if (canPatchNativeAccessors) {
-  describe('skatejs-named-slots', function() {
-    it('proper node removal', function () {
-
-      const host = create('div');
-      host.appendChild(create('div'));
-      host.appendChild(create('div'));
-      host.appendChild(create('div'));
-      host.appendChild(create('div'));
-      host.attachShadow({ mode: 'open' });
-      
-      expect(host.__childNodes.length).to.equal(1);
-    });
-  });
-}
-
 
 describe('skatejs-named-slots', function () {
   let host, root, slot;

@@ -1,5 +1,6 @@
 import '../../../src/index';
 import create from '../../lib/create';
+import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
 describe('shadow/polyfill', function () {
   const invalidModeMessage = 'You must specify { mode } as "open" or "closed" to attachShadow().';
@@ -37,6 +38,21 @@ describe('shadow/polyfill', function () {
     const root = host.attachShadow({ mode: 'open', polyfillShadowRootTagName: 'test-ing' });
     expect(root.tagName).to.equal('TEST-ING');
   });
+
+  if (canPatchNativeAccessors) {
+    it('proper node removal', function () {
+      const host = create('div');
+      host.appendChild(create('div'));
+      host.appendChild(create('div'));
+      host.appendChild(create('div'));
+      host.appendChild(create('div'));
+      host.attachShadow({ mode: 'open' });
+
+      expect(host.__childNodes.length).to.equal(1);
+      expect(host.__childNodes[0].tagName).to.equal('_SHADOW_ROOT_');
+    });
+  }
+
 
   describe('api', function () {
     let host, root;

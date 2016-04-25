@@ -56,7 +56,7 @@ function createElements (node) {
     }
     return copy;
   }
-  return node;
+  return node.cloneNode();
 }
 
 function parse (html) {

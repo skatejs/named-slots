@@ -26,6 +26,22 @@ describe('skatejs-named-slots', function () {
     host.removeChild(host.firstChild);
   }
 
+  /**
+   * Technically attributes may appear in any order, so we test only for the exclusive presence, rather than the order.
+   * @param {element} el the element to test
+   * @param {string[]} attrs an array of attributes to check the exclusive presence of
+   * @returns {boolean} whether all attributes are present, but no others are.
+   */
+  function hasAllAttributes(el, attrs) {
+    const exactNumber = el.attributes.length === attrs.length;
+    let hasAttrs = true;
+    attrs.forEach(function (attr) {
+      hasAttrs = hasAttrs && el.hasAttribute(attr);
+    });
+
+    return exactNumber && hasAttrs;
+  }
+
   beforeEach(function () {
     host = document.createElement('div');
     root = host.attachShadow({ mode: 'closed' });
@@ -231,6 +247,14 @@ describe('skatejs-named-slots', function () {
       expect(host.innerHTML).to.equal('');
       host.innerHTML = '<div> <button></button> </div>';
       expect(host.innerHTML).to.equal('<div> <button></button> </div>');
+      expect(host.childNodes.length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(1);
+    });
+
+    it('innerHTML (with [ attributes)', function () {
+      expect(host.innerHTML).to.equal('');
+      host.innerHTML = '<div [ foo ] ( bar )></div>';
+      expect(hasAllAttributes(host.firstChild, ['[', 'foo', ']', '(', 'bar', ')'])).to.equal(true);
       expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
     });

@@ -172,39 +172,17 @@
     //
     // We require some way to parse HTML natively because we can't use the native
     // accessors.
-    //
-    // We must create the elements manually, as they will not get initialised as
-    // custom elements if we parse it as text/html
 
     var parser = new DOMParser();
-
-    function createElements(node) {
-      var nodeType = node.nodeType;
-
-      if (nodeType === 1) {
-        var copy = document.createElement(node.tagName);
-        for (var a = 0; a < node.attributes.length; a++) {
-          var attr = node.attributes[a];
-          copy.setAttribute(attr.name, attr.value);
-        }
-        for (var _a = 0; _a < node.childNodes.length; _a++) {
-          var childNode = node.childNodes[_a];
-          copy.appendChild(createElements(childNode));
-        }
-        return copy;
-      }
-      return node.cloneNode();
-    }
-
     function parse(html) {
       var tree = document.createElement('div');
       var parsed = parser.parseFromString(html, 'text/html').body;
       while (parsed.hasChildNodes()) {
         var firstChild = parsed.firstChild;
         parsed.removeChild(firstChild);
-        tree.appendChild(createElements(firstChild));
+        tree.appendChild(firstChild);
       }
-      return tree;
+      return document.importNode(tree, true); // Need to import the node to initialise the custom elements from the parser
     }
 
     function staticProp(obj, name, value) {

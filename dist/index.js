@@ -598,8 +598,6 @@
       },
       attachShadow: {
         value: function value(opts) {
-          var _this = this;
-
           var mode = opts && opts.mode;
           if (mode !== 'closed' && mode !== 'open') {
             throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
@@ -630,9 +628,11 @@
           // appear to be child nodes. This is how light DOM works; they're still
           // child nodes but not in the composed DOM yet as there won't be any
           // slots for them to go into.
-          eachChildNode(this, function (node) {
-            return _this.__removeChild(node);
-          });
+          var chs = this.childNodes;
+          var chsLen = chs.length;
+          for (var a = chsLen - 1; a >= 0; a--) {
+            this.__removeChild(chs[a]);
+          }
 
           // The shadow root is actually the only child of the host.
           return this.__appendChild(shadowRoot);
@@ -922,7 +922,7 @@
     for (var name in api) {
       version[name] = api[name];
     }
-    version.version = '0.1.6';
+    version.version = '0.1.7';
 
     return version;
 

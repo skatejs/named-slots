@@ -227,6 +227,14 @@ describe('skatejs-named-slots', function () {
       expect(slot.getAssignedNodes().length).to.equal(1);
     });
 
+    it('innerHTML (with whitespace text nodes)', function () {
+      expect(host.innerHTML).to.equal('');
+      host.innerHTML = '<div> <button></button> </div>';
+      expect(host.innerHTML).to.equal('<div> <button></button> </div>');
+      expect(host.childNodes.length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(1);
+    });
+
     it('lastChild', function () {
       expect(host.lastChild).to.equal(null);
       add();

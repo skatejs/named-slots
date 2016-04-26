@@ -487,7 +487,11 @@ const members = {
       // appear to be child nodes. This is how light DOM works; they're still
       // child nodes but not in the composed DOM yet as there won't be any
       // slots for them to go into.
-      eachChildNode(this, node => this.__removeChild(node));
+      const chs = this.childNodes;
+      const chsLen = chs.length;
+      for (let a = chsLen-1; a >=0 ; a--) {
+        this.__removeChild(chs[a]);
+      }
 
       // The shadow root is actually the only child of the host.
       return this.__appendChild(shadowRoot);

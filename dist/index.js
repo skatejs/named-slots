@@ -168,6 +168,9 @@
     // These are the protos that we need to search for native descriptors on.
     var protos = ['Node', 'Element', 'EventTarget'];
 
+    //some properties that should not be overridden in the Text prototype
+    var doNotOverridePropertiesInTextNodes = ['textContent'];
+
     // Private data stores.
     var assignedToSlotMap = new WeakMap();
     var hostToModeMap = new WeakMap();
@@ -878,6 +881,7 @@
     if (!('attachShadow' in document.createElement('div'))) {
       (function () {
         var elementProto = HTMLElement.prototype;
+        var textProto = Text.prototype;
         Object.keys(members).forEach(function (memberName) {
           var memberProperty = members[memberName];
 
@@ -887,9 +891,17 @@
           // Polyfill as much as we can and work around WebKit in other areas.
           if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
             var nativeDescriptor = findDescriptorFor(memberName);
+            var isDefinedInTextProto = memberName in textProto;
+            var shouldOverrideInTextNode = doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
             Object.defineProperty(elementProto, memberName, memberProperty);
+            if (isDefinedInTextProto && shouldOverrideInTextNode) {
+              Object.defineProperty(textProto, memberName, memberProperty);
+            }
             if (nativeDescriptor && nativeDescriptor.configurable) {
               Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+              if (isDefinedInTextProto && shouldOverrideInTextNode) {
+                Object.defineProperty(textProto, '__' + memberName, nativeDescriptor);
+              }
             }
           }
         });

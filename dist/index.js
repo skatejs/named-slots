@@ -688,18 +688,18 @@
       innerHTML: {
         get: function get() {
           var innerHTML = '';
+
+          var getHtmlNodeOuterHtml = function getHtmlNodeOuterHtml(node) {
+            return node.outerHTML;
+          };
+          var getOuterHtmlByNodeType = {
+            1: getHtmlNodeOuterHtml,
+            3: getEscapedTextContent,
+            8: getCommentNodeOuterHtml
+          };
+
           eachChildNode(this, function (node) {
-            var getHtmlNodeOuterHtml = function getHtmlNodeOuterHtml(node) {
-              return node.outerHTML;
-            };
-            var getOuterHtmlByNodeType = {
-              1: getHtmlNodeOuterHtml,
-              3: getEscapedTextContent,
-              8: getCommentNodeOuterHtml
-            };
-
             var getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
-
             innerHTML += getOuterHtml(node);
           });
           return innerHTML;
@@ -868,8 +868,7 @@
         get: function get() {
           var textContent = '';
           eachChildNode(this, function (node) {
-            var isCommentNode = node.nodeType === 8;
-            if (!isCommentNode) {
+            if (node.nodeType !== Node.COMMENT_NODE) {
               textContent += node.textContent;
             }
           });

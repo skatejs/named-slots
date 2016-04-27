@@ -533,16 +533,16 @@ const members = {
   innerHTML: {
     get () {
       let innerHTML = '';
+
+      const getHtmlNodeOuterHtml = (node) => node.outerHTML;
+      const getOuterHtmlByNodeType = {
+        1: getHtmlNodeOuterHtml,
+        3: getEscapedTextContent,
+        8: getCommentNodeOuterHtml
+      };
+
       eachChildNode(this, function (node) {
-        const getHtmlNodeOuterHtml = (node) => node.outerHTML;
-        const getOuterHtmlByNodeType = {
-          1: getHtmlNodeOuterHtml,
-          3: getEscapedTextContent,
-          8: getCommentNodeOuterHtml
-        };
-
         const getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
-
         innerHTML += getOuterHtml(node);
       });
       return innerHTML;

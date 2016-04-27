@@ -192,7 +192,16 @@ describe('skatejs-named-slots dom', function () {
       });
 
       it('innerHTML handles non text / html nodes', function () {
+        expect(host.innerHTML).to.equal('');
+        const processingInstruction = '<?xml-stylesheet href="mycss.css" type="text/css"?>';
+        const processingInstructionsAfterInnerHtml = '<!--?xml-stylesheet href="mycss.css" type="text/css"?-->';
+        const comment = '<!-- comment -->';
 
+        host.innerHTML = processingInstruction;
+        expect(host.innerHTML).to.equal(processingInstructionsAfterInnerHtml);
+
+        host.innerHTML = comment;
+        expect(host.innerHTML).to.equal(comment);
       })
     });
 
@@ -286,6 +295,12 @@ describe('skatejs-named-slots dom', function () {
 
       // Ensure value was escaped.
       expect(host.firstChild.nodeType).to.equal(3);
+    });
+
+    it('textContent does not return comments', function () {
+      expect(host.textContent).to.equal('');
+      host.innerHTML = '<!-- comment -->';
+      expect(host.textContent).to.equal('');
     });
   });
 });

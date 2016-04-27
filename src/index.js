@@ -4,6 +4,8 @@ import debounce from 'debounce';
 import version from './version';
 import WeakMap from './util/weak-map';
 
+const arrProto = Array.prototype;
+
 // We use a real DOM node for a shadow root. This is because the host node
 // basically becomes a virtual entry point for your element leaving the shadow
 // root the only thing that can receive instructions on how the host should
@@ -223,9 +225,9 @@ function registerNode (host, node, insertBefore, func) {
     }
 
     if (index > -1) {
-      host.childNodes.splice(index + eachIndex, 0, eachNode);
+      arrProto.splice.call(host.childNodes, index + eachIndex, 0, eachNode);
     } else {
-      host.childNodes.push(eachNode);
+      arrProto.push.call(host.childNodes, eachNode);
     }
   });
 }
@@ -242,7 +244,7 @@ function unregisterNode (host, node, func) {
       staticProp(node, 'parentNode', null);
     }
 
-    host.childNodes.splice(index, 1);
+    arrProto.splice.call(host.childNodes, index, 1);
   }
 }
 

@@ -740,13 +740,14 @@ if (!('attachShadow' in document.createElement('div'))) {
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
       const isDefinedInTextProto = memberName in textProto;
+      const shouldOverrideInTextNode = doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
       Object.defineProperty(elementProto, memberName, memberProperty);
-      if(isDefinedInTextProto && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) {
+      if(isDefinedInTextProto && shouldOverrideInTextNode) {
         Object.defineProperty(textProto, memberName, memberProperty);
       }
       if (nativeDescriptor && nativeDescriptor.configurable) {
         Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
-        if(isDefinedInTextProto) {
+        if(isDefinedInTextProto && shouldOverrideInTextNode) {
           Object.defineProperty(textProto, '__' + memberName, nativeDescriptor);
         }
       }

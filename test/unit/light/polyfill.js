@@ -171,7 +171,7 @@ describe('light/polyfill', function () {
     let host, light1, light2, root, namedSlot, text;
 
     beforeEach(function () {
-      namedSlot = create('slot', {name: 'slottyMcSlotFace'});
+      namedSlot = create('slot', {name: 'mySlot'});
       unamedSlot = create('slot');
       host = create('div');
       root = host.attachShadow({ mode: 'closed' });
@@ -179,8 +179,8 @@ describe('light/polyfill', function () {
       root.appendChild(namedSlot);
       root.appendChild(unamedSlot);
 
-      light1 = create('div', {slot: 'slottyMcSlotFace'});
-      light2 = create('div', {slot: 'slottyMcSlotFace'});
+      light1 = create('div', {slot: 'mySlot'});
+      light2 = create('div', {slot: 'mySlot'});
       text = document.createTextNode('text');
 
       host.appendChild(light1);

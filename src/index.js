@@ -40,7 +40,7 @@ const slotToModeMap = new WeakMap();
 const parser = new DOMParser();
 function parse (html) {
   const tree = document.createElement('div');
-  const parsed = parser.parseFromString(html, 'text/html').body;
+  const parsed = parser.parseFromString(`<div>${html}</div>`, 'text/html').body.firstChild;
   while (parsed.hasChildNodes()) {
     const firstChild = parsed.firstChild;
     parsed.removeChild(firstChild);

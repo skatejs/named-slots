@@ -104,6 +104,15 @@
 
     var debounce = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
 
+    /**
+     * See https://w3c.github.io/DOM-Parsing/#serializing
+     * @param {TextNode}
+     * @returns {string}
+     */
+    function getEscapedTextContent(textNode) {
+      return textNode.textContent.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
     var version = '0.0.1';
 
     var WeakMap = window.WeakMap || function () {
@@ -670,7 +679,7 @@
         get: function get() {
           var innerHTML = '';
           eachChildNode(this, function (node) {
-            innerHTML += node.nodeType === 1 ? node.outerHTML : node.textContent;
+            innerHTML += node.nodeType === 1 ? node.outerHTML : getEscapedTextContent(node);
           });
           return innerHTML;
         },

@@ -304,5 +304,12 @@ describe('skatejs-named-slots', function () {
       // Ensure value was escaped.
       expect(host.firstChild.nodeType).to.equal(3);
     });
+
+    it('created text nodes get escaped when being appended', function () {
+      expect(host.innerHTML).to.equal('');
+      const text = document.createTextNode('<u>foo & bar</u>');
+      host.appendChild(text);
+      expect(host.innerHTML).to.equal('&lt;u&gt;foo &amp; bar&lt;/u&gt;');
+    });
   });
 });

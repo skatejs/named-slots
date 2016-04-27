@@ -379,6 +379,16 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
     return addNodeToRoot(host, newNode, refNode);
   }
 }
+/**
+ * See https://w3c.github.io/DOM-Parsing/#serializing
+ * @param {TextNode}
+ * @returns {string}
+ */
+function getEscapedTextContent (textNode) {
+  return textNode.textContent.replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
 const members = {
   // For testing purposes.
@@ -530,7 +540,7 @@ const members = {
     get () {
       let innerHTML = '';
       eachChildNode(this, function (node) {
-        innerHTML += node.nodeType === 1 ? node.outerHTML : node.textContent;
+        innerHTML += node.nodeType === 1 ? node.outerHTML : getEscapedTextContent(node);
       });
       return innerHTML;
     },

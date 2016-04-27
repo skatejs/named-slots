@@ -1,6 +1,7 @@
 import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import debounce from 'debounce';
+import getEscapedTextContent from './util/get-escaped-text-content';
 import version from './version';
 import WeakMap from './util/weak-map';
 
@@ -532,7 +533,7 @@ const members = {
     get () {
       let innerHTML = '';
       eachChildNode(this, function (node) {
-        innerHTML += node.nodeType === 1 ? node.outerHTML : node.textContent;
+        innerHTML += node.nodeType === 1 ? node.outerHTML : getEscapedTextContent(node);
       });
       return innerHTML;
     },

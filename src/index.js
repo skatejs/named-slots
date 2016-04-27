@@ -1,8 +1,11 @@
 import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import debounce from 'debounce';
+import getEscapedTextContent from './util/get-escaped-text-content';
 import version from './version';
 import WeakMap from './util/weak-map';
+
+const arrProto = Array.prototype;
 
 // We use a real DOM node for a shadow root. This is because the host node
 // basically becomes a virtual entry point for your element leaving the shadow
@@ -43,7 +46,7 @@ const slotToModeMap = new WeakMap();
 const parser = new DOMParser();
 function parse (html) {
   const tree = document.createElement('div');
-  const parsed = parser.parseFromString(html, 'text/html').body;
+  const parsed = parser.parseFromString(`<div>${html}</div>`, 'text/html').body.firstChild;
   while (parsed.hasChildNodes()) {
     const firstChild = parsed.firstChild;
     parsed.removeChild(firstChild);
@@ -226,9 +229,9 @@ function registerNode (host, node, insertBefore, func) {
     }
 
     if (index > -1) {
-      host.childNodes.splice(index + eachIndex, 0, eachNode);
+      arrProto.splice.call(host.childNodes, index + eachIndex, 0, eachNode);
     } else {
-      host.childNodes.push(eachNode);
+      arrProto.push.call(host.childNodes, eachNode);
     }
   });
 }
@@ -245,7 +248,7 @@ function unregisterNode (host, node, func) {
       staticProp(node, 'parentNode', null);
     }
 
-    host.childNodes.splice(index, 1);
+    arrProto.splice.call(host.childNodes, index, 1);
   }
 }
 
@@ -533,7 +536,7 @@ const members = {
     get () {
       let innerHTML = '';
       eachChildNode(this, function (node) {
-        innerHTML += node.nodeType === 1 ? node.outerHTML : node.textContent;
+        innerHTML += node.nodeType === 1 ? node.outerHTML : getEscapedTextContent(node);
       });
       return innerHTML;
     },

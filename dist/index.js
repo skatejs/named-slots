@@ -104,6 +104,15 @@
 
     var debounce = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
 
+    /**
+     * See https://w3c.github.io/DOM-Parsing/#serializing
+     * @param {TextNode}
+     * @returns {string}
+     */
+    function getEscapedTextContent(textNode) {
+      return textNode.textContent.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
     var version = '0.0.1';
 
     var WeakMap = window.WeakMap || function () {
@@ -141,6 +150,8 @@
       return Wm;
     }();
 
+    var arrProto = Array.prototype;
+
     // We use a real DOM node for a shadow root. This is because the host node
     // basically becomes a virtual entry point for your element leaving the shadow
     // root the only thing that can receive instructions on how the host should
@@ -176,7 +187,7 @@
     var parser = new DOMParser();
     function parse(html) {
       var tree = document.createElement('div');
-      var parsed = parser.parseFromString(html, 'text/html').body;
+      var parsed = parser.parseFromString('<div>' + html + '</div>', 'text/html').body.firstChild;
       while (parsed.hasChildNodes()) {
         var firstChild = parsed.firstChild;
         parsed.removeChild(firstChild);
@@ -362,9 +373,9 @@
         }
 
         if (index > -1) {
-          host.childNodes.splice(index + eachIndex, 0, eachNode);
+          arrProto.splice.call(host.childNodes, index + eachIndex, 0, eachNode);
         } else {
-          host.childNodes.push(eachNode);
+          arrProto.push.call(host.childNodes, eachNode);
         }
       });
     }
@@ -381,7 +392,7 @@
           staticProp(node, 'parentNode', null);
         }
 
-        host.childNodes.splice(index, 1);
+        arrProto.splice.call(host.childNodes, index, 1);
       }
     }
 
@@ -670,7 +681,7 @@
         get: function get() {
           var innerHTML = '';
           eachChildNode(this, function (node) {
-            innerHTML += node.nodeType === 1 ? node.outerHTML : node.textContent;
+            innerHTML += node.nodeType === 1 ? node.outerHTML : getEscapedTextContent(node);
           });
           return innerHTML;
         },

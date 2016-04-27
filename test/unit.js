@@ -241,6 +241,16 @@ describe('skatejs-named-slots', function () {
       expect(host.innerHTML).to.equal('<div checked></div>');
       expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
+
+      host.innerHTML = '<style>.test: { display: none; }</style>';
+      expect(host.innerHTML).to.equal('<style>.test: { display: none; }</style>');
+      expect(host.childNodes.length).to.equal(1);
+      expect(slot.getAssignedNodes().length).to.equal(1);
+
+      host.innerHTML = '<style>.test: { display: none; }</style><div></div>';
+      expect(host.innerHTML).to.equal('<style>.test: { display: none; }</style><div></div>');
+      expect(host.childNodes.length).to.equal(2);
+      expect(slot.getAssignedNodes().length).to.equal(2);
     });
 
     it('innerHTML (with whitespace text nodes)', function () {
@@ -303,6 +313,13 @@ describe('skatejs-named-slots', function () {
 
       // Ensure value was escaped.
       expect(host.firstChild.nodeType).to.equal(3);
+    });
+
+    it('created text nodes get escaped when being appended', function () {
+      expect(host.innerHTML).to.equal('');
+      const text = document.createTextNode('<u>foo & bar</u>');
+      host.appendChild(text);
+      expect(host.innerHTML).to.equal('&lt;u&gt;foo &amp; bar&lt;/u&gt;');
     });
   });
 });

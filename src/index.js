@@ -1,6 +1,7 @@
 import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import debounce from 'debounce';
+import getEscapedTextContent from './util/get-escaped-text-content';
 import version from './version';
 import WeakMap from './util/weak-map';
 
@@ -378,16 +379,6 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
   if (nodeType === 'root') {
     return addNodeToRoot(host, newNode, refNode);
   }
-}
-/**
- * See https://w3c.github.io/DOM-Parsing/#serializing
- * @param {TextNode}
- * @returns {string}
- */
-function getEscapedTextContent (textNode) {
-  return textNode.textContent.replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }
 
 const members = {

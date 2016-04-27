@@ -711,8 +711,7 @@ const members = {
     get () {
       let textContent = '';
       eachChildNode(this, function (node) {
-        const isCommentNode = node.nodeType === 8;
-        if (!isCommentNode) {
+        if (node.nodeType !== Node.COMMENT_NODE) {
           textContent += node.textContent;
         }
       });

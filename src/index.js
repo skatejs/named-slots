@@ -721,6 +721,9 @@ const members = {
       while (this.hasChildNodes()) {
         this.removeChild(this.firstChild);
       }
+      if (!textContent) {
+        return;
+      }
       this.appendChild(document.createTextNode(textContent));
     }
   }

@@ -2,6 +2,7 @@ import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import debounce from 'debounce';
 import getEscapedTextContent from './util/get-escaped-text-content';
+import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import version from './version';
 import WeakMap from './util/weak-map';
 
@@ -535,8 +536,17 @@ const members = {
   innerHTML: {
     get () {
       let innerHTML = '';
+
+      const getHtmlNodeOuterHtml = (node) => node.outerHTML;
+      const getOuterHtmlByNodeType = {
+        1: getHtmlNodeOuterHtml,
+        3: getEscapedTextContent,
+        8: getCommentNodeOuterHtml
+      };
+
       eachChildNode(this, function (node) {
-        innerHTML += node.nodeType === 1 ? node.outerHTML : getEscapedTextContent(node);
+        const getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
+        innerHTML += getOuterHtml(node);
       });
       return innerHTML;
     },
@@ -704,7 +714,9 @@ const members = {
     get () {
       let textContent = '';
       eachChildNode(this, function (node) {
-        textContent += node.textContent;
+        if (node.nodeType !== Node.COMMENT_NODE) {
+          textContent += node.textContent;
+        }
       });
       return textContent;
     },

@@ -113,6 +113,14 @@
       return textNode.textContent.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
+    /**
+     * @returns {string}
+     * @param {commentNode}
+     */
+    function getCommentNodeOuterHtml(commentNode) {
+      return "<!--" + commentNode.textContent + "-->";
+    }
+
     var version = '0.0.1';
 
     var WeakMap = window.WeakMap || function () {
@@ -683,8 +691,19 @@
       innerHTML: {
         get: function get() {
           var innerHTML = '';
+
+          var getHtmlNodeOuterHtml = function getHtmlNodeOuterHtml(node) {
+            return node.outerHTML;
+          };
+          var getOuterHtmlByNodeType = {
+            1: getHtmlNodeOuterHtml,
+            3: getEscapedTextContent,
+            8: getCommentNodeOuterHtml
+          };
+
           eachChildNode(this, function (node) {
-            innerHTML += node.nodeType === 1 ? node.outerHTML : getEscapedTextContent(node);
+            var getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
+            innerHTML += getOuterHtml(node);
           });
           return innerHTML;
         },
@@ -852,7 +871,9 @@
         get: function get() {
           var textContent = '';
           eachChildNode(this, function (node) {
-            textContent += node.textContent;
+            if (node.nodeType !== Node.COMMENT_NODE) {
+              textContent += node.textContent;
+            }
           });
           return textContent;
         },
@@ -891,9 +912,9 @@
           // Polyfill as much as we can and work around WebKit in other areas.
           if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
             var nativeDescriptor = findDescriptorFor(memberName);
+            Object.defineProperty(elementProto, memberName, memberProperty);
             var isDefinedInTextProto = memberName in textProto;
             var shouldOverrideInTextNode = doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
-            Object.defineProperty(elementProto, memberName, memberProperty);
             if (isDefinedInTextProto && shouldOverrideInTextNode) {
               Object.defineProperty(textProto, memberName, memberProperty);
             }

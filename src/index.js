@@ -742,9 +742,9 @@ if (!('attachShadow' in document.createElement('div'))) {
     // Polyfill as much as we can and work around WebKit in other areas.
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
+      Object.defineProperty(elementProto, memberName, memberProperty);
       const isDefinedInTextProto = memberName in textProto;
       const shouldOverrideInTextNode = doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
-      Object.defineProperty(elementProto, memberName, memberProperty);
       if(isDefinedInTextProto && shouldOverrideInTextNode) {
         Object.defineProperty(textProto, memberName, memberProperty);
       }

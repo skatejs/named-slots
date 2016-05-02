@@ -287,6 +287,35 @@ function addNodeToRoot (root, node, insertBefore) {
   addNodeToNode(root, node, insertBefore);
 }
 
+// Adds a node to a slot. In other words, adds default content to a slot. It
+// ensures that if the slot doesn't have any assigned nodes yet, that the node
+// is actually displayed, otherwise it's just registered as child content.
+function addNodeToSlot (slot, node, insertBefore) {
+  const hasAssignedNodes = slot.getAssignedNodes().length > 0;
+
+  // TODO figure out why this seems to fix issues where default content is to a
+  // slot after it's added to the shadow root. Unsure as to why at the moment.
+  slotToModeMap.set(slot, !hasAssignedNodes);
+
+  registerNode(slot, node, insertBefore, function (eachNode) {
+    if (!hasAssignedNodes) {
+      slot.__insertBefore(eachNode, insertBefore);
+    }
+  });
+}
+
+// Removes a node from a slot (default content). It ensures that if the slot
+// doesn't have any assigned nodes yet, that the node is actually removed,
+// otherwise it's just unregistered.
+function removeNodeFromSlot (slot, node) {
+  const hasAssignedNodes = slot.getAssignedNodes().length > 0;
+  unregisterNode(slot, node, function () {
+    if (!hasAssignedNodes) {
+      slot.__removeChild(node);
+    }
+  });
+}
+
 function addSlotToRoot (root, node) {
   const slotName = getSlotNameFromSlot(node);
   slotToModeMap.set(node, true);
@@ -328,7 +357,8 @@ function removeSlotFromRoot (root, node) {
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
 }
 
-function getRootNode (host) { //TODO terribly inefficient
+// TODO terribly inefficient
+function getRootNode (host) {
   if (isRootNode(host)) {
     return host;
   } else {
@@ -375,7 +405,7 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
   }
 
   if (nodeType === 'slot') {
-    return addNodeToNode(host, newNode, refNode);
+    return addNodeToSlot(host, newNode, refNode);
   }
 
   if (nodeType === 'host') {
@@ -473,11 +503,7 @@ const members = {
       // appear to be child nodes. This is how light DOM works; they're still
       // child nodes but not in the composed DOM yet as there won't be any
       // slots for them to go into.
-      const chs = this.childNodes;
-      const chsLen = chs.length;
-      for (let a = chsLen-1; a >=0 ; a--) {
-        this.__removeChild(chs[a]);
-      }
+      lightNodes.forEach(node => this.__removeChild(node));
 
       // The shadow root is actually the only child of the host.
       return this.__appendChild(shadowRoot);
@@ -679,7 +705,7 @@ const members = {
       }
 
       if (nodeType === 'slot') {
-        return removeNodeFromNode(this, refNode);
+        return removeNodeFromSlot(this, refNode);
       }
 
       if (nodeType === 'host') {
@@ -757,7 +783,7 @@ if (!('attachShadow' in document.createElement('div'))) {
       Object.defineProperty(elementProto, memberName, memberProperty);
       const isDefinedInTextProto = memberName in textProto;
       const shouldOverrideInTextNode = doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
-      if(isDefinedInTextProto && shouldOverrideInTextNode) {
+      if (isDefinedInTextProto && shouldOverrideInTextNode) {
         Object.defineProperty(textProto, memberName, memberProperty);
       }
       if (nativeDescriptor && nativeDescriptor.configurable) {

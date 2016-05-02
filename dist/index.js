@@ -441,6 +441,36 @@
       addNodeToNode(root, node, insertBefore);
     }
 
+    // Adds a node to a slot. In other words, adds default content to a slot. It
+    // ensures that if the slot doesn't have any assigned nodes yet, that the node
+    // is actually displayed, otherwise it's just registered as child content.
+    function addNodeToSlot(slot, node, insertBefore) {
+      var hasAssignedNodes = slot.getAssignedNodes().length > 0;
+
+      // TODO figure out why this seems to fix issues where default content is to a
+      // slot after it's added to the shadow root. Unsure as to why at the moment.
+      slotToModeMap.set(slot, !hasAssignedNodes);
+
+      registerNode(slot, node, insertBefore, function (eachNode) {
+        if (!hasAssignedNodes) {
+          slot.__insertBefore(eachNode, insertBefore);
+        }
+      });
+    }
+
+    // Removes a node from a slot (default content). It ensures that if the slot
+    // doesn't have any assigned nodes yet, that the node is actually removed,
+    // otherwise it's just unregistered.
+    function removeNodeFromSlot(slot, node) {
+      unregisterNode(slot, node, function () {
+        // In Safari, if we check getAssignedNodes() before unregistering the
+        // default content then it hangs.
+        if (slot.getAssignedNodes().length > 0) {
+          slot.__removeChild(node);
+        }
+      });
+    }
+
     function addSlotToRoot(root, node) {
       var slotName = getSlotNameFromSlot(node);
       slotToModeMap.set(node, true);
@@ -482,8 +512,8 @@
       delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
     }
 
+    // TODO terribly inefficient
     function getRootNode(host) {
-      //TODO terribly inefficient
       if (isRootNode(host)) {
         return host;
       } else {
@@ -530,7 +560,7 @@
       }
 
       if (nodeType === 'slot') {
-        return addNodeToNode(host, newNode, refNode);
+        return addNodeToSlot(host, newNode, refNode);
       }
 
       if (nodeType === 'host') {
@@ -598,6 +628,8 @@
       },
       attachShadow: {
         value: function value(opts) {
+          var _this = this;
+
           var mode = opts && opts.mode;
           if (mode !== 'closed' && mode !== 'open') {
             throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
@@ -628,11 +660,9 @@
           // appear to be child nodes. This is how light DOM works; they're still
           // child nodes but not in the composed DOM yet as there won't be any
           // slots for them to go into.
-          var chs = this.childNodes;
-          var chsLen = chs.length;
-          for (var a = chsLen - 1; a >= 0; a--) {
-            this.__removeChild(chs[a]);
-          }
+          lightNodes.forEach(function (node) {
+            return _this.__removeChild(node);
+          });
 
           // The shadow root is actually the only child of the host.
           return this.__appendChild(shadowRoot);
@@ -767,7 +797,7 @@
       nextElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && child.nodeType === 1) {
               return child;
@@ -812,7 +842,7 @@
       previousElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && host === child) {
               return found;
@@ -836,7 +866,7 @@
           }
 
           if (nodeType === 'slot') {
-            return removeNodeFromNode(this, refNode);
+            return removeNodeFromSlot(this, refNode);
           }
 
           if (nodeType === 'host') {

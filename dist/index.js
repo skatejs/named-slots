@@ -767,7 +767,7 @@
       nextElementSibling: {
         get: function get() {
           var host = this;
-          var found = void 0;
+          var found = undefined;
           return eachChildNode(this.parentNode, function (child) {
             if (found && child.nodeType === 1) {
               return child;
@@ -812,7 +812,7 @@
       previousElementSibling: {
         get: function get() {
           var host = this;
-          var found = void 0;
+          var found = undefined;
           return eachChildNode(this.parentNode, function (child) {
             if (found && host === child) {
               return found;

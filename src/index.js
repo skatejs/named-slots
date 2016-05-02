@@ -308,9 +308,10 @@ function addNodeToSlot (slot, node, insertBefore) {
 // doesn't have any assigned nodes yet, that the node is actually removed,
 // otherwise it's just unregistered.
 function removeNodeFromSlot (slot, node) {
-  const hasAssignedNodes = slot.getAssignedNodes().length > 0;
   unregisterNode(slot, node, function () {
-    if (!hasAssignedNodes) {
+    // In Safari, if we check getAssignedNodes() before unregistering the
+    // default content then it hangs.
+    if (slot.getAssignedNodes().length > 0) {
       slot.__removeChild(node);
     }
   });

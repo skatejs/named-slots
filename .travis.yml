@@ -9,8 +9,3 @@ before_script:
 script:
 - npm run lint
 - if [ "${TRAVIS_SECURE_ENV_VARS}" = "true" ]; then npm test -- --saucelabs; else npm test -- --browsers Firefox; fi
-env:
-  global:
-    - SAUCE_TESTNAME="skatejs-named-slots"
-    - SAUCE_USERNAME="skatejs-named-slots"
-    - secure:

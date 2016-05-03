@@ -1,4 +1,4 @@
-# named-slots
+# named-slots [![Build Status](https://travis-ci.org/skatejs/named-slots.svg?branch=master)](https://travis-ci.org/skatejs/named-slots)
 
 A polygap (partial polyfill) for the Shadow DOM Named Slot API.
 

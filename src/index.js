@@ -749,6 +749,10 @@ if (!('attachShadow' in document.createElement('div'))) {
 
     // All properties should be configurable.
     memberProperty.configurable = true;
+    // Applying to the data properties only since we can't have writable accessor properties
+    if (memberProperty.hasOwnProperty('value')) {
+      memberProperty.writable = true
+    }
 
     // Polyfill as much as we can and work around WebKit in other areas.
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {

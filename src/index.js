@@ -7,6 +7,7 @@ import version from './version';
 import WeakMap from './util/weak-map';
 
 const arrProto = Array.prototype;
+const { forEach } = arrProto;
 
 // We use a real DOM node for a shadow root. This is because the host node
 // basically becomes a virtual entry point for your element leaving the shadow
@@ -36,7 +37,6 @@ const nodeToParentNodeMap = new WeakMap();
 const nodeToSlotMap = new WeakMap();
 const rootToHostMap = new WeakMap();
 const rootToSlotMap = new WeakMap();
-const slotToModeMap = new WeakMap();
 
 
 // * WebKit only *
@@ -124,9 +124,6 @@ function getSlotNameFromNode (node) {
 }
 
 function slotNodeIntoSlot (slot, node, insertBefore) {
-  const assignedNodes = slot.getAssignedNodes();
-  const slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
-
   // Don't slot nodes that have content but are only whitespace. This is an
   // anomaly that I don't think the spec deals with.
   //
@@ -146,27 +143,23 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
     return;
   }
 
+  const assignedNodes = slot.getAssignedNodes();
+  const shouldGoIntoContentMode = assignedNodes.length === 0;
+  const slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
+
+  // Assign the slot to the node internally.
   nodeToSlotMap.set(node, slot);
 
-  // If there's currently no assigned nodes, there will be, so remove all fallback content.
-  if (!assignedNodes.length) {
-    slotToModeMap.set(slot, false);
-    [].slice.call(slot.childNodes).forEach(fallbackNode => slot.__removeChild(fallbackNode));
+  // Remove the fallback content and state if we're going into content mode.
+  if (shouldGoIntoContentMode) {
+    forEach.call(slot.childNodes, node => slot.__removeChild(node));
   }
 
-  const shouldAffectSlot = !slotToModeMap.get(slot);
-
   if (slotInsertBeforeIndex > -1) {
-    if (shouldAffectSlot) {
-      slot.__insertBefore(node, insertBefore);
-    }
-
+    slot.__insertBefore(node, insertBefore);
     assignedNodes.splice(slotInsertBeforeIndex, 0, node);
   } else {
-    if (shouldAffectSlot) {
-      slot.__appendChild(node);
-    }
-
+    slot.__appendChild(node);
     assignedNodes.push(node);
   }
 
@@ -181,23 +174,17 @@ function slotNodeFromSlot (node) {
     const index = assignedNodes.indexOf(node);
 
     if (index > -1) {
+      const shouldGoIntoDefaultMode = assignedNodes.length === 1;
+
       assignedNodes.splice(index, 1);
       nodeToSlotMap.set(node, null);
 
-      const shouldAffectSlot = !slotToModeMap.get(slot);
-
-      // We only update the actual DOM representation if we're displaying
-      // slotted nodes.
-      if (shouldAffectSlot) {
-        slot.__removeChild(node);
-      }
+      // Actually remove the child.
+      slot.__removeChild(node);
 
       // If this was the last slotted node, then insert fallback content.
-      if (!assignedNodes.length) {
-        slotToModeMap.set(slot, true);
-        eachChildNode(slot, function (node) {
-          slot.__appendChild(node);
-        });
+      if (shouldGoIntoDefaultMode) {
+        forEach.call(slot.childNodes, node => slot.__appendChild(node));
       }
 
       slot.____triggerSlotChangeEvent();
@@ -205,6 +192,7 @@ function slotNodeFromSlot (node) {
   }
 }
 
+// Returns the index of the node in the host's childNodes.
 function indexOfNode (host, node) {
   const chs = host.childNodes;
   const chsLen = chs.length;
@@ -291,14 +279,9 @@ function addNodeToRoot (root, node, insertBefore) {
 // ensures that if the slot doesn't have any assigned nodes yet, that the node
 // is actually displayed, otherwise it's just registered as child content.
 function addNodeToSlot (slot, node, insertBefore) {
-  const hasAssignedNodes = slot.getAssignedNodes().length > 0;
-
-  // TODO figure out why this seems to fix issues where default content is to a
-  // slot after it's added to the shadow root. Unsure as to why at the moment.
-  slotToModeMap.set(slot, !hasAssignedNodes);
-
+  const isInDefaultMode = slot.getAssignedNodes().length === 0;
   registerNode(slot, node, insertBefore, function (eachNode) {
-    if (!hasAssignedNodes) {
+    if (isInDefaultMode) {
       slot.__insertBefore(eachNode, insertBefore);
     }
   });
@@ -308,22 +291,27 @@ function addNodeToSlot (slot, node, insertBefore) {
 // doesn't have any assigned nodes yet, that the node is actually removed,
 // otherwise it's just unregistered.
 function removeNodeFromSlot (slot, node) {
+  const isInDefaultMode = slot.getAssignedNodes().length === 0;
   unregisterNode(slot, node, function () {
-    // In Safari, if we check getAssignedNodes() before unregistering the
-    // default content then it hangs.
-    if (slot.getAssignedNodes().length > 0) {
+    if (isInDefaultMode) {
       slot.__removeChild(node);
     }
   });
 }
 
-function addSlotToRoot (root, node) {
-  const slotName = getSlotNameFromSlot(node);
-  slotToModeMap.set(node, true);
-  rootToSlotMap.get(root)[slotName] = node;
+function addSlotToRoot (root, slot) {
+  const slotName = getSlotNameFromSlot(slot);
+
+  // Ensure a slot node's childNodes are overridden at the earliest point
+  // possible for WebKit.
+  if (!canPatchNativeAccessors && !slot.childNodes.push) {
+    staticProp(slot, 'childNodes', []);
+  }
+
+  rootToSlotMap.get(root)[slotName] = slot;
   eachChildNode(rootToHostMap.get(root), function (eachNode) {
     if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
-      slotNodeIntoSlot(node, eachNode);
+      slotNodeIntoSlot(slot, eachNode);
     }
   });
 }
@@ -376,12 +364,13 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
   const parentNode = newNode.parentNode;
   const rootNode = getRootNode(host);
 
-  if (rootNode && getNodeType(newNode) === 'slot') {
-    addSlotToRoot(rootNode, newNode);
-  }
-
+  // Ensure childNodes is patched so we can manually update it for WebKit.
   if (!canPatchNativeAccessors && !host.childNodes.push) {
     staticProp(host, 'childNodes', []);
+  }
+
+  if (rootNode && getNodeType(newNode) === 'slot') {
+    addSlotToRoot(rootNode, newNode);
   }
 
   // If we append a child to a host, the host tells the shadow root to distribute
@@ -429,7 +418,7 @@ const members = {
   // For testing purposes.
   ____isInFallbackMode: {
     get () {
-      return slotToModeMap.get(this);
+      return this.getAssignedNodes().length === 0;
     }
   },
 

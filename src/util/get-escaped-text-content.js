@@ -4,7 +4,7 @@
  * @returns {string}
  */
 export default function getEscapedTextContent (textNode) {
-  return textNode.textContent.replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return textNode.textContent.replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }

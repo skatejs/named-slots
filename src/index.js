@@ -489,11 +489,18 @@ const members = {
         staticProp(this, 'childNodes', lightNodes);
       }
 
-      // Existing children should be removed from being displayed, but still
-      // appear to be child nodes. This is how light DOM works; they're still
-      // child nodes but not in the composed DOM yet as there won't be any
-      // slots for them to go into.
-      lightNodes.forEach(node => this.__removeChild(node));
+      // Process light DOM.
+      lightNodes.forEach(node => {
+        // Existing children should be removed from being displayed, but still
+        // appear to be child nodes. This is how light DOM works; they're still
+        // child nodes but not in the composed DOM yet as there won't be any
+        // slots for them to go into.
+        this.__removeChild(node);
+
+        // We must register the parentNode here as this has the potential to
+        // become out of sync if the node is moved before being slotted.
+        staticProp(node, 'parentNode', this);
+      });
 
       // The shadow root is actually the only child of the host.
       return this.__appendChild(shadowRoot);

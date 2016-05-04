@@ -53,7 +53,8 @@ function parse (html) {
     parsed.removeChild(firstChild);
     tree.appendChild(firstChild);
   }
-  return document.importNode(tree, true); // Need to import the node to initialise the custom elements from the parser
+  // Need to import the node to initialise the custom elements from the parser.
+  return document.importNode(tree, true);
 }
 
 function staticProp (obj, name, value) {
@@ -499,7 +500,11 @@ const members = {
 
         // We must register the parentNode here as this has the potential to
         // become out of sync if the node is moved before being slotted.
-        staticProp(node, 'parentNode', this);
+        if (canPatchNativeAccessors) {
+          nodeToParentNodeMap.set(node, this);
+        } else {
+          staticProp(node, 'parentNode', this);
+        }
       });
 
       // The shadow root is actually the only child of the host.

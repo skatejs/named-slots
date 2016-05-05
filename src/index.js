@@ -751,7 +751,7 @@ if (!('attachShadow' in document.createElement('div'))) {
     memberProperty.configurable = true;
     // Applying to the data properties only since we can't have writable accessor properties
     if (memberProperty.hasOwnProperty('value')) {
-      memberProperty.writable = true
+      memberProperty.writable = true;
     }
 
     // Polyfill as much as we can and work around WebKit in other areas.

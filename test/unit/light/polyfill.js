@@ -166,4 +166,40 @@ describe('light/polyfill', function () {
       });
     });
   });
+
+  describe('when text nodes are projected to a different spot than element nodes', function () {
+    let host, light1, light2, root, namedSlot, unnamedSlot, text;
+
+    beforeEach(function () {
+      namedSlot = create('slot', {name: 'mySlot'});
+      unnamedSlot = create('slot');
+      host = create('div');
+      root = host.attachShadow({ mode: 'closed' });
+
+      root.appendChild(namedSlot);
+      root.appendChild(unnamedSlot);
+
+      light1 = create('div', {slot: 'mySlot'});
+      light2 = create('div', {slot: 'mySlot'});
+      text = document.createTextNode('text');
+
+      host.appendChild(light1);
+      host.appendChild(text);
+      host.appendChild(light2);
+    });
+
+    it('should polyfill previousSibling of textNode', function () {
+      expect(text.previousSibling).to.equal(light1);
+    });
+
+    it('should polyfill nextSibling of textNode', function () {
+      expect(text.nextSibling).to.equal(light2);
+    });
+
+    it('should NOT polyfill textContent of textNode', function () {
+      expect(text.textContent).to.equal('text');
+      expect(text.__proto__.hasOwnProperty('textContent')).to.be.false;
+      expect(text.__proto__.hasOwnProperty('__textContent')).to.be.false;
+    });
+  });
 });

@@ -7,6 +7,7 @@ import version from './version';
 import WeakMap from './util/weak-map';
 
 const arrProto = Array.prototype;
+const { forEach } = arrProto;
 
 // We use a real DOM node for a shadow root. This is because the host node
 // basically becomes a virtual entry point for your element leaving the shadow
@@ -24,6 +25,9 @@ const polyfillAtRuntime = ['childNodes', 'parentNode'];
 // These are the protos that we need to search for native descriptors on.
 const protos = ['Node', 'Element', 'EventTarget'];
 
+//some properties that should not be overridden in the Text prototype
+const doNotOverridePropertiesInTextNodes = ['textContent'];
+
 // Private data stores.
 const assignedToSlotMap = new WeakMap();
 const hostToModeMap = new WeakMap();
@@ -33,7 +37,6 @@ const nodeToParentNodeMap = new WeakMap();
 const nodeToSlotMap = new WeakMap();
 const rootToHostMap = new WeakMap();
 const rootToSlotMap = new WeakMap();
-const slotToModeMap = new WeakMap();
 
 
 // * WebKit only *
@@ -50,7 +53,8 @@ function parse (html) {
     parsed.removeChild(firstChild);
     tree.appendChild(firstChild);
   }
-  return document.importNode(tree, true); // Need to import the node to initialise the custom elements from the parser
+  // Need to import the node to initialise the custom elements from the parser.
+  return document.importNode(tree, true);
 }
 
 function staticProp (obj, name, value) {
@@ -121,9 +125,6 @@ function getSlotNameFromNode (node) {
 }
 
 function slotNodeIntoSlot (slot, node, insertBefore) {
-  const assignedNodes = slot.getAssignedNodes();
-  const slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
-
   // Don't slot nodes that have content but are only whitespace. This is an
   // anomaly that I don't think the spec deals with.
   //
@@ -143,27 +144,23 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
     return;
   }
 
+  const assignedNodes = slot.getAssignedNodes();
+  const shouldGoIntoContentMode = assignedNodes.length === 0;
+  const slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
+
+  // Assign the slot to the node internally.
   nodeToSlotMap.set(node, slot);
 
-  // If there's currently no assigned nodes, there will be, so remove all fallback content.
-  if (!assignedNodes.length) {
-    slotToModeMap.set(slot, false);
-    [].slice.call(slot.childNodes).forEach(fallbackNode => slot.__removeChild(fallbackNode));
+  // Remove the fallback content and state if we're going into content mode.
+  if (shouldGoIntoContentMode) {
+    forEach.call(slot.childNodes, node => slot.__removeChild(node));
   }
 
-  const shouldAffectSlot = !slotToModeMap.get(slot);
-
   if (slotInsertBeforeIndex > -1) {
-    if (shouldAffectSlot) {
-      slot.__insertBefore(node, insertBefore);
-    }
-
+    slot.__insertBefore(node, insertBefore);
     assignedNodes.splice(slotInsertBeforeIndex, 0, node);
   } else {
-    if (shouldAffectSlot) {
-      slot.__appendChild(node);
-    }
-
+    slot.__appendChild(node);
     assignedNodes.push(node);
   }
 
@@ -178,23 +175,17 @@ function slotNodeFromSlot (node) {
     const index = assignedNodes.indexOf(node);
 
     if (index > -1) {
+      const shouldGoIntoDefaultMode = assignedNodes.length === 1;
+
       assignedNodes.splice(index, 1);
       nodeToSlotMap.set(node, null);
 
-      const shouldAffectSlot = !slotToModeMap.get(slot);
-
-      // We only update the actual DOM representation if we're displaying
-      // slotted nodes.
-      if (shouldAffectSlot) {
-        slot.__removeChild(node);
-      }
+      // Actually remove the child.
+      slot.__removeChild(node);
 
       // If this was the last slotted node, then insert fallback content.
-      if (!assignedNodes.length) {
-        slotToModeMap.set(slot, true);
-        eachChildNode(slot, function (node) {
-          slot.__appendChild(node);
-        });
+      if (shouldGoIntoDefaultMode) {
+        forEach.call(slot.childNodes, node => slot.__appendChild(node));
       }
 
       slot.____triggerSlotChangeEvent();
@@ -202,6 +193,7 @@ function slotNodeFromSlot (node) {
   }
 }
 
+// Returns the index of the node in the host's childNodes.
 function indexOfNode (host, node) {
   const chs = host.childNodes;
   const chsLen = chs.length;
@@ -284,13 +276,43 @@ function addNodeToRoot (root, node, insertBefore) {
   addNodeToNode(root, node, insertBefore);
 }
 
-function addSlotToRoot (root, node) {
-  const slotName = getSlotNameFromSlot(node);
-  slotToModeMap.set(node, true);
-  rootToSlotMap.get(root)[slotName] = node;
+// Adds a node to a slot. In other words, adds default content to a slot. It
+// ensures that if the slot doesn't have any assigned nodes yet, that the node
+// is actually displayed, otherwise it's just registered as child content.
+function addNodeToSlot (slot, node, insertBefore) {
+  const isInDefaultMode = slot.getAssignedNodes().length === 0;
+  registerNode(slot, node, insertBefore, function (eachNode) {
+    if (isInDefaultMode) {
+      slot.__insertBefore(eachNode, insertBefore);
+    }
+  });
+}
+
+// Removes a node from a slot (default content). It ensures that if the slot
+// doesn't have any assigned nodes yet, that the node is actually removed,
+// otherwise it's just unregistered.
+function removeNodeFromSlot (slot, node) {
+  const isInDefaultMode = slot.getAssignedNodes().length === 0;
+  unregisterNode(slot, node, function () {
+    if (isInDefaultMode) {
+      slot.__removeChild(node);
+    }
+  });
+}
+
+function addSlotToRoot (root, slot) {
+  const slotName = getSlotNameFromSlot(slot);
+
+  // Ensure a slot node's childNodes are overridden at the earliest point
+  // possible for WebKit.
+  if (!canPatchNativeAccessors && !slot.childNodes.push) {
+    staticProp(slot, 'childNodes', []);
+  }
+
+  rootToSlotMap.get(root)[slotName] = slot;
   eachChildNode(rootToHostMap.get(root), function (eachNode) {
     if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
-      slotNodeIntoSlot(node, eachNode);
+      slotNodeIntoSlot(slot, eachNode);
     }
   });
 }
@@ -325,7 +347,8 @@ function removeSlotFromRoot (root, node) {
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
 }
 
-function getRootNode (host) { //TODO terribly inefficient
+// TODO terribly inefficient
+function getRootNode (host) {
   if (isRootNode(host)) {
     return host;
   } else {
@@ -342,12 +365,13 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
   const parentNode = newNode.parentNode;
   const rootNode = getRootNode(host);
 
-  if (rootNode && getNodeType(newNode) === 'slot') {
-    addSlotToRoot(rootNode, newNode);
-  }
-
+  // Ensure childNodes is patched so we can manually update it for WebKit.
   if (!canPatchNativeAccessors && !host.childNodes.push) {
     staticProp(host, 'childNodes', []);
+  }
+
+  if (rootNode && getNodeType(newNode) === 'slot') {
+    addSlotToRoot(rootNode, newNode);
   }
 
   // If we append a child to a host, the host tells the shadow root to distribute
@@ -372,7 +396,7 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
   }
 
   if (nodeType === 'slot') {
-    return addNodeToNode(host, newNode, refNode);
+    return addNodeToSlot(host, newNode, refNode);
   }
 
   if (nodeType === 'host') {
@@ -395,7 +419,7 @@ const members = {
   // For testing purposes.
   ____isInFallbackMode: {
     get () {
-      return slotToModeMap.get(this);
+      return this.getAssignedNodes().length === 0;
     }
   },
 
@@ -466,15 +490,22 @@ const members = {
         staticProp(this, 'childNodes', lightNodes);
       }
 
-      // Existing children should be removed from being displayed, but still
-      // appear to be child nodes. This is how light DOM works; they're still
-      // child nodes but not in the composed DOM yet as there won't be any
-      // slots for them to go into.
-      const chs = this.childNodes;
-      const chsLen = chs.length;
-      for (let a = chsLen-1; a >=0 ; a--) {
-        this.__removeChild(chs[a]);
-      }
+      // Process light DOM.
+      lightNodes.forEach(node => {
+        // Existing children should be removed from being displayed, but still
+        // appear to be child nodes. This is how light DOM works; they're still
+        // child nodes but not in the composed DOM yet as there won't be any
+        // slots for them to go into.
+        this.__removeChild(node);
+
+        // We must register the parentNode here as this has the potential to
+        // become out of sync if the node is moved before being slotted.
+        if (canPatchNativeAccessors) {
+          nodeToParentNodeMap.set(node, this);
+        } else {
+          staticProp(node, 'parentNode', this);
+        }
+      });
 
       // The shadow root is actually the only child of the host.
       return this.__appendChild(shadowRoot);
@@ -676,7 +707,7 @@ const members = {
       }
 
       if (nodeType === 'slot') {
-        return removeNodeFromNode(this, refNode);
+        return removeNodeFromSlot(this, refNode);
       }
 
       if (nodeType === 'host') {
@@ -744,6 +775,7 @@ function findDescriptorFor (name) {
 
 if (!('attachShadow' in document.createElement('div'))) {
   const elementProto = HTMLElement.prototype;
+  const textProto = Text.prototype;
   Object.keys(members).forEach(function (memberName) {
     const memberProperty = members[memberName];
 
@@ -758,8 +790,16 @@ if (!('attachShadow' in document.createElement('div'))) {
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
       Object.defineProperty(elementProto, memberName, memberProperty);
+      const isDefinedInTextProto = memberName in textProto;
+      const shouldOverrideInTextNode = doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
+      if (isDefinedInTextProto && shouldOverrideInTextNode) {
+        Object.defineProperty(textProto, memberName, memberProperty);
+      }
       if (nativeDescriptor && nativeDescriptor.configurable) {
         Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+        if(isDefinedInTextProto && shouldOverrideInTextNode) {
+          Object.defineProperty(textProto, '__' + memberName, nativeDescriptor);
+        }
       }
     }
   });

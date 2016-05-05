@@ -168,7 +168,7 @@ describe('light/polyfill', function () {
   });
 
   describe('when text nodes are projected to a different spot than element nodes', function () {
-    let host, light1, light2, root, namedSlot, text;
+    let host, light1, light2, root, namedSlot, unnamedSlot, text;
 
     beforeEach(function () {
       namedSlot = create('slot', {name: 'mySlot'});

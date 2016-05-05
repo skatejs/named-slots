@@ -53,6 +53,13 @@ describe('shadow/polyfill', function () {
     });
   }
 
+  it('polyfilled properties with value should be writable', function() {
+    let elem = create('div');
+
+    expect(elem.removeEventListener).not.to.equal('');
+    elem.removeEventListener = '';
+    expect(elem.removeEventListener).to.equal('');
+  });
 
   describe('api', function () {
     let host, root;

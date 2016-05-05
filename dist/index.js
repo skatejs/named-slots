@@ -110,7 +110,7 @@
      * @returns {string}
      */
     function getEscapedTextContent(textNode) {
-      return textNode.textContent.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return textNode.textContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     /**
@@ -799,7 +799,7 @@
       nextElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && child.nodeType === 1) {
               return child;
@@ -844,7 +844,7 @@
       previousElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && host === child) {
               return found;
@@ -913,6 +913,9 @@
           while (this.hasChildNodes()) {
             this.removeChild(this.firstChild);
           }
+          if (!textContent) {
+            return;
+          }
           this.appendChild(document.createTextNode(textContent));
         }
       }
@@ -940,6 +943,10 @@
 
           // All properties should be configurable.
           memberProperty.configurable = true;
+          // Applying to the data properties only since we can't have writable accessor properties
+          if (memberProperty.hasOwnProperty('value')) {
+            memberProperty.writable = true;
+          }
 
           // Polyfill as much as we can and work around WebKit in other areas.
           if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {

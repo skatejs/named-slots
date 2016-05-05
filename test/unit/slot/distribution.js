@@ -3,6 +3,9 @@ import create from '../lib/create';
 
 describe('slot/distribution', function () {
   let slot;
+  let host;
+  let root;
+  let parent;
 
   beforeEach(function () {
     host = document.createElement('div');

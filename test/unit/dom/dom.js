@@ -202,7 +202,36 @@ describe('skatejs-named-slots dom', function () {
 
         host.innerHTML = comment;
         expect(host.innerHTML).to.equal(comment);
-      })
+      });
+
+      it('setting to \'\' does not affect innerHTML', function () {
+        expect(host.innerHTML).to.equal('');
+        host.innerHTML = '';
+        expect(host.childNodes.length).to.equal(0);
+      });
+    });
+
+    describe('textContent', function () {
+      it('sets and gets correctly', function () {
+        expect(host.textContent).to.equal('');
+        host.textContent = '<test />';
+        expect(host.textContent).to.equal('<test />');
+
+        // Ensure value was escaped.
+        expect(host.firstChild.nodeType).to.equal(3);
+      });
+
+      it('does not return comments', function () {
+        expect(host.textContent).to.equal('');
+        host.innerHTML = '<!-- comment -->';
+        expect(host.textContent).to.equal('');
+      });
+
+      it('setting to \'\' does not affect textContent', function () {
+        expect(host.textContent).to.equal('');
+        host.textContent = '';
+        expect(host.childNodes.length).to.equal(0);
+      });
     });
 
     it('childElementCount', function () {
@@ -286,21 +315,6 @@ describe('skatejs-named-slots dom', function () {
       expect(host.outerHTML).to.equal('<div><div></div></div>');
       expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
-    });
-
-    it('textContent', function () {
-      expect(host.textContent).to.equal('');
-      host.textContent = '<test />';
-      expect(host.textContent).to.equal('<test />');
-
-      // Ensure value was escaped.
-      expect(host.firstChild.nodeType).to.equal(3);
-    });
-
-    it('textContent does not return comments', function () {
-      expect(host.textContent).to.equal('');
-      host.innerHTML = '<!-- comment -->';
-      expect(host.textContent).to.equal('');
     });
   });
 });

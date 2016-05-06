@@ -22,7 +22,7 @@ const defaultShadowRootTagNameUc = defaultShadowRootTagName.toUpperCase();
 const polyfillAtRuntime = ['childNodes', 'parentNode'];
 
 // These are the protos that we need to search for native descriptors on.
-const protos = ['Node', 'Element', 'EventTarget'];
+const protos = ['Node', 'Element', 'HTMLElement', 'EventTarget'];
 
 // Private data stores.
 const assignedToSlotMap = new WeakMap();
@@ -40,6 +40,52 @@ const slotToModeMap = new WeakMap();
 //
 // We require some way to parse HTML natively because we can't use the native
 // accessors.
+/*
+ * DOMParser HTML extension
+ * 2012-09-04
+ *
+ * By Eli Grey, http://eligrey.com
+ * Public domain.
+ * NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+ */
+
+/*! @source https://gist.github.com/1129031 */
+/*global document, DOMParser*/
+
+(function(DOMParser) {
+  "use strict";
+
+  var
+      proto = DOMParser.prototype
+      , nativeParse = proto.parseFromString
+      ;
+
+  // Firefox/Opera/IE throw errors on unsupported types
+  try {
+    // WebKit returns null on unsupported types
+    if ((new DOMParser()).parseFromString("", "text/html")) {
+      // text/html parsing is natively supported
+      return;
+    }
+  } catch (ex) {}
+
+  proto.parseFromString = function(markup, type) {
+    if (/^\s*text\/html\s*(?:;|$)/i.test(type)) {
+      var
+          doc = document.implementation.createHTMLDocument("")
+          ;
+      if (markup.toLowerCase().indexOf('<!doctype') > -1) {
+        doc.documentElement.__innerHTML = markup;
+      }
+      else {
+        doc.body.__innerHTML = markup;
+      }
+      return doc;
+    } else {
+      return nativeParse.apply(this, arguments);
+    }
+  };
+}(DOMParser));
 
 const parser = new DOMParser();
 function parse (html) {
@@ -155,7 +201,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
 
   if (slotInsertBeforeIndex > -1) {
     if (shouldAffectSlot) {
-      slot.__insertBefore(node, insertBefore);
+      slot.__insertBefore(node, (insertBefore !== undefined) ? insertBefore : null); // // there should be proper refnode or null, no undefined allowed
     }
 
     assignedNodes.splice(slotInsertBeforeIndex, 0, node);
@@ -252,7 +298,7 @@ function unregisterNode (host, node, func) {
 
 function addNodeToNode (host, node, insertBefore) {
   registerNode(host, node, insertBefore, function (eachNode) {
-    host.__insertBefore(eachNode, insertBefore);
+    host.__insertBefore(eachNode, (insertBefore !== undefined) ? insertBefore : null); // // there should be proper refnode or null, no undefined allowed
   });
 }
 
@@ -365,7 +411,7 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
 
   if (nodeType === 'node') {
     if (canPatchNativeAccessors) {
-      return host.__insertBefore(newNode, refNode);
+      return host.__insertBefore(newNode, (refNode !== undefined) ? refNode : null); // there should be proper refnode or null, no undefined allowed
     } else {
       return addNodeToNode(host, newNode, refNode);
     }
@@ -757,6 +803,7 @@ if (!('attachShadow' in document.createElement('div'))) {
     // Polyfill as much as we can and work around WebKit in other areas.
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
+
       Object.defineProperty(elementProto, memberName, memberProperty);
       if (nativeDescriptor && nativeDescriptor.configurable) {
         Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
@@ -764,5 +811,20 @@ if (!('attachShadow' in document.createElement('div'))) {
     }
   });
 }
+
+// polyfilling CustomEvent for the IE
+(function () {
+  if ( typeof window.CustomEvent === "function" ) return false;
+
+  function CustomEvent ( event, params ) {
+    params = params || { bubbles: false, cancelable: false, detail: undefined };
+    var evt = document.createEvent( 'CustomEvent' );
+    evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+    return evt;
+  }
+
+  CustomEvent.prototype = window.Event.prototype;
+  window.CustomEvent = CustomEvent;
+})();
 
 export default version;

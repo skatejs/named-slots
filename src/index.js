@@ -5,6 +5,7 @@ import getEscapedTextContent from './util/get-escaped-text-content';
 import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import version from './version';
 import WeakMap from './util/weak-map';
+import './fix/ie';
 
 const arrProto = Array.prototype;
 
@@ -35,67 +36,9 @@ const rootToHostMap = new WeakMap();
 const rootToSlotMap = new WeakMap();
 const slotToModeMap = new WeakMap();
 
-
-// * WebKit only *
-//
-// We require some way to parse HTML natively because we can't use the native
-// accessors.
-/*
- * DOMParser HTML extension
- * 2012-09-04
- *
- * By Eli Grey, http://eligrey.com
- * Public domain.
- * NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
- */
-
-/*! @source https://gist.github.com/1129031 */
-/*global document, DOMParser*/
-
-(function(DOMParser) {
-  "use strict";
-
-  var
-      proto = DOMParser.prototype
-      , nativeParse = proto.parseFromString
-      ;
-
-  // Firefox/Opera/IE throw errors on unsupported types
-  try {
-    // WebKit returns null on unsupported types
-    if ((new DOMParser()).parseFromString("", "text/html")) {
-      // text/html parsing is natively supported
-      return;
-    }
-  } catch (ex) {}
-
-  proto.parseFromString = function(markup, type) {
-    if (/^\s*text\/html\s*(?:;|$)/i.test(type)) {
-      var
-          doc = document.implementation.createHTMLDocument("")
-          ;
-      if (markup.toLowerCase().indexOf('<!doctype') > -1) {
-        doc.documentElement.__innerHTML = markup;
-      }
-      else {
-        doc.body.__innerHTML = markup;
-      }
-      return doc;
-    } else {
-      return nativeParse.apply(this, arguments);
-    }
-  };
-}(DOMParser));
-
-const parser = new DOMParser();
 function parse (html) {
   const tree = document.createElement('div');
-  const parsed = parser.parseFromString(`<div>${html}</div>`, 'text/html').body.firstChild;
-  while (parsed.hasChildNodes()) {
-    const firstChild = parsed.firstChild;
-    parsed.removeChild(firstChild);
-    tree.appendChild(firstChild);
-  }
+  tree.__innerHTML = html;
   return document.importNode(tree, true); // Need to import the node to initialise the custom elements from the parser
 }
 
@@ -105,8 +48,6 @@ function staticProp (obj, name, value) {
     get () { return value; }
   });
 }
-
-
 // Slotting helpers.
 
 function arrayItem (idx) {
@@ -272,11 +213,14 @@ function registerNode (host, node, insertBefore, func) {
       staticProp(eachNode, 'parentNode', host);
     }
 
-    if (index > -1) {
-      arrProto.splice.call(host.childNodes, index + eachIndex, 0, eachNode);
-    } else {
-      arrProto.push.call(host.childNodes, eachNode);
-    }
+    // Opera 12 throws a error when NodeList is manipulated with arrProto.splice
+    try {
+      if (index > -1) {
+        arrProto.splice.call(host.childNodes, index + eachIndex, 0, eachNode);
+      } else {
+        arrProto.push.call(host.childNodes, eachNode);
+      }
+    } catch(e) {}
   });
 }
 
@@ -292,7 +236,10 @@ function unregisterNode (host, node, func) {
       staticProp(node, 'parentNode', null);
     }
 
-    arrProto.splice.call(host.childNodes, index, 1);
+    // Opera 12 throws a error when NodeList is manipulated with arrProto.splice
+    try {
+      arrProto.splice.call(host.childNodes, index, 1);
+    } catch(e) {}
   }
 }
 
@@ -786,6 +733,14 @@ function findDescriptorFor (name) {
       return Object.getOwnPropertyDescriptor(proto, name);
     }
   }
+  // fix for opera 12
+  var proto = document.createElement('div');
+  var descriptor;
+
+  while (proto && !(descriptor = Object.getOwnPropertyDescriptor(proto, name))) {
+    proto = Object.getPrototypeOf(proto);
+  }
+  return descriptor;
 }
 
 if (!('attachShadow' in document.createElement('div'))) {
@@ -803,7 +758,6 @@ if (!('attachShadow' in document.createElement('div'))) {
     // Polyfill as much as we can and work around WebKit in other areas.
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
-
       Object.defineProperty(elementProto, memberName, memberProperty);
       if (nativeDescriptor && nativeDescriptor.configurable) {
         Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
@@ -811,20 +765,5 @@ if (!('attachShadow' in document.createElement('div'))) {
     }
   });
 }
-
-// polyfilling CustomEvent for the IE
-(function () {
-  if ( typeof window.CustomEvent === "function" ) return false;
-
-  function CustomEvent ( event, params ) {
-    params = params || { bubbles: false, cancelable: false, detail: undefined };
-    var evt = document.createEvent( 'CustomEvent' );
-    evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
-    return evt;
-  }
-
-  CustomEvent.prototype = window.Event.prototype;
-  window.CustomEvent = CustomEvent;
-})();
 
 export default version;

@@ -36,9 +36,21 @@ const rootToHostMap = new WeakMap();
 const rootToSlotMap = new WeakMap();
 const slotToModeMap = new WeakMap();
 
+
+// * WebKit only *
+//
+// We require some way to parse HTML natively because we can't use the native
+// accessors.
+
+const parser = new DOMParser();
 function parse (html) {
   const tree = document.createElement('div');
-  tree.__innerHTML = html;
+  const parsed = parser.parseFromString(`<div>${html}</div>`, 'text/html').body.firstChild;
+  while (parsed.hasChildNodes()) {
+    const firstChild = parsed.firstChild;
+    parsed.removeChild(firstChild);
+    tree.appendChild(firstChild);
+  }
   return document.importNode(tree, true); // Need to import the node to initialise the custom elements from the parser
 }
 
@@ -759,7 +771,7 @@ if (!('attachShadow' in document.createElement('div'))) {
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
       Object.defineProperty(elementProto, memberName, memberProperty);
-      if (nativeDescriptor && nativeDescriptor.configurable) {
+      if (nativeDescriptor) {
         Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
       }
     }

@@ -48,10 +48,10 @@
                 doc = document.implementation.createHTMLDocument("")
                 ;
             if (markup.toLowerCase().indexOf('<!doctype') > -1) {
-                doc.documentElement.innerHTML = markup;
+                doc.documentElement.__innerHTML = markup;
             }
             else {
-                doc.body.innerHTML = markup;
+                doc.body.__innerHTML = markup;
             }
             return doc;
         } else {

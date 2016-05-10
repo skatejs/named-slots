@@ -15,12 +15,8 @@ export default function (obj, key) {
     };
 
     if (getter) {
-      descriptor.get = function () {
-        return getter.call(this);
-      };
-      descriptor.set = function (value) {
-        setter.call(this, value);
-      };
+      descriptor.get = getter;
+      descriptor.set = setter;
       return descriptor;
     } else if (typeof obj[key] === 'function') {
       descriptor.value = obj[key];

@@ -3,7 +3,7 @@ const hasLookupFunctions = !!div.__lookupGetter__;
 
 export default function (obj, key) {
   if (hasLookupFunctions) {
-    if (obj.constructor.toString().match('Element')) {
+    if (obj instanceof Node) {
       obj = div;
     }
 

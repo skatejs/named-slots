@@ -154,7 +154,8 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
 
   if (slotInsertBeforeIndex > -1) {
     if (shouldAffectSlot) {
-      slot.__insertBefore(node, (insertBefore !== undefined) ? insertBefore : null); // // there should be proper refnode or null, no undefined allowed
+      insertBefore = (insertBefore !== undefined) ? insertBefore : null;
+      slot.__insertBefore(node, (insertBefore !== undefined) ? insertBefore : null); // there should be proper refnode or null, no undefined allowed
     }
 
     assignedNodes.splice(slotInsertBeforeIndex, 0, node);
@@ -232,7 +233,7 @@ function registerNode (host, node, insertBefore, func) {
       } else {
         arrProto.push.call(host.childNodes, eachNode);
       }
-    } catch(e) {}
+    } catch(e) {} // eslint-disable-line no-empty
   });
 }
 
@@ -251,13 +252,14 @@ function unregisterNode (host, node, func) {
     // Opera 12 throws a error when NodeList is manipulated with arrProto.splice
     try {
       arrProto.splice.call(host.childNodes, index, 1);
-    } catch(e) {}
+    } catch(e) {} // eslint-disable-line no-empty
   }
 }
 
 function addNodeToNode (host, node, insertBefore) {
   registerNode(host, node, insertBefore, function (eachNode) {
-    host.__insertBefore(eachNode, (insertBefore !== undefined) ? insertBefore : null); // // there should be proper refnode or null, no undefined allowed
+    insertBefore = (insertBefore !== undefined) ? insertBefore : null;
+    host.__insertBefore(eachNode, insertBefore); // there should be proper refnode or null, no undefined allowed
   });
 }
 
@@ -370,7 +372,8 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
 
   if (nodeType === 'node') {
     if (canPatchNativeAccessors) {
-      return host.__insertBefore(newNode, (refNode !== undefined) ? refNode : null); // there should be proper refnode or null, no undefined allowed
+      refNode = (refNode !== undefined) ? refNode : null;
+      return host.__insertBefore(newNode, refNode); // there should be proper refnode or null, no undefined allowed
     } else {
       return addNodeToNode(host, newNode, refNode);
     }
@@ -764,13 +767,18 @@ if (!('attachShadow' in document.createElement('div'))) {
     memberProperty.configurable = true;
     // Applying to the data properties only since we can't have writable accessor properties
     if (memberProperty.hasOwnProperty('value')) {
-      memberProperty.writable = true
+      memberProperty.writable = true;
     }
 
     // Polyfill as much as we can and work around WebKit in other areas.
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
-      Object.defineProperty(elementProto, memberName, memberProperty);
+
+      // Some properties could be unconfigurable
+      if (!nativeDescriptor || nativeDescriptor.configurable !== false) {
+        Object.defineProperty(elementProto, memberName, memberProperty);
+      }
+
       if (nativeDescriptor) {
         Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
       }

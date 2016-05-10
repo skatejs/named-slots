@@ -865,7 +865,7 @@
       },
       parentNode: {
         get: function get() {
-          return nodeToParentNodeMap.get(this) || null;
+          return nodeToParentNodeMap.get(this) || this.__parentNode || null;
         }
       },
       previousSibling: {

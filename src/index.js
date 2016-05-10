@@ -155,7 +155,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
   if (slotInsertBeforeIndex > -1) {
     if (shouldAffectSlot) {
       insertBefore = (insertBefore !== undefined) ? insertBefore : null;
-      slot.__insertBefore(node, (insertBefore !== undefined) ? insertBefore : null); // there should be proper refnode or null, no undefined allowed
+      slot.__insertBefore(node, insertBefore); // there should be proper refnode or null, no undefined allowed
     }
 
     assignedNodes.splice(slotInsertBeforeIndex, 0, node);

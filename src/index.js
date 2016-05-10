@@ -154,8 +154,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
 
   if (slotInsertBeforeIndex > -1) {
     if (shouldAffectSlot) {
-      insertBefore = (insertBefore !== undefined) ? insertBefore : null;
-      slot.__insertBefore(node, insertBefore); // there should be proper refnode or null, no undefined allowed
+      slot.__insertBefore(node, (insertBefore !== undefined) ? insertBefore : null); // // there should be proper refnode or null, no undefined allowed
     }
 
     assignedNodes.splice(slotInsertBeforeIndex, 0, node);
@@ -258,8 +257,7 @@ function unregisterNode (host, node, func) {
 
 function addNodeToNode (host, node, insertBefore) {
   registerNode(host, node, insertBefore, function (eachNode) {
-    insertBefore = (insertBefore !== undefined) ? insertBefore : null;
-    host.__insertBefore(eachNode, insertBefore); // there should be proper refnode or null, no undefined allowed
+    host.__insertBefore(eachNode, (insertBefore !== undefined) ? insertBefore : null); // // there should be proper refnode or null, no undefined allowed
   });
 }
 
@@ -372,8 +370,7 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
 
   if (nodeType === 'node') {
     if (canPatchNativeAccessors) {
-      refNode = (refNode !== undefined) ? refNode : null;
-      return host.__insertBefore(newNode, refNode); // there should be proper refnode or null, no undefined allowed
+      return host.__insertBefore(newNode, (refNode !== undefined) ? refNode : null); // there should be proper refnode or null, no undefined allowed
     } else {
       return addNodeToNode(host, newNode, refNode);
     }
@@ -774,11 +771,7 @@ if (!('attachShadow' in document.createElement('div'))) {
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = findDescriptorFor(memberName);
 
-      // Some properties could be unconfigurable
-      if (!nativeDescriptor || nativeDescriptor.configurable !== false) {
-        Object.defineProperty(elementProto, memberName, memberProperty);
-      }
-
+      Object.defineProperty(elementProto, memberName, memberProperty);
       if (nativeDescriptor) {
         Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
       }

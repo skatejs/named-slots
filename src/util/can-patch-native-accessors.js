@@ -3,6 +3,6 @@
 
 import getPropertyDescriptor from './get-property-descriptor';
 
-const nativeParentNode = getPropertyDescriptor(Node.prototype, 'parentNode');
+const nativeParentNode = getPropertyDescriptor(Element.prototype, 'innerHTML');
 
 export default !!nativeParentNode;

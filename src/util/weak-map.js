@@ -22,6 +22,7 @@ export default window.WeakMap || (function () {
           Object.defineProperty(obj, key, {
             configurable: true,
             enumerable: false,
+            writable: true,
             value: val
           });
         } else {

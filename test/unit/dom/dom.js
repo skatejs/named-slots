@@ -198,7 +198,7 @@ describe('skatejs-named-slots dom', function () {
         const comment = '<!-- comment -->';
 
         host.innerHTML = processingInstruction;
-        expect(host.innerHTML).to.equal(processingInstructionsAfterInnerHtml || processingInstruction);
+        expect([processingInstruction, processingInstructionsAfterInnerHtml].indexOf(host.innerHTML)).to.be.above(-1);
 
         host.innerHTML = comment;
         expect(host.innerHTML).to.equal(comment);

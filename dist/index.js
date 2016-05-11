@@ -34,16 +34,24 @@
     }
 
     var div = document.createElement('div');
-    var hasLookupFunctions = !!div.__lookupGetter__;
 
+    function getPrototype(obj, key) {
+      var descriptor = void 0;
+
+      while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) {
+        obj = Object.getPrototypeOf(obj);
+      }
+      return descriptor;
+    }
     function getPropertyDescriptor (obj, key) {
-      if (hasLookupFunctions) {
-        if (obj instanceof Node) {
-          obj = div;
-        }
+      if (obj instanceof Node) {
+        obj = div;
+      }
+      var proto = getPrototype(obj, key);
 
-        var getter = obj.__lookupGetter__(key);
-        var setter = obj.__lookupSetter__(key);
+      if (proto) {
+        var getter = proto.get;
+        var setter = proto.set;
         var _descriptor = {
           configurable: true,
           enumerable: true
@@ -150,7 +158,7 @@
      * @param {commentNode}
      */
     function getCommentNodeOuterHtml(commentNode) {
-      return "<!--" + commentNode.textContent + "-->";
+      return commentNode.text || "<!--" + commentNode.textContent + "-->";
     }
 
     var version = '0.0.1';
@@ -190,6 +198,21 @@
       };
       return Wm;
     }();
+
+    // polyfilling CustomEvent for the IE
+    (function () {
+      if (typeof window.CustomEvent === 'function') return false;
+
+      function CustomEvent(event, params) {
+        params = params || { bubbles: false, cancelable: false, detail: undefined };
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+        return evt;
+      }
+
+      CustomEvent.prototype = window.Event.prototype;
+      window.CustomEvent = CustomEvent;
+    })();
 
     var arrProto = Array.prototype;
     var forEach = arrProto.forEach;
@@ -347,7 +370,7 @@
       }
 
       if (slotInsertBeforeIndex > -1) {
-        slot.__insertBefore(node, insertBefore);
+        slot.__insertBefore(node, insertBefore !== undefined ? insertBefore : null);
         assignedNodes.splice(slotInsertBeforeIndex, 0, node);
       } else {
         slot.__appendChild(node);
@@ -437,7 +460,7 @@
 
     function addNodeToNode(host, node, insertBefore) {
       registerNode(host, node, insertBefore, function (eachNode) {
-        host.__insertBefore(eachNode, insertBefore);
+        host.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
       });
     }
 
@@ -476,7 +499,7 @@
       var isInDefaultMode = slot.getAssignedNodes().length === 0;
       registerNode(slot, node, insertBefore, function (eachNode) {
         if (isInDefaultMode) {
-          slot.__insertBefore(eachNode, insertBefore);
+          slot.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
         }
       });
     }
@@ -583,7 +606,7 @@
       if (nodeType === 'node') {
         if (canPatchNativeAccessors) {
           nodeToParentNodeMap.set(newNode, host);
-          return host.__insertBefore(newNode, refNode);
+          return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
         } else {
           return addNodeToNode(host, newNode, refNode);
         }
@@ -836,7 +859,7 @@
       nextElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && child.nodeType === 1) {
               return child;
@@ -881,7 +904,7 @@
       previousElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && host === child) {
               return found;

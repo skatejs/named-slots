@@ -198,8 +198,8 @@ describe('light/polyfill', function () {
 
     it('should NOT polyfill textContent of textNode', function () {
       expect(text.textContent).to.equal('text');
-      expect(text.__proto__.hasOwnProperty('textContent')).to.be.false;
-      expect(text.__proto__.hasOwnProperty('__textContent')).to.be.false;
+      expect(Object.getPrototypeOf(text).hasOwnProperty('textContent')).to.be.false;
+      expect(Object.getPrototypeOf(text).hasOwnProperty('__textContent')).to.be.false;
     });
   });
 });

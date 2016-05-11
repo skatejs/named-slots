@@ -1,14 +1,22 @@
 const div = document.createElement('div');
-const hasLookupFunctions = !!div.__lookupGetter__;
 
+function getPrototype(obj, key) {
+  let descriptor;
+
+  while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) {
+    obj = Object.getPrototypeOf(obj);
+  }
+  return descriptor;
+}
 export default function (obj, key) {
-  if (hasLookupFunctions) {
-    if (obj instanceof Node) {
-      obj = div;
-    }
+  if (obj instanceof Node) {
+    obj = div;
+  }
+  let proto = getPrototype(obj, key);
 
-    const getter = obj.__lookupGetter__(key);
-    const setter = obj.__lookupSetter__(key);
+  if (proto) {
+    const getter = proto.get;
+    const setter = proto.set;
     const descriptor = {
       configurable: true,
       enumerable: true

@@ -6,6 +6,7 @@ import getEscapedTextContent from './util/get-escaped-text-content';
 import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import version from './version';
 import WeakMap from './util/weak-map';
+import './fix/ie';
 
 const arrProto = Array.prototype;
 const { forEach } = arrProto;
@@ -160,7 +161,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
   }
 
   if (slotInsertBeforeIndex > -1) {
-    slot.__insertBefore(node, insertBefore);
+    slot.__insertBefore(node, insertBefore !== undefined ? insertBefore : null);
     assignedNodes.splice(slotInsertBeforeIndex, 0, node);
   } else {
     slot.__appendChild(node);
@@ -248,7 +249,7 @@ function unregisterNode (host, node, func) {
 
 function addNodeToNode (host, node, insertBefore) {
   registerNode(host, node, insertBefore, function (eachNode) {
-    host.__insertBefore(eachNode, insertBefore);
+    host.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
   });
 }
 
@@ -287,7 +288,7 @@ function addNodeToSlot (slot, node, insertBefore) {
   const isInDefaultMode = slot.getAssignedNodes().length === 0;
   registerNode(slot, node, insertBefore, function (eachNode) {
     if (isInDefaultMode) {
-      slot.__insertBefore(eachNode, insertBefore);
+      slot.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
     }
   });
 }
@@ -394,7 +395,7 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
   if (nodeType === 'node') {
     if (canPatchNativeAccessors) {
       nodeToParentNodeMap.set(newNode, host);
-      return host.__insertBefore(newNode, refNode);
+      return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
     } else {
       return addNodeToNode(host, newNode, refNode);
     }

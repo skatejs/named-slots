@@ -198,7 +198,7 @@ describe('skatejs-named-slots dom', function () {
         const comment = '<!-- comment -->';
 
         host.innerHTML = processingInstruction;
-        expect(host.innerHTML).to.equal(processingInstructionsAfterInnerHtml);
+        expect(host.innerHTML).to.equal(processingInstructionsAfterInnerHtml || processingInstruction);
 
         host.innerHTML = comment;
         expect(host.innerHTML).to.equal(comment);
@@ -300,7 +300,6 @@ describe('skatejs-named-slots dom', function () {
 
     it('outerHTML', function () {
       expect(host.outerHTML).to.equal('<div></div>');
-
       host.innerHTML = '<div slot="custom"></div>';
       expect(host.outerHTML).to.equal('<div><div slot="custom"></div></div>');
       expect(host.childNodes.length).to.equal(1);

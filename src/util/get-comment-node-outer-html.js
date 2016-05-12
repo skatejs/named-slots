@@ -3,5 +3,5 @@
  * @param {commentNode}
  */
 export default function getCommentNodeOuterHtml (commentNode) {
-  return `<!--${commentNode.textContent}-->`;
+  return commentNode.text || `<!--${commentNode.textContent}-->`;
 }

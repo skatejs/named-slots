@@ -198,7 +198,7 @@ describe('skatejs-named-slots dom', function () {
         const comment = '<!-- comment -->';
 
         host.innerHTML = processingInstruction;
-        expect(host.innerHTML).to.equal(processingInstructionsAfterInnerHtml);
+        expect([processingInstruction, processingInstructionsAfterInnerHtml].indexOf(host.innerHTML)).to.be.above(-1);
 
         host.innerHTML = comment;
         expect(host.innerHTML).to.equal(comment);
@@ -300,7 +300,6 @@ describe('skatejs-named-slots dom', function () {
 
     it('outerHTML', function () {
       expect(host.outerHTML).to.equal('<div></div>');
-
       host.innerHTML = '<div slot="custom"></div>';
       expect(host.outerHTML).to.equal('<div><div slot="custom"></div></div>');
       expect(host.childNodes.length).to.equal(1);
@@ -315,6 +314,15 @@ describe('skatejs-named-slots dom', function () {
       expect(host.outerHTML).to.equal('<div><div></div></div>');
       expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
+    });
+  });
+
+  describe('DocumentFragment', function () {
+    it('should report the corect parent node for nested nodes', function () {
+      const frag = document.createDocumentFragment();
+      const elem = document.createElement('div');
+      frag.appendChild(elem);
+      expect(elem.parentNode).to.equal(frag);
     });
   });
 });

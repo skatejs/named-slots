@@ -33,9 +33,49 @@
       }
     }
 
-    // Any code referring to this is because it has to work around this bug in
-    // WebKit: https://bugs.webkit.org/show_bug.cgi?id=49739
-    var canPatchNativeAccessors = !!(Object.getOwnPropertyDescriptor(window.Node.prototype, 'parentNode') && Object.getOwnPropertyDescriptor(window.Node.prototype, 'parentNode').get);
+    var div = document.createElement('div');
+
+    function getPrototype(obj, key) {
+      var descriptor = void 0;
+
+      while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) {
+        obj = Object.getPrototypeOf(obj);
+      }
+      return descriptor;
+    }
+    function getPropertyDescriptor (obj, key) {
+      if (obj instanceof Node) {
+        obj = div;
+      }
+      var proto = getPrototype(obj, key);
+
+      if (proto) {
+        var getter = proto.get;
+        var setter = proto.set;
+        var _descriptor = {
+          configurable: true,
+          enumerable: true
+        };
+
+        if (getter) {
+          _descriptor.get = getter;
+          _descriptor.set = setter;
+          return _descriptor;
+        } else if (typeof obj[key] === 'function') {
+          _descriptor.value = obj[key];
+          return _descriptor;
+        }
+      }
+
+      var descriptor = Object.getOwnPropertyDescriptor(obj, key);
+      if (descriptor && descriptor.get) {
+        return descriptor;
+      }
+    }
+
+    var nativeParentNode = getPropertyDescriptor(Element.prototype, 'innerHTML');
+
+    var canPatchNativeAccessors = !!nativeParentNode;
 
     var index$1 = __commonjs(function (module) {
     module.exports = Date.now || now;
@@ -118,7 +158,7 @@
      * @param {commentNode}
      */
     function getCommentNodeOuterHtml(commentNode) {
-      return "<!--" + commentNode.textContent + "-->";
+      return commentNode.text || "<!--" + commentNode.textContent + "-->";
     }
 
     var version = '0.0.1';
@@ -147,6 +187,7 @@
               Object.defineProperty(obj, key, {
                 configurable: true,
                 enumerable: false,
+                writable: true,
                 value: val
               });
             } else {
@@ -157,6 +198,21 @@
       };
       return Wm;
     }();
+
+    // polyfilling CustomEvent for the IE
+    (function () {
+      if (typeof window.CustomEvent === 'function') return false;
+
+      function CustomEvent(event, params) {
+        params = params || { bubbles: false, cancelable: false, detail: undefined };
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+        return evt;
+      }
+
+      CustomEvent.prototype = window.Event.prototype;
+      window.CustomEvent = CustomEvent;
+    })();
 
     var arrProto = Array.prototype;
     var forEach = arrProto.forEach;
@@ -175,10 +231,7 @@
     // original values at some point.
     var polyfillAtRuntime = ['childNodes', 'parentNode'];
 
-    // These are the protos that we need to search for native descriptors on.
-    var protos = ['Node', 'Element', 'EventTarget'];
-
-    //some properties that should not be overridden in the Text prototype
+    // Some properties that should not be overridden in the Text prototype.
     var doNotOverridePropertiesInTextNodes = ['textContent'];
 
     // Private data stores.
@@ -191,20 +244,25 @@
     var rootToHostMap = new WeakMap();
     var rootToSlotMap = new WeakMap();
 
-    // * WebKit only *
-    //
-    // We require some way to parse HTML natively because we can't use the native
-    // accessors.
-
+    // Unfortunately manual DOM parsing is because of WebKit.
     var parser = new DOMParser();
     function parse(html) {
       var tree = document.createElement('div');
+
+      // Everything not WebKit can do this easily.
+      if (canPatchNativeAccessors) {
+        tree.__innerHTML = html;
+        return tree;
+      }
+
       var parsed = parser.parseFromString('<div>' + html + '</div>', 'text/html').body.firstChild;
+
       while (parsed.hasChildNodes()) {
         var firstChild = parsed.firstChild;
         parsed.removeChild(firstChild);
         tree.appendChild(firstChild);
       }
+
       // Need to import the node to initialise the custom elements from the parser.
       return document.importNode(tree, true);
     }
@@ -312,7 +370,7 @@
       }
 
       if (slotInsertBeforeIndex > -1) {
-        slot.__insertBefore(node, insertBefore);
+        slot.__insertBefore(node, insertBefore !== undefined ? insertBefore : null);
         assignedNodes.splice(slotInsertBeforeIndex, 0, node);
       } else {
         slot.__appendChild(node);
@@ -386,6 +444,7 @@
     // Cleans up registerNode().
     function unregisterNode(host, node, func) {
       var index = indexOfNode(host, node);
+
       if (index > -1) {
         func(node, 0);
 
@@ -401,7 +460,7 @@
 
     function addNodeToNode(host, node, insertBefore) {
       registerNode(host, node, insertBefore, function (eachNode) {
-        host.__insertBefore(eachNode, insertBefore);
+        host.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
       });
     }
 
@@ -440,7 +499,7 @@
       var isInDefaultMode = slot.getAssignedNodes().length === 0;
       registerNode(slot, node, insertBefore, function (eachNode) {
         if (isInDefaultMode) {
-          slot.__insertBefore(eachNode, insertBefore);
+          slot.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
         }
       });
     }
@@ -546,7 +605,8 @@
 
       if (nodeType === 'node') {
         if (canPatchNativeAccessors) {
-          return host.__insertBefore(newNode, refNode);
+          nodeToParentNodeMap.set(newNode, host);
+          return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
         } else {
           return addNodeToNode(host, newNode, refNode);
         }
@@ -921,47 +981,41 @@
       }
     };
 
-    function findDescriptorFor(name) {
-      for (var a = 0; a < protos.length; a++) {
-        var ctor = window[protos[a]];
-        if (!ctor) {
-          continue;
-        }
-        var proto = ctor.prototype;
-        if (proto.hasOwnProperty(name)) {
-          return Object.getOwnPropertyDescriptor(proto, name);
-        }
-      }
-    }
-
     if (!('attachShadow' in document.createElement('div'))) {
       (function () {
         var elementProto = HTMLElement.prototype;
         var textProto = Text.prototype;
+        var textNode = document.createTextNode('');
+
         Object.keys(members).forEach(function (memberName) {
           var memberProperty = members[memberName];
 
           // All properties should be configurable.
           memberProperty.configurable = true;
-          // Applying to the data properties only since we can't have writable accessor properties
+
+          // Applying to the data properties only since we can't have writable accessor properties.
           if (memberProperty.hasOwnProperty('value')) {
             memberProperty.writable = true;
           }
 
           // Polyfill as much as we can and work around WebKit in other areas.
           if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
-            var nativeDescriptor = findDescriptorFor(memberName);
+            var nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
+            var nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
+            var shouldOverrideInTextNode = memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
+
             Object.defineProperty(elementProto, memberName, memberProperty);
-            var isDefinedInTextProto = memberName in textProto;
-            var shouldOverrideInTextNode = doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
-            if (isDefinedInTextProto && shouldOverrideInTextNode) {
+
+            if (nativeDescriptor) {
+              Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+            }
+
+            if (shouldOverrideInTextNode) {
               Object.defineProperty(textProto, memberName, memberProperty);
             }
-            if (nativeDescriptor && nativeDescriptor.configurable) {
-              Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
-              if (isDefinedInTextProto && shouldOverrideInTextNode) {
-                Object.defineProperty(textProto, '__' + memberName, nativeDescriptor);
-              }
+
+            if (shouldOverrideInTextNode && nativeTextDescriptor) {
+              Object.defineProperty(textProto, '__' + memberName, nativeDescriptor);
             }
           }
         });

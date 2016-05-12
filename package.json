@@ -30,7 +30,7 @@
     "eslint": "1.10.3",
     "eslint-plugin-react": "^3.16.1",
     "gulp": "gulpjs/gulp#73eced0",
-    "skatejs-build": "skatejs/build#22dc0e294891189a329bcdc5d22f75295b007ec8"
+    "skatejs-build": "skatejs/build#e25d583fea5f3fc590aed2ee274d37daebf279a2"
   },
   "dependencies": {
     "debounce": "^1.0.0"

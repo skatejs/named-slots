@@ -30,7 +30,7 @@
     "eslint": "1.10.3",
     "eslint-plugin-react": "^3.16.1",
     "gulp": "gulpjs/gulp#73eced0",
-    "skatejs-build": "skatejs/build#e25d583fea5f3fc590aed2ee274d37daebf279a2"
+    "skatejs-build": "skatejs/build#ddcfadb9e920aeba3850c793c78cd1efbdb7c8ed"
   },
   "dependencies": {
     "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",

@@ -33,6 +33,8 @@
     "skatejs-build": "skatejs/build#e25d583fea5f3fc590aed2ee274d37daebf279a2"
   },
   "dependencies": {
-    "debounce": "^1.0.0"
+    "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",
+    "debounce": "^1.0.0",
+    "weakmap": "0.0.6"
   }
 }

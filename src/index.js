@@ -5,8 +5,8 @@ import debounce from 'debounce';
 import getEscapedTextContent from './util/get-escaped-text-content';
 import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import version from './version';
-import WeakMap from './util/weak-map';
-import './fix/ie';
+import WeakMap from 'weakmap';
+import 'custom-event-polyfill';
 
 const arrProto = Array.prototype;
 const { forEach } = arrProto;

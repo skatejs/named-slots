@@ -662,6 +662,15 @@ const members = {
         return ` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`;
       }).join('');
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
+    },
+
+    set (outerHTML) {
+      if (this.parentNode) {
+        const parsed = parse(outerHTML);
+        this.parentNode.replaceChild(parsed.firstChild, this);
+      } else {
+        throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node');
+      }
     }
   },
   parentElement: {

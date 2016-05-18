@@ -372,7 +372,7 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
 
   // Ensure childNodes is patched so we can manually update it for WebKit.
   if (!canPatchNativeAccessors && !host.childNodes.push) {
-    staticProp(host, 'childNodes', []);
+    staticProp(host, 'childNodes', [...host.childNodes]);
   }
 
   if (rootNode && getNodeType(newNode) === 'slot') {

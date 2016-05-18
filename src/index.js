@@ -344,6 +344,7 @@ function removeNodeFromRoot (root, node) {
         removeSlotFromRoot(root, nodes[a]);
       }
     }
+    root.__removeChild(node);
   });
 }
 

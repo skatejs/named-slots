@@ -316,31 +316,31 @@ describe('skatejs-named-slots dom', function () {
       expect(slot.getAssignedNodes().length).to.equal(1);
 
       // check normal behaviour of the 'outerHTML' property
-      root.innerHTML = "<div><div></div><div></div></div>";
-      root.childNodes[0].childNodes[0].outerHTML = "<p></p>";
-      expect(root.innerHTML).to.equal( "<div><p></p><div></div></div>");
+      root.innerHTML = '<div><div></div><div></div></div>';
+      root.childNodes[0].childNodes[0].outerHTML = '<p></p>';
+      expect(root.innerHTML).to.equal( '<div><p></p><div></div></div>');
 
-      root.innerHTML = "<div><div></div><div></div></div>";
-      root.childNodes[0].outerHTML = "<p></p>";
-      expect(root.innerHTML).to.equal( "<p></p>");
+      root.innerHTML = '<div><div></div><div></div></div>';
+      root.childNodes[0].outerHTML = '<p></p>';
+      expect(root.innerHTML).to.equal('<p></p>');
 
-      host.innerHTML = "<div><div></div><div></div></div>";
-      host.childNodes[0].childNodes[0].outerHTML = "<p></p>";
-      expect(host.innerHTML).to.equal( "<div><p></p><div></div></div>");
+      host.innerHTML = '<div><div></div><div></div></div>';
+      host.childNodes[0].childNodes[0].outerHTML = '<p></p>';
+      expect(host.innerHTML).to.equal('<div><p></p><div></div></div>');
 
-      host.innerHTML = "<div><div></div><div></div></div>";
-      host.childNodes[0].outerHTML = "<p></p>";
-      expect(host.innerHTML).to.equal( "<p></p>");
+      host.innerHTML = '<div><div></div><div></div></div>';
+      host.childNodes[0].outerHTML = '<p></p>';
+      expect(host.innerHTML).to.equal('<p></p>');
 
       // host has no parentNode so we expect is to throw an error
       expect(function() {
-        host.outerHTML = "<p></p>";
+        host.outerHTML = '<p></p>';
       }).to.throw('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node');
 
-      root.innerHTML = "<div></div>";
+      root.innerHTML = '<div></div>';
       // we can't change root with this, so nothing should happen
-      root.outerHTML = "<p></p>";
-      expect(root.outerHTML).to.equal("<_shadow_root_><div></div></_shadow_root_>");
+      root.outerHTML = '<p></p>';
+      expect(root.outerHTML).to.equal('<_shadow_root_><div></div></_shadow_root_>');
     });
   });
 

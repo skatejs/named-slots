@@ -1,5 +1,6 @@
 import create from '../../lib/create';
 import hasAllAttributes from '../../lib/has-all-attributes';
+import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
 describe('skatejs-named-slots dom', function () {
   let host, root, slot;
@@ -332,10 +333,34 @@ describe('skatejs-named-slots dom', function () {
       host.childNodes[0].outerHTML = '<p></p>';
       expect(host.innerHTML).to.equal('<p></p>');
 
-      // host has no parentNode so we expect is to throw an error
-      expect(function() {
-        host.outerHTML = '<p></p>';
-      }).to.throw('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node');
+      // host has no parentNode so we expect is to throw an error in some browsers, otherwise do nothing
+      const errorMsg = 'Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.';
+      const errorMsgOpera = 'Failed to call host setter';
+      host.innerHTML = '';
+      expect(host.outerHTML).to.equal('<div></div>');
+
+      if (canPatchNativeAccessors) {
+        try {
+          host.__outerHTML = '';
+        } catch(e) {
+          expect(function() {
+            host.outerHTML = '<p></p>';
+          }).to.throw(Error);
+
+          try {
+            host.outerHTML = '<p></p>';
+          } catch(e) {
+            expect([errorMsg, errorMsgOpera].indexOf(e.message)).to.be.above(-1);
+          }
+        }
+      } else {
+        expect(function() {
+          host.outerHTML = '<p></p>';
+        }).to.throw(Error, errorMsg);
+      }
+
+      //after all that above it should stay the same
+      expect(host.outerHTML).to.equal('<div></div>');
 
       root.innerHTML = '<div></div>';
       // we can't change root with this, so nothing should happen

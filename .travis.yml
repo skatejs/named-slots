@@ -1,11 +1,19 @@
 sudo: false
 language: node_js
-node_js:
-- stable
+node_js: stable
 before_script:
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
 - npm install
 script:
-- npm run lint
-- if [ "${TRAVIS_SECURE_ENV_VARS}" = "true" ]; then npm test -- --saucelabs; else npm test -- --browsers Firefox; fi
+- bundle
+- if [ "${TRAVIS_SECURE_ENV_VARS}" = "true" ]; then
+  npm test -- --saucelabs;
+  else
+  npm test -- --browsers Firefox;
+  fi
+env:
+  global:
+  - secure: vaPTv+M7Mr9ruyH0T54ng4V/gA66qApEXYARzTI+m93o9dpGYXH6jgZmRafrSjZstPnHANcdn3eEMZfLennZ23vcMpARbJmIEsI8yrN1NTegydaW7/eIxfVmPSYt+L4SgvwbcjkkESvYVyFfG/AMbXbqZNyIku5JjRvpoD3n0z2bsYi5JRC2sP+Cf97OlO6331X9wCjkyKSQpq/8I2djAVIoK86zuzs/2Pr4d1xUT6sRLTOxf3vzguoc521iTGJDv9aBXTJ1W0X8rWfIewD4Ti5mZg4btCwPBjgczY5gPuPtko6QAoPeAKHhrSxQM43uvreR9EdoiI7AsI+JXzLmGmz7T1HyN1s4jb5VK9S8fuKX8AKqDz8z6rT7dDR3AHOUnKP4uameRYVTagz3a52Uqw2bqQvufINyBTFzgclW6Lmde/xZ3AiXEu3pE5i4e3PoUyrIwZXRzvN3lal57R+QfRu/kWYl2X5XIaSnhg4fgFvY/ts2KdlwcpYP/AulBpsnlQCkj/SFKiysqB6x9tm9TUxX7VGwS7OjsP6cjwkW4OGS7KhjEhLTqmpLHWzrmAoh+PN04+N0Ytk9THY+oylQTJYF6+6yAxMurjx255U2PQlN6bsWYMKIIqeaSm1Qe1FQz6hrNH9EnLrtHBBROdu2ttfBJeiA4N9DauF1rClryiY=
+  - secure: ePgyI1cDxt4Fkm/eUVXkBy6M8dbrU5SViDqVNfiDQlMEbp9tfoPGxEGmZoE0pKCcIhLk3jtczR5OVggFVUCG2gllkmnCIvYhu1FMp4E/jVOU1f56pcbJ/ZH8MV14/EHsGlwfOfnNj8yD3vwfDlbFcnhBa1+lpeAwP+SdLXiK19TLqhCTn3CuXzRz5+tPNzOI3kLSa2j6GF0dIhp/mr2wMv3CG1Ee4F/EB9URhb1QeMXWB4EpLeKsSSlgTSAvDLUd0d+dFTQnDT5d6s1o6BCgC/ri8SFMS+QrQ3/d7lT+BHPpnahaTNJq5BxoWOXm52rlDNZkSVTO8fPn0KQ8vxefZ/2tMOnL0kppQ3h67OJRuPKvbFs+gAvjr+OpNT7vUrYx5BYDUVsVD9DUmm//nVVUmv5hRf2aGCCwC10E1yR4AJb1LhUkxq4G3yR00T7Xqi5bYY/ST0wfwDldtPXJDUS0TafS6fmUoCiFXZzFP9Cw6p3p0jEHVUSMj0x5C5NTNXpFpY6bTq8/QLOp6yeRBZTgj62+KiqRcRdfaR1obHpG+tGi26yhlIQRl9sug6TWBWyJT8FWpmf47swD0EEm0F4HpZ46wZbF4YOi5U1Izz0b7DUZ2jFmvowhPgPxgML7wxT7WnP0OaxUffEgs655+T+mdPEqr1/ulGJ4uJQ7Ym7+X8E=
+

@@ -669,7 +669,7 @@ const members = {
         const parsed = parse(outerHTML);
         this.parentNode.replaceChild(parsed.firstChild, this);
       } else {
-        throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node');
+        throw new DOMException('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node');
       }
     }
   },

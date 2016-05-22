@@ -81,6 +81,13 @@ describe('shadow/polyfill', function () {
     it('innerHTML', function () {
       root.innerHTML = '<slot name="test"></slot>';
       expect(root.childNodes[0].name).to.equal('test');
+
+      if (canPatchNativeAccessors) {
+        root.innerHTML = '<h1></h1>';
+        root.innerHTML = '<div></div>';
+        // Checking that polyfilled innerHTML is working properly
+        expect(root.__innerHTML).to.equal('<div></div>');
+      }
     });
 
     it('insertBefore', function () {

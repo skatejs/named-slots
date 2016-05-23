@@ -35,43 +35,107 @@ describe('skatejs-named-slots dom', function () {
 
   describe('methods', function () {
     it('appendChild()', function () {
-      const light1 = document.createElement('light-1');
-      const light2 = document.createElement('light-2');
+      testAppendChild(host, true);
+      root.innerHTML = '';
+      testAppendChild(root);
+      testAppendChild(document.createElement('div'));
 
-      host.appendChild(light1);
-      expect(host.childNodes[0]).to.equal(light1, 'internal light dom');
+      function testAppendChild(elem, isHost) {
+        const light1 = document.createElement('div');
+        const light2 = document.createElement('div');
+        const text1 = document.createTextNode('text');
+        const text2 = document.createTextNode('text2');
+        const comm1 = document.createComment('comment');
+        const comm2 = document.createComment('comment2');
 
-      expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+        elem.appendChild(light1);
+        expect(elem.childNodes[0]).to.equal(light1);
+        expect(elem.childNodes.length).to.equal(1);
+        expect(elem.innerHTML).to.equal('<div></div>');
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div></slot></_shadow_root_>');
+        } else {
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div>');
+        }
 
-      expect(host.childNodes.length).to.equal(1, 'light');
-      expect(host.childNodes[0]).to.equal(light1, 'light');
 
-      host.appendChild(light2);
-      expect(host.childNodes[1]).to.equal(light2, 'internal light dom');
+        elem.appendChild(light2);
+        expect(elem.childNodes[1]).to.equal(light2);
+        expect(elem.childNodes.length).to.equal(2);
+        expect(elem.innerHTML).to.equal('<div></div><div></div>');
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+          expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div></slot></_shadow_root_>');
+        } else {
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div><div></div>');
+        }
 
-      expect(slot.getAssignedNodes().length).to.equal(2, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
-      expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+        elem.appendChild(text1);
+        expect(elem.childNodes[2]).to.equal(text1);
+        expect(elem.childNodes.length).to.equal(3);
+        expect(elem.innerHTML).to.equal('<div></div><div></div>text');
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(3, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+          expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+          expect(slot.getAssignedNodes()[2]).to.equal(text1, 'slot');
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div>text</slot></_shadow_root_>');
+        } else {
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div><div></div>text');
+        }
 
-      expect(host.childNodes.length).to.equal(2, 'light');
-      expect(host.childNodes[0]).to.equal(light1, 'light');
-      expect(host.childNodes[1]).to.equal(light2, 'light');
+        elem.appendChild(text2);
+        expect(elem.childNodes[3]).to.equal(text2);
+        expect(elem.childNodes.length).to.equal(4);
+        expect(elem.innerHTML).to.equal('<div></div><div></div>texttext2');
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(4, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+          expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+          expect(slot.getAssignedNodes()[2]).to.equal(text1, 'slot');
+          expect(slot.getAssignedNodes()[3]).to.equal(text2, 'slot');
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div>texttext2</slot></_shadow_root_>');
+        } else {
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div><div></div>texttext2');
+        }
 
-      expect(div1.childNodes.length).to.equal(3);
-      expect(div1.childNodes[0]).to.equal(div2);
-      expect(div1.childNodes[1]).to.equal(div3);
-      expect(div1.childNodes[2]).to.equal(div5);
-      expect(div1.innerHTML).to.equal('<div></div><div><div></div></div><div></div>');
+        elem.appendChild(comm1);
+        expect(elem.childNodes[4]).to.equal(comm1);
+        expect(elem.childNodes.length).to.equal(5);
+        expect(elem.innerHTML).to.equal('<div></div><div></div>texttext2<!--comment-->');
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(5, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+          expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+          expect(slot.getAssignedNodes()[2]).to.equal(text1, 'slot');
+          expect(slot.getAssignedNodes()[3]).to.equal(text2, 'slot');
+          expect(slot.getAssignedNodes()[4]).to.equal(comm1, 'slot');
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div>texttext2<!--comment--></slot></_shadow_root_>');
+        } else {
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div><div></div>texttext2<!--comment-->');
+        }
 
-      root.appendChild(div2);
-      root.appendChild(div1);
-
-      expect(root.childNodes[0]).to.equal(slot);
-      expect(root.childNodes[1]).to.equal(div2);
-      expect(root.childNodes[2]).to.equal(div1);
-      expect(root.innerHTML).to.equal('<slot></slot><div></div><div><div><div></div></div><div></div></div>');
-
+        elem.appendChild(comm2);
+        expect(elem.childNodes[5]).to.equal(comm2);
+        expect(elem.childNodes.length).to.equal(6);
+        expect(elem.innerHTML).to.equal('<div></div><div></div>texttext2<!--comment--><!--comment2-->');
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(6, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+          expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
+          expect(slot.getAssignedNodes()[2]).to.equal(text1, 'slot');
+          expect(slot.getAssignedNodes()[3]).to.equal(text2, 'slot');
+          expect(slot.getAssignedNodes()[4]).to.equal(comm1, 'slot');
+          expect(slot.getAssignedNodes()[5]).to.equal(comm2, 'slot');
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div>texttext2<!--comment--><!--comment2--></slot></_shadow_root_>');
+        } else {
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div><div></div>texttext2<!--comment--><!--comment2-->');
+        }
+      }
     });
 
     it('hasChildNodes', function () {

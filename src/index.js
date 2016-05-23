@@ -349,8 +349,10 @@ function removeNodeFromRoot (root, node) {
       removeSlotFromRoot(root, node);
     } else {
       const nodes = node.querySelectorAll && node.querySelectorAll('slot');
-      for (let a = 0; a < nodes.length; a++) {
-        removeSlotFromRoot(root, nodes[a]);
+      if (nodes) {
+        for (let a = 0; a < nodes.length; a++) {
+          removeSlotFromRoot(root, nodes[a]);
+        }
       }
     }
     root.__removeChild(node);

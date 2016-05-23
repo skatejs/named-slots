@@ -733,40 +733,101 @@ describe('skatejs-named-slots dom', function () {
       }
     });
 
-    it.only('firstChild', function () {
-      expect(host.firstChild).to.equal(null);
-      add.call(host);
-      expect(host.firstChild).to.not.equal(null);
-      expect(host.firstChild.tagName).to.equal('DIV');
-      remove.call(host);
-      expect(host.firstChild).to.equal(null);
+    it('firstChild', function () {
+      testFirstChild(host);
+      root.innerHTML = '';
+      testFirstChild(root);
+      testFirstChild(document.createElement('div'));
+
+      function testFirstChild(elem) {
+        expect(elem.firstChild).to.equal(null);
+        add.call(elem);
+        expect(elem.firstChild).to.not.equal(null);
+        expect(elem.firstChild.tagName).to.equal('DIV');
+        remove.call(elem);
+        expect(elem.firstChild).to.equal(null);
+      }
     });
 
     it('firstElementChild', function () {
-      expect(host.firstChild).to.equal(null);
-      add.call(host);
-      expect(host.firstChild).to.not.equal(null);
-      expect(host.firstChild.tagName).to.equal('DIV');
-      remove.call(host);
-      expect(host.firstChild).to.equal(null);
+      testFirstElementChild(host);
+      root.innerHTML = '';
+      testFirstElementChild(root);
+      testFirstElementChild(document.createElement('div'));
+
+      function testFirstElementChild(elem) {
+        expect(elem.firstElementChild).to.equal(null);
+        add.call(elem);
+        expect(elem.firstElementChild).to.not.equal(null);
+        expect(elem.firstElementChild.tagName).to.equal('DIV');
+        remove.call(elem, elem.firstElementChild);
+        expect(elem.firstElementChild).to.equal(null);
+
+        add.call(elem, document.createTextNode('123'));
+        expect(elem.firstElementChild).to.equal(null);
+        add.call(elem);
+        expect(elem.firstElementChild).to.not.equal(null);
+        expect(elem.firstElementChild.tagName).to.equal('DIV');
+        remove.call(elem, elem.firstElementChild);
+        expect(elem.firstElementChild).to.equal(null);
+        expect(elem.innerHTML).to.equal('123')
+      }
     });
 
     it('lastChild', function () {
-      expect(host.lastChild).to.equal(null);
-      add.call(host);
-      expect(host.lastChild).to.not.equal(null);
-      expect(host.lastChild.tagName).to.equal('DIV');
-      remove.call(host);
-      expect(host.lastChild).to.equal(null);
+      testLastChild(host);
+      root.innerHTML = '';
+      testLastChild(root);
+      testLastChild(document.createElement('div'));
+
+      function testLastChild(elem) {
+        expect(elem.lastChild).to.equal(null);
+        add.call(elem);
+        expect(elem.lastChild).to.not.equal(null);
+        expect(elem.lastChild.tagName).to.equal('DIV');
+        remove.call(elem);
+        expect(elem.lastChild).to.equal(null);
+
+        add.call(elem, document.createTextNode('123'));
+        expect(elem.lastChild).to.not.equal(null);
+        expect(elem.lastChild.nodeType).to.equal(3);
+
+        add.call(elem);
+        expect(elem.lastChild).to.not.equal(null);
+        expect(elem.lastChild.nodeType).to.equal(1);
+
+        remove.call(elem, elem.lastChild);
+        expect(elem.lastChild).to.not.equal(null);
+        expect(elem.lastChild.nodeType).to.equal(3);
+
+        remove.call(elem, elem.lastChild);
+        expect(elem.lastChild).to.equal(null);
+      }
     });
 
     it('lastElementChild', function () {
-      expect(host.lastElementChild).to.equal(null);
-      add.call(host);
-      expect(host.lastElementChild).to.not.equal(null);
-      expect(host.lastElementChild.tagName).to.equal('DIV');
-      remove.call(host);
-      expect(host.lastElementChild).to.equal(null);
+      testLastElementChild(host);
+      root.innerHTML = '';
+      testLastElementChild(root);
+      testLastElementChild(document.createElement('div'));
+      
+      function testLastElementChild(elem) {
+        expect(elem.lastElementChild).to.equal(null);
+        add.call(elem);
+        expect(elem.lastElementChild).to.not.equal(null);
+        expect(elem.lastElementChild.tagName).to.equal('DIV');
+        remove.call(elem);
+        expect(elem.lastElementChild).to.equal(null);
+
+        add.call(elem, document.createTextNode('123'));
+        expect(elem.lastElementChild).to.equal(null);
+        add.call(elem);
+        expect(elem.lastElementChild).to.not.equal(null);
+        expect(elem.lastElementChild.tagName).to.equal('DIV');
+        remove.call(elem, elem.lastElementChild);
+        expect(elem.lastElementChild).to.equal(null);
+        expect(elem.innerHTML).to.equal('123')
+      }
     });
 
     it('outerHTML', function () {

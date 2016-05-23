@@ -348,15 +348,14 @@ describe('skatejs-named-slots dom', function () {
         try {
           host.__outerHTML = '';
         } catch(e) {
-          expect(function() {
-            host.outerHTML = '<p></p>';
-          }).to.throw(Error);
-
+          let counter = 0;
           try {
             host.outerHTML = '<p></p>';
           } catch(e) {
+            counter++;
             expect([errorMsg, errorMsgOpera].indexOf(e.message)).to.be.above(-1);
           }
+          expect(counter).to.equal(1);
         }
       } else {
         expect(function() {

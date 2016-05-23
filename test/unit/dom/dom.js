@@ -749,8 +749,6 @@ describe('skatejs-named-slots dom', function () {
       testChildNodes(document.createElement('div'));
 
       function testChildNodes(elem) {
-        //expect(elem.childNodes).to.be.an('array');
-        expect(elem.childNodes.item).to.be.a('function');
         expect(elem.childNodes.length).to.equal(0);
         add.call(elem);
         expect(elem.childNodes.length).to.equal(1);

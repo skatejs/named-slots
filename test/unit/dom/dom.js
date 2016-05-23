@@ -333,6 +333,11 @@ describe('skatejs-named-slots dom', function () {
       host.childNodes[0].outerHTML = '<p></p>';
       expect(host.innerHTML).to.equal('<p></p>');
 
+      root.innerHTML = '<div></div>';
+      // we can't change root with this, so nothing should happen
+      root.outerHTML = '<p></p>';
+      expect(root.outerHTML).to.equal('<_shadow_root_><div></div></_shadow_root_>');
+
       // host has no parentNode so we expect is to throw an error in some browsers, otherwise do nothing
       const errorMsg = 'Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.';
       const errorMsgOpera = 'Failed to call host setter';
@@ -361,11 +366,6 @@ describe('skatejs-named-slots dom', function () {
 
       //after all that above it should stay the same
       expect(host.outerHTML).to.equal('<div></div>');
-
-      root.innerHTML = '<div></div>';
-      // we can't change root with this, so nothing should happen
-      root.outerHTML = '<p></p>';
-      expect(root.outerHTML).to.equal('<_shadow_root_><div></div></_shadow_root_>');
     });
   });
 

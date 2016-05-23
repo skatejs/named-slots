@@ -345,18 +345,24 @@ describe('skatejs-named-slots dom', function () {
       expect(host.outerHTML).to.equal('<div></div>');
 
       if (canPatchNativeAccessors) {
+        let throwsErrorNatively = false;
         try {
           host.__outerHTML = '';
         } catch(e) {
-          let counter = 0;
+          throwsErrorNatively = true;
+        }
+
+        if (throwsErrorNatively) {
+          let throwsErrorFromPolyfill = false;
           try {
             host.outerHTML = '<p></p>';
           } catch(e) {
-            counter++;
+            throwsErrorFromPolyfill = true;
             expect([errorMsg, errorMsgOpera].indexOf(e.message)).to.be.above(-1);
           }
-          expect(counter).to.equal(1);
+          expect(throwsErrorFromPolyfill).to.equal(true);
         }
+
       } else {
         expect(function() {
           host.outerHTML = '<p></p>';

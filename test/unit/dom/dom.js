@@ -524,12 +524,12 @@ describe('skatejs-named-slots dom', function () {
 
         root.innerHTML = processingInstruction;
         expect([processingInstruction, processingInstructionsAfterInnerHtml].indexOf(root.innerHTML)).to.be.above(-1);
-        expect(root.childNodes.length).to.equal(3);
+        expect(root.childNodes.length).to.equal(1);
         canPatchNativeAccessors && expect([processingInstruction, processingInstructionsAfterInnerHtml].indexOf(root.__innerHTML)).to.be.above(-1);
 
         root.innerHTML = comment;
         expect(root.innerHTML).to.equal(comment);
-        expect(root.childNodes.length).to.equal(3);
+        expect(root.childNodes.length).to.equal(1);
         canPatchNativeAccessors && expect(root.__innerHTML).to.equal(comment);
 
         const div = document.createElement('div');
@@ -539,9 +539,8 @@ describe('skatejs-named-slots dom', function () {
 
         div.innerHTML = comment;
         expect(div.innerHTML).to.equal(comment);
-        expect(div.childNodes.length).to.equal(3);
+        expect(div.childNodes.length).to.equal(1);
         canPatchNativeAccessors && expect(div.__innerHTML).to.equal(comment);
-
       });
 
       it('setting to \'\' does not affect innerHTML', function () {

@@ -30,6 +30,12 @@ const doNotOverridePropertiesInTextNodes = ['textContent'];
 // Some new properties that should be defined in the Text prototype.
 const defineInTextNodes = ['assignedSlot'];
 
+// Some properties that should not be overridden in the Comment prototype.
+const doNotOverridePropertiesInCommNodes = ['textContent'];
+
+// Some new properties that should be defined in the Comment prototype.
+const defineInCommNodes = ['assignedSlot'];
+
 // Private data stores.
 const assignedToSlotMap = new WeakMap();
 const hostToModeMap = new WeakMap();
@@ -786,7 +792,9 @@ const members = {
 if (!('attachShadow' in document.createElement('div'))) {
   const elementProto = HTMLElement.prototype;
   const textProto = Text.prototype;
+  const commProto = Comment.prototype;
   const textNode = document.createTextNode('');
+  const commNode = document.createComment('');
 
   Object.keys(members).forEach(function (memberName) {
     const memberProperty = members[memberName];
@@ -803,7 +811,10 @@ if (!('attachShadow' in document.createElement('div'))) {
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
+      const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
+      
       const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || (defineInTextNodes.indexOf(memberName) > -1);
+      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || (defineInCommNodes.indexOf(memberName) > -1);
 
       Object.defineProperty(elementProto, memberName, memberProperty);
 
@@ -816,7 +827,15 @@ if (!('attachShadow' in document.createElement('div'))) {
       }
 
       if (shouldOverrideInTextNode && nativeTextDescriptor) {
-        Object.defineProperty(textProto, '__' + memberName, nativeDescriptor);
+        Object.defineProperty(textProto, '__' + memberName, nativeTextDescriptor);
+      }
+
+      if (shouldOverrideInCommentNode) {
+        Object.defineProperty(commProto, memberName, memberProperty);
+      }
+
+      if (shouldOverrideInCommentNode && nativeCommDescriptor) {
+        Object.defineProperty(commProto, '__' + memberName, nativeCommDescriptor);
       }
     }
   });

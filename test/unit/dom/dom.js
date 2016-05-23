@@ -266,67 +266,77 @@ describe('skatejs-named-slots dom', function () {
     });
 
     it('replaceChild()', function () {
-      const light1 = document.createElement('div');
-      const light2 = document.createElement('div');
+      testReplaceChild(host, true);
+      root.innerHTML = '';
+      testReplaceChild(root);
+      testReplaceChild(document.createElement('div'));
+      
+      function testReplaceChild(elem, isHost) {
+        const light1 = document.createElement('div');
+        const light2 = document.createElement('div');
+        const light3 = document.createTextNode('text');
+        const light4 = document.createTextNode('text');
+        const light5 = document.createElement('div');
+        const light6 = document.createElement('div');
 
-      host.appendChild(light1);
+        elem.appendChild(light1);
+        
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+        }
+        expect(elem.childNodes.length).to.equal(1);
+        expect(elem.childNodes[0]).to.equal(light1);
 
-      expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
+        elem.replaceChild(light2, light1);
+        expect(elem.childNodes.length).to.equal(1);
+        expect(elem.childNodes[0]).to.equal(light2);
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
+        }
 
-      expect(host.childNodes.length).to.equal(1, 'light');
-      expect(host.childNodes[0]).to.equal(light1, 'light');
+        elem.replaceChild(light3, elem.childNodes[0]);
+        expect(elem.childNodes.length).to.equal(1);
+        expect(elem.childNodes[0]).to.equal(light3);
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light3, 'slot');
+        }
 
-      host.replaceChild(light2, light1);
-      expect(host.childNodes.length).to.equal(1);
-      expect(host.childNodes[0]).to.equal(light2, 'internal light dom');
+        elem.replaceChild(light4, elem.childNodes[0]);
+        expect(elem.childNodes.length).to.equal(1);
+        expect(elem.childNodes[0]).to.equal(light4);
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light4, 'slot');
+        }
 
-      expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
-      expect(slot.getAssignedNodes()[0]).to.equal(light2, 'slot');
+        elem.replaceChild(light5, elem.childNodes[0]);
+        expect(elem.childNodes.length).to.equal(1);
+        expect(elem.childNodes[0]).to.equal(light5);
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
+          expect(slot.getAssignedNodes()[0]).to.equal(light5, 'slot');
+        }
 
-      expect(host.childNodes.length).to.equal(1, 'light');
-      expect(host.childNodes[0]).to.equal(light2, 'light');
+        elem.appendChild(document.createElement('div'));
+        elem.appendChild(document.createTextNode('test'));
+        expect(elem.childNodes.length).to.equal(3);
 
-      const light3 = document.createElement('div');
-      const light4 = document.createElement('div');
+        elem.replaceChild(light6, elem.childNodes[1]);
+        expect(elem.childNodes.length).to.equal(3);
+        expect(elem.childNodes[1]).to.equal(light6);
+        expect(elem.childNodes[0]).not.to.equal(light6);
+        expect(elem.childNodes[2]).not.to.equal(light6);
 
-      div1.replaceChild(light1, div1.childNodes[0]);
-      expect(div1.childNodes[0]).to.equal(light1);
-
-      div1.replaceChild(light2, light1);
-      expect(div1.childNodes[0]).to.equal(light2);
-
-      div1.replaceChild(light3, div1.childNodes[2]);
-      expect(div1.childNodes[2]).to.equal(light3);
-
-      div1.replaceChild(light4, div1.childNodes[1]);
-      expect(div1.childNodes[1]).to.equal(light4);
-
-      expect(div1.innerHTML).to.equal('<div></div><div></div><div></div>');
-
-      if (canPatchNativeAccessors) {
-        expect(div1.__innerHTML).to.equal('<div></div><div></div><div></div>');
+        if (isHost) {
+          expect(slot.getAssignedNodes().length).to.equal(3, 'slot');
+          expect(slot.getAssignedNodes()[1]).to.equal(light6, 'slot');
+          expect(slot.getAssignedNodes()[0]).not.to.equal(light6, 'slot');
+          expect(slot.getAssignedNodes()[2]).not.to.equal(light6, 'slot');
+        }
       }
-
-      let div_local1 = document.createElement('h1');
-      let div_local2 = document.createElement('h2');
-      let div_local3 = document.createElement('h3');
-
-      root.insertBefore(div_local1, root.childNodes[0]);
-      root.insertBefore(div_local3);
-      root.childNodes[2].appendChild(div_local2);
-
-      root.replaceChild(light1, root.childNodes[0]);
-      expect(root.childNodes[0]).to.equal(light1);
-
-      root.replaceChild(light2, light1);
-      expect(root.childNodes[0]).to.equal(light2);
-
-      root.replaceChild(light3, root.childNodes[1]);
-      expect(root.childNodes[1]).to.equal(light3);
-
-      root.replaceChild(light4, root.childNodes[2]);
-      expect(root.childNodes[2]).to.equal(light4);
     });
   });
 

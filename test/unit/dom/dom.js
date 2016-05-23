@@ -631,7 +631,7 @@ describe('skatejs-named-slots dom', function () {
         expect(host.textContent).to.equal('<test />');
         expect(host.innerHTML).to.equal('&lt;test /&gt;');
         expect(host.childNodes.length).to.equal(1);
-      //  expect(slot.getAssignedNodes().length).to.equal(1);
+        expect(slot.getAssignedNodes().length).to.equal(1);
         // Ensure value was escaped.
         expect(host.firstChild.nodeType).to.equal(3);
 
@@ -639,9 +639,9 @@ describe('skatejs-named-slots dom', function () {
         expect(host.textContent).to.equal('<testtest />');
         expect(host.innerHTML).to.equal('&lt;testtest /&gt;');
         expect(host.childNodes.length).to.equal(1);
-       // expect(slot.getAssignedNodes().length).to.equal(1);
+        expect(slot.getAssignedNodes().length).to.equal(1);
 
-        host.innerHTML = "<div>sometest <div>another text</div></div>and outside";
+        host.innerHTML = '<div>sometest <div>another text</div></div>and outside';
         expect(host.textContent).to.equal('sometest another textand outside');
 
         expect(root.textContent).to.equal('');
@@ -659,7 +659,7 @@ describe('skatejs-named-slots dom', function () {
         expect(root.childNodes.length).to.equal(1);
         canPatchNativeAccessors && expect(root.__innerHTML).to.equal('&lt;testtest /&gt;');
 
-        root.innerHTML = "<div>sometest <div>another text</div></div>and outside";
+        root.innerHTML = '<div>sometest <div>another text</div></div>and outside';
         expect(root.textContent).to.equal('sometest another textand outside');
 
         const div = document.createElement('div');
@@ -678,7 +678,7 @@ describe('skatejs-named-slots dom', function () {
         expect(div.childNodes.length).to.equal(1);
         canPatchNativeAccessors && expect(div.__innerHTML).to.equal('&lt;testtest /&gt;');
 
-        div.innerHTML = "<div>sometest <div>another text</div></div>and outside";
+        div.innerHTML = '<div>sometest <div>another text</div></div>and outside';
         expect(div.textContent).to.equal('sometest another textand outside');
       });
 
@@ -768,7 +768,7 @@ describe('skatejs-named-slots dom', function () {
         remove.call(elem);
         expect(elem.childNodes.length).to.equal(0);
 
-        elem.innerHTML = "<div>text</div> some text <div><div></div></div>      ";
+        elem.innerHTML = '<div>text</div> some text <div><div></div></div>      ';
         expect(elem.childNodes.length).to.equal(4);
       }
     });
@@ -841,7 +841,7 @@ describe('skatejs-named-slots dom', function () {
         expect(elem.firstElementChild.tagName).to.equal('DIV');
         remove.call(elem, elem.firstElementChild);
         expect(elem.firstElementChild).to.equal(null);
-        expect(elem.innerHTML).to.equal('123')
+        expect(elem.innerHTML).to.equal('123');
       }
     });
 
@@ -897,7 +897,7 @@ describe('skatejs-named-slots dom', function () {
         expect(elem.lastElementChild.tagName).to.equal('DIV');
         remove.call(elem, elem.lastElementChild);
         expect(elem.lastElementChild).to.equal(null);
-        expect(elem.innerHTML).to.equal('123')
+        expect(elem.innerHTML).to.equal('123');
       }
     });
 

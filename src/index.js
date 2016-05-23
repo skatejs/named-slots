@@ -27,6 +27,9 @@ const polyfillAtRuntime = ['childNodes', 'parentNode'];
 // Some properties that should not be overridden in the Text prototype.
 const doNotOverridePropertiesInTextNodes = ['textContent'];
 
+// Some new properties that should be defined in the Text prototype.
+const defineInTextNodes = ['assignedSlot'];
+
 // Private data stores.
 const assignedToSlotMap = new WeakMap();
 const hostToModeMap = new WeakMap();
@@ -800,7 +803,7 @@ if (!('attachShadow' in document.createElement('div'))) {
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
-      const shouldOverrideInTextNode = memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
+      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || (defineInTextNodes.indexOf(memberName) > -1);
 
       Object.defineProperty(elementProto, memberName, memberProperty);
 

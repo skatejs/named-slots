@@ -373,7 +373,7 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
 
   // Ensure childNodes is patched so we can manually update it for WebKit.
   if (!canPatchNativeAccessors && !host.childNodes.push) {
-    staticProp(host, 'childNodes', []);
+    staticProp(host, 'childNodes', [...host.childNodes]);
   }
 
   if (rootNode && getNodeType(newNode) === 'slot') {
@@ -663,6 +663,19 @@ const members = {
         return ` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`;
       }).join('');
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
+    },
+
+    set (outerHTML) {
+      if (this.parentNode) {
+        const parsed = parse(outerHTML);
+        this.parentNode.replaceChild(parsed.firstChild, this);
+      } else {
+        if (canPatchNativeAccessors) {
+          this.__outerHTML = outerHTML;  // this will throw a native error;
+        } else {
+          throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.');
+        }
+      }
     }
   },
   parentElement: {

@@ -785,6 +785,62 @@ describe('skatejs-named-slots dom', function () {
       expect(host.outerHTML).to.equal('<div><div></div></div>');
       expect(host.childNodes.length).to.equal(1);
       expect(slot.getAssignedNodes().length).to.equal(1);
+
+      // check normal behaviour of the 'outerHTML' property
+      root.innerHTML = '<div><div></div><div></div></div>';
+      root.childNodes[0].childNodes[0].outerHTML = '<p></p>';
+      expect(root.innerHTML).to.equal( '<div><p></p><div></div></div>');
+
+      root.innerHTML = '<div><div></div><div></div></div>';
+      root.childNodes[0].outerHTML = '<p></p>';
+      expect(root.innerHTML).to.equal('<p></p>');
+
+      host.innerHTML = '<div><div></div><div></div></div>';
+      host.childNodes[0].childNodes[0].outerHTML = '<p></p>';
+      expect(host.innerHTML).to.equal('<div><p></p><div></div></div>');
+
+      host.innerHTML = '<div><div></div><div></div></div>';
+      host.childNodes[0].outerHTML = '<p></p>';
+      expect(host.innerHTML).to.equal('<p></p>');
+
+      root.innerHTML = '<div></div>';
+      // we can't change root with this, so nothing should happen
+      root.outerHTML = '<p></p>';
+      expect(root.outerHTML).to.equal('<_shadow_root_><div></div></_shadow_root_>');
+
+      // host has no parentNode so we expect is to throw an error in some browsers, otherwise do nothing
+      const errorMsg = 'Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.';
+      const errorMsgOpera = 'Failed to call host setter';
+      host.innerHTML = '';
+      expect(host.outerHTML).to.equal('<div></div>');
+
+      if (canPatchNativeAccessors) {
+        let throwsErrorNatively = false;
+        try {
+          host.__outerHTML = '';
+        } catch(e) {
+          throwsErrorNatively = true;
+        }
+
+        if (throwsErrorNatively) {
+          let throwsErrorFromPolyfill = false;
+          try {
+            host.outerHTML = '<p></p>';
+          } catch(e) {
+            throwsErrorFromPolyfill = true;
+            expect([errorMsg, errorMsgOpera].indexOf(e.message)).to.be.above(-1);
+          }
+          expect(throwsErrorFromPolyfill).to.equal(true);
+        }
+
+      } else {
+        expect(function() {
+          host.outerHTML = '<p></p>';
+        }).to.throw(Error, errorMsg);
+      }
+
+      //after all that above it should stay the same
+      expect(host.outerHTML).to.equal('<div></div>');
     });
   });
 

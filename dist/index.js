@@ -10,6 +10,17 @@
     } : function (obj) {
       return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
     };
+
+    babelHelpers.toConsumableArray = function (arr) {
+      if (Array.isArray(arr)) {
+        for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+        return arr2;
+      } else {
+        return Array.from(arr);
+      }
+    };
+
     babelHelpers;
 
 
@@ -45,7 +56,7 @@
     var div = document.createElement('div');
 
     function getPrototype(obj, key) {
-      var descriptor = undefined;
+      var descriptor = void 0;
 
       while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) {
         obj = Object.getPrototypeOf(obj);
@@ -477,6 +488,18 @@
     // Some properties that should not be overridden in the Text prototype.
     var doNotOverridePropertiesInTextNodes = ['textContent'];
 
+    // Some new properties that should be defined in the Text prototype.
+    var defineInTextNodes = ['assignedSlot'];
+
+    // Some properties that should not be overridden in the Comment prototype.
+    var doNotOverridePropertiesInCommNodes = ['textContent'];
+
+    // Some new properties that should be defined in the Comment prototype.
+    var defineInCommNodes = [];
+
+    // Nodes that should be slotted
+    var slottedNodeTypes = [1, 3];
+
     // Private data stores.
     var assignedToSlotMap = new WeakMap();
     var hostToModeMap = new WeakMap();
@@ -595,6 +618,11 @@
       //   problematic that we should have to screen for content, but I don't seems
       //   much of a way around it at the moment.
       if (node.nodeType === 3 && node.textContent && node.textContent.trim().length === 0) {
+        return;
+      }
+
+      // only Text and Element nodes should be slotted
+      if (! ~slottedNodeTypes.indexOf(node.nodeType)) {
         return;
       }
 
@@ -794,10 +822,13 @@
           removeSlotFromRoot(root, node);
         } else {
           var nodes = node.querySelectorAll && node.querySelectorAll('slot');
-          for (var a = 0; a < nodes.length; a++) {
-            removeSlotFromRoot(root, nodes[a]);
+          if (nodes) {
+            for (var a = 0; a < nodes.length; a++) {
+              removeSlotFromRoot(root, nodes[a]);
+            }
           }
         }
+        root.__removeChild(node);
       });
     }
 
@@ -826,7 +857,7 @@
 
       // Ensure childNodes is patched so we can manually update it for WebKit.
       if (!canPatchNativeAccessors && !host.childNodes.push) {
-        staticProp(host, 'childNodes', []);
+        staticProp(host, 'childNodes', [].concat(babelHelpers.toConsumableArray(host.childNodes)));
       }
 
       if (rootNode && getNodeType(newNode) === 'slot') {
@@ -1102,7 +1133,7 @@
       nextElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && child.nodeType === 1) {
               return child;
@@ -1120,6 +1151,18 @@
             return ' ' + attr.name + (attr.value ? '="' + attr.value + '"' : '');
           }).join('');
           return '<' + name + attributes + '>' + this.innerHTML + '</' + name + '>';
+        },
+        set: function set(outerHTML) {
+          if (this.parentNode) {
+            var parsed = parse(outerHTML);
+            this.parentNode.replaceChild(parsed.firstChild, this);
+          } else {
+            if (canPatchNativeAccessors) {
+              this.__outerHTML = outerHTML; // this will throw a native error;
+            } else {
+                throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.');
+              }
+          }
         }
       },
       parentElement: {
@@ -1147,7 +1190,7 @@
       previousElementSibling: {
         get: function get() {
           var host = this;
-          var found = undefined;
+          var found = void 0;
           return eachChildNode(this.parentNode, function (child) {
             if (found && host === child) {
               return found;
@@ -1228,7 +1271,9 @@
       (function () {
         var elementProto = HTMLElement.prototype;
         var textProto = Text.prototype;
+        var commProto = Comment.prototype;
         var textNode = document.createTextNode('');
+        var commNode = document.createComment('');
 
         Object.keys(members).forEach(function (memberName) {
           var memberProperty = members[memberName];
@@ -1245,7 +1290,10 @@
           if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
             var nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
             var nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
-            var shouldOverrideInTextNode = memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
+            var nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
+
+            var shouldOverrideInTextNode = memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1 || ~defineInTextNodes.indexOf(memberName);
+            var shouldOverrideInCommentNode = memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1 || ~defineInCommNodes.indexOf(memberName);
 
             Object.defineProperty(elementProto, memberName, memberProperty);
 
@@ -1258,7 +1306,15 @@
             }
 
             if (shouldOverrideInTextNode && nativeTextDescriptor) {
-              Object.defineProperty(textProto, '__' + memberName, nativeDescriptor);
+              Object.defineProperty(textProto, '__' + memberName, nativeTextDescriptor);
+            }
+
+            if (shouldOverrideInCommentNode) {
+              Object.defineProperty(commProto, memberName, memberProperty);
+            }
+
+            if (shouldOverrideInCommentNode && nativeCommDescriptor) {
+              Object.defineProperty(commProto, '__' + memberName, nativeCommDescriptor);
             }
           }
         });

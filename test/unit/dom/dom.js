@@ -108,13 +108,13 @@ describe('skatejs-named-slots dom', function () {
         expect(elem.childNodes.length).to.equal(5);
         expect(elem.innerHTML).to.equal('<div></div><div></div>texttext2<!--comment-->');
         if (isHost) {
-          expect(slot.getAssignedNodes().length).to.equal(5, 'slot');
+          // comment nodes should not be slotted
+          expect(slot.getAssignedNodes().length).to.equal(4, 'slot');
           expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
           expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
           expect(slot.getAssignedNodes()[2]).to.equal(text1, 'slot');
           expect(slot.getAssignedNodes()[3]).to.equal(text2, 'slot');
-          expect(slot.getAssignedNodes()[4]).to.equal(comm1, 'slot');
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div>texttext2<!--comment--></slot></_shadow_root_>');
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div>texttext2</slot></_shadow_root_>');
         } else {
           canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div><div></div>texttext2<!--comment-->');
         }
@@ -124,14 +124,13 @@ describe('skatejs-named-slots dom', function () {
         expect(elem.childNodes.length).to.equal(6);
         expect(elem.innerHTML).to.equal('<div></div><div></div>texttext2<!--comment--><!--comment2-->');
         if (isHost) {
-          expect(slot.getAssignedNodes().length).to.equal(6, 'slot');
+          // comment nodes should not be slotted
+          expect(slot.getAssignedNodes().length).to.equal(4, 'slot');
           expect(slot.getAssignedNodes()[0]).to.equal(light1, 'slot');
           expect(slot.getAssignedNodes()[1]).to.equal(light2, 'slot');
           expect(slot.getAssignedNodes()[2]).to.equal(text1, 'slot');
           expect(slot.getAssignedNodes()[3]).to.equal(text2, 'slot');
-          expect(slot.getAssignedNodes()[4]).to.equal(comm1, 'slot');
-          expect(slot.getAssignedNodes()[5]).to.equal(comm2, 'slot');
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div>texttext2<!--comment--><!--comment2--></slot></_shadow_root_>');
+          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div><div></div>texttext2</slot></_shadow_root_>');
         } else {
           canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div><div></div>texttext2<!--comment--><!--comment2-->');
         }
@@ -589,12 +588,12 @@ describe('skatejs-named-slots dom', function () {
         host.innerHTML = processingInstruction;
         expect([processingInstruction, processingInstructionsAfterInnerHtml].indexOf(host.innerHTML)).to.be.above(-1);
         expect(host.childNodes.length).to.equal(1);
-        expect(slot.getAssignedNodes().length).to.equal(1);
+        expect(slot.getAssignedNodes().length).to.equal(0);  // non text / html nodes should not be slotted
 
         host.innerHTML = comment;
         expect(host.innerHTML).to.equal(comment);
         expect(host.childNodes.length).to.equal(1);
-        expect(slot.getAssignedNodes().length).to.equal(1);
+        expect(slot.getAssignedNodes().length).to.equal(0);  // non text / html nodes should not be slotted
 
         root.innerHTML = processingInstruction;
         expect([processingInstruction, processingInstructionsAfterInnerHtml].indexOf(root.innerHTML)).to.be.above(-1);

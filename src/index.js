@@ -34,7 +34,10 @@ const defineInTextNodes = ['assignedSlot'];
 const doNotOverridePropertiesInCommNodes = ['textContent'];
 
 // Some new properties that should be defined in the Comment prototype.
-const defineInCommNodes = ['assignedSlot'];
+const defineInCommNodes = [];
+
+// Nodes that should be slotted
+const slottedNodeTypes = [1, 3];
 
 // Private data stores.
 const assignedToSlotMap = new WeakMap();
@@ -154,6 +157,11 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
   //   problematic that we should have to screen for content, but I don't seems
   //   much of a way around it at the moment.
   if (node.nodeType === 3 && node.textContent && node.textContent.trim().length === 0) {
+    return;
+  }
+
+  // only Text and Element nodes should be slotted
+  if (!~slottedNodeTypes.indexOf(node.nodeType)) {
     return;
   }
 
@@ -815,8 +823,8 @@ if (!('attachShadow' in document.createElement('div'))) {
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
       const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
       
-      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || (defineInTextNodes.indexOf(memberName) > -1);
-      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || (defineInCommNodes.indexOf(memberName) > -1);
+      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName);
+      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName);
 
       Object.defineProperty(elementProto, memberName, memberProperty);
 

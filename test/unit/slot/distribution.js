@@ -19,12 +19,27 @@ describe('slot/distribution', function () {
 
   it('distributes to the inner slot', function () {
     const light = document.createElement('light');
-
     host.appendChild(light);
     expect(host.childNodes[0]).to.equal(light, 'internal light dom');
 
     expect(slot.getAssignedNodes().length).to.equal(1, 'slot');
     expect(slot.getAssignedNodes()[0]).to.equal(light, 'slot');
+
+    const lightText = document.createTextNode('text');
+    host.appendChild(lightText);
+    expect(host.childNodes[1]).to.equal(lightText);
+
+    expect(slot.getAssignedNodes().length).to.equal(2);
+    expect(slot.getAssignedNodes()[0]).to.equal(light, 'slot');
+    expect(slot.getAssignedNodes()[1]).to.equal(lightText);
+
+    const lightComment = document.createComment('text');
+    host.appendChild(lightComment);
+    expect(host.childNodes[2]).to.equal(lightComment);
+
+    expect(slot.getAssignedNodes().length).to.equal(2);
+    expect(slot.getAssignedNodes()[0]).to.equal(light, 'slot');
+    expect(slot.getAssignedNodes()[1]).to.equal(lightText);
   });
 
 });

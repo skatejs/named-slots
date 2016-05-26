@@ -27,6 +27,18 @@ const polyfillAtRuntime = ['childNodes', 'parentNode'];
 // Some properties that should not be overridden in the Text prototype.
 const doNotOverridePropertiesInTextNodes = ['textContent'];
 
+// Some new properties that should be defined in the Text prototype.
+const defineInTextNodes = ['assignedSlot'];
+
+// Some properties that should not be overridden in the Comment prototype.
+const doNotOverridePropertiesInCommNodes = ['textContent'];
+
+// Some new properties that should be defined in the Comment prototype.
+const defineInCommNodes = [];
+
+// Nodes that should be slotted
+const slottedNodeTypes = [Node.ELEMENT_NODE, Node.TEXT_NODE];
+
 // Private data stores.
 const assignedToSlotMap = new WeakMap();
 const hostToModeMap = new WeakMap();
@@ -145,6 +157,11 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
   //   problematic that we should have to screen for content, but I don't seems
   //   much of a way around it at the moment.
   if (node.nodeType === 3 && node.textContent && node.textContent.trim().length === 0) {
+    return;
+  }
+
+  // only Text and Element nodes should be slotted
+  if (slottedNodeTypes.indexOf(node.nodeType) === -1) {
     return;
   }
 
@@ -340,8 +357,10 @@ function removeNodeFromRoot (root, node) {
       removeSlotFromRoot(root, node);
     } else {
       const nodes = node.querySelectorAll && node.querySelectorAll('slot');
-      for (let a = 0; a < nodes.length; a++) {
-        removeSlotFromRoot(root, nodes[a]);
+      if (nodes) {
+        for (let a = 0; a < nodes.length; a++) {
+          removeSlotFromRoot(root, nodes[a]);
+        }
       }
     }
     root.__removeChild(node);
@@ -783,7 +802,9 @@ const members = {
 if (!('attachShadow' in document.createElement('div'))) {
   const elementProto = HTMLElement.prototype;
   const textProto = Text.prototype;
+  const commProto = Comment.prototype;
   const textNode = document.createTextNode('');
+  const commNode = document.createComment('');
 
   Object.keys(members).forEach(function (memberName) {
     const memberProperty = members[memberName];
@@ -800,7 +821,10 @@ if (!('attachShadow' in document.createElement('div'))) {
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
-      const shouldOverrideInTextNode = memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1;
+      const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
+      
+      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName);
+      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName);
 
       Object.defineProperty(elementProto, memberName, memberProperty);
 
@@ -813,7 +837,15 @@ if (!('attachShadow' in document.createElement('div'))) {
       }
 
       if (shouldOverrideInTextNode && nativeTextDescriptor) {
-        Object.defineProperty(textProto, '__' + memberName, nativeDescriptor);
+        Object.defineProperty(textProto, '__' + memberName, nativeTextDescriptor);
+      }
+
+      if (shouldOverrideInCommentNode) {
+        Object.defineProperty(commProto, memberName, memberProperty);
+      }
+
+      if (shouldOverrideInCommentNode && nativeCommDescriptor) {
+        Object.defineProperty(commProto, '__' + memberName, nativeCommDescriptor);
       }
     }
   });

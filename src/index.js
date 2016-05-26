@@ -37,7 +37,7 @@ const doNotOverridePropertiesInCommNodes = ['textContent'];
 const defineInCommNodes = [];
 
 // Nodes that should be slotted
-const slottedNodeTypes = [1, 3];
+const slottedNodeTypes = [Node.ELEMENT_NODE, Node.TEXT_NODE];
 
 // Private data stores.
 const assignedToSlotMap = new WeakMap();
@@ -161,7 +161,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
   }
 
   // only Text and Element nodes should be slotted
-  if (!~slottedNodeTypes.indexOf(node.nodeType)) {
+  if (slottedNodeTypes.indexOf(node.nodeType) === -1) {
     return;
   }
 

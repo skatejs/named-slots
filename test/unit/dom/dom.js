@@ -28,9 +28,9 @@ describe('skatejs-named-slots dom', function () {
     div5 = document.createElement('div');
 
     div1.appendChild(div2);
-    div3.appendChild(div4);
     div1.appendChild(div3);
     div1.appendChild(div5);
+    div3.appendChild(div4);
   });
 
   describe('methods', function () {
@@ -197,27 +197,27 @@ describe('skatejs-named-slots dom', function () {
       expect(host.childNodes[0]).to.equal(light1, 'light');
       expect(host.childNodes[1]).to.equal(light2, 'light');
 
-      let div_local1 = document.createElement('h1');
-      let div_local2 = document.createElement('h2');
-      let div_local3 = document.createElement('h3');
+      let divLocal1 = document.createElement('h1');
+      let divLocal2 = document.createElement('h2');
+      let divLocal3 = document.createElement('h3');
 
-      div1.insertBefore(div_local1, div1.childNodes[0]);
-      div1.insertBefore(div_local2, div1.childNodes[0]);
-      div1.insertBefore(div_local3);
+      div1.insertBefore(divLocal1, div1.childNodes[0]);
+      div1.insertBefore(divLocal2, div1.childNodes[0]);
+      div1.insertBefore(divLocal3);
 
       expect(div1.innerHTML).to.equal('<h2></h2><h1></h1><div></div><div><div></div></div><div></div><h3></h3>');
-      expect(div1.childNodes[0]).to.equal(div_local2);
-      expect(div1.childNodes[1]).to.equal(div_local1);
-      expect(div1.childNodes[div1.childNodes.length-1]).to.equal(div_local3);
+      expect(div1.childNodes[0]).to.equal(divLocal2);
+      expect(div1.childNodes[1]).to.equal(divLocal1);
+      expect(div1.childNodes[div1.childNodes.length-1]).to.equal(divLocal3);
 
-      root.insertBefore(div_local1, root.childNodes[0]);
-      root.insertBefore(div_local2, root.childNodes[0]);
-      root.insertBefore(div_local3);
+      root.insertBefore(divLocal1, root.childNodes[0]);
+      root.insertBefore(divLocal2, root.childNodes[0]);
+      root.insertBefore(divLocal3);
 
       expect(root.innerHTML).to.equal('<h2></h2><h1></h1><slot></slot><h3></h3>');
-      expect(root.childNodes[0]).to.equal(div_local2);
-      expect(root.childNodes[1]).to.equal(div_local1);
-      expect(root.childNodes[root.childNodes.length-1]).to.equal(div_local3);
+      expect(root.childNodes[0]).to.equal(divLocal2);
+      expect(root.childNodes[1]).to.equal(divLocal1);
+      expect(root.childNodes[root.childNodes.length-1]).to.equal(divLocal3);
     });
 
     it('removeChild()', function () {

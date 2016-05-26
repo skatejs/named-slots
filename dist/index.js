@@ -498,7 +498,7 @@
     var defineInCommNodes = [];
 
     // Nodes that should be slotted
-    var slottedNodeTypes = [1, 3];
+    var slottedNodeTypes = [Node.ELEMENT_NODE, Node.TEXT_NODE];
 
     // Private data stores.
     var assignedToSlotMap = new WeakMap();
@@ -622,7 +622,7 @@
       }
 
       // only Text and Element nodes should be slotted
-      if (! ~slottedNodeTypes.indexOf(node.nodeType)) {
+      if (slottedNodeTypes.indexOf(node.nodeType) === -1) {
         return;
       }
 

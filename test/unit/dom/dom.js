@@ -197,27 +197,27 @@ describe('skatejs-named-slots dom', function () {
       expect(host.childNodes[0]).to.equal(light1, 'light');
       expect(host.childNodes[1]).to.equal(light2, 'light');
 
-      let divLocal1 = document.createElement('h1');
-      let divLocal2 = document.createElement('h2');
-      let divLocal3 = document.createElement('h3');
+      let local1 = document.createElement('h1');
+      let local2 = document.createElement('h2');
+      let local3 = document.createElement('h3');
 
-      div1.insertBefore(divLocal1, div1.childNodes[0]);
-      div1.insertBefore(divLocal2, div1.childNodes[0]);
-      div1.insertBefore(divLocal3);
+      div1.insertBefore(local1, div1.childNodes[0]);
+      div1.insertBefore(local2, div1.childNodes[0]);
+      div1.insertBefore(local3);
 
       expect(div1.innerHTML).to.equal('<h2></h2><h1></h1><div></div><div><div></div></div><div></div><h3></h3>');
-      expect(div1.childNodes[0]).to.equal(divLocal2);
-      expect(div1.childNodes[1]).to.equal(divLocal1);
-      expect(div1.childNodes[div1.childNodes.length-1]).to.equal(divLocal3);
+      expect(div1.childNodes[0]).to.equal(local2);
+      expect(div1.childNodes[1]).to.equal(local1);
+      expect(div1.childNodes[div1.childNodes.length-1]).to.equal(local3);
 
-      root.insertBefore(divLocal1, root.childNodes[0]);
-      root.insertBefore(divLocal2, root.childNodes[0]);
-      root.insertBefore(divLocal3);
+      root.insertBefore(local1, root.childNodes[0]);
+      root.insertBefore(local2, root.childNodes[0]);
+      root.insertBefore(local3);
 
       expect(root.innerHTML).to.equal('<h2></h2><h1></h1><slot></slot><h3></h3>');
-      expect(root.childNodes[0]).to.equal(divLocal2);
-      expect(root.childNodes[1]).to.equal(divLocal1);
-      expect(root.childNodes[root.childNodes.length-1]).to.equal(divLocal3);
+      expect(root.childNodes[0]).to.equal(local2);
+      expect(root.childNodes[1]).to.equal(local1);
+      expect(root.childNodes[root.childNodes.length-1]).to.equal(local3);
     });
 
     it('removeChild()', function () {
@@ -251,21 +251,21 @@ describe('skatejs-named-slots dom', function () {
       expect(slot.getAssignedNodes().length).to.equal(0, 'slot');
       expect(host.childNodes.length).to.equal(0, 'light');
 
-      let div_local1 = document.createElement('h1');
-      let div_local2 = document.createElement('h2');
-      let div_local3 = document.createElement('h3');
-      let div_local4 = document.createElement('h4');
-      let div_local5 = document.createElement('h5');
+      let local1 = document.createElement('h1');
+      let local2 = document.createElement('h2');
+      let local3 = document.createElement('h3');
+      let local4 = document.createElement('h4');
+      let local5 = document.createElement('h5');
 
-      div1.insertBefore(div_local1, div1.childNodes[0]);
-      div1.insertBefore(div_local2);
-      div1.childNodes[2].insertBefore(div_local3, div1.childNodes[2].childNodes[0]);
-      div1.childNodes[2].insertBefore(div_local4, div1.childNodes[2].childNodes[0]);
-      div1.childNodes[2].insertBefore(div_local5);
+      div1.insertBefore(local1, div1.childNodes[0]);
+      div1.insertBefore(local2);
+      div1.childNodes[2].insertBefore(local3, div1.childNodes[2].childNodes[0]);
+      div1.childNodes[2].insertBefore(local4, div1.childNodes[2].childNodes[0]);
+      div1.childNodes[2].insertBefore(local5);
 
       expect(div1.childNodes.length).to.equal(5);
 
-      div1.removeChild(div_local1);
+      div1.removeChild(local1);
       expect(div1.childNodes.length).to.equal(4);
 
       div1.childNodes[1].removeChild(div1.childNodes[1].childNodes[0]);
@@ -288,20 +288,20 @@ describe('skatejs-named-slots dom', function () {
       div1.removeChild(div1.firstChild);
       expect(div1.childNodes.length).to.equal(0);
 
-      let div_local6 = document.createElement('div');
-      let div_local7 = document.createElement('div');
-      div_local6.appendChild(div_local7);
-      root.insertBefore(div_local1, root.childNodes[0]);
-      root.insertBefore(div_local6);
-      root.insertBefore(div_local2);
+      let local6 = document.createElement('div');
+      let local7 = document.createElement('div');
+      local6.appendChild(local7);
+      root.insertBefore(local1, root.childNodes[0]);
+      root.insertBefore(local6);
+      root.insertBefore(local2);
 
-      root.childNodes[2].insertBefore(div_local3, root.childNodes[2].childNodes[0]);
-      root.childNodes[2].insertBefore(div_local4, root.childNodes[2].childNodes[0]);
-      root.childNodes[2].insertBefore(div_local5);
+      root.childNodes[2].insertBefore(local3, root.childNodes[2].childNodes[0]);
+      root.childNodes[2].insertBefore(local4, root.childNodes[2].childNodes[0]);
+      root.childNodes[2].insertBefore(local5);
 
       expect(root.childNodes.length).to.equal(4);
 
-      root.removeChild(div_local1);
+      root.removeChild(local1);
       expect(root.childNodes.length).to.equal(3);
 
       root.childNodes[1].removeChild(root.childNodes[1].childNodes[0]);

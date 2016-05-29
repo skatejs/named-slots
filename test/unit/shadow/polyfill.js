@@ -144,10 +144,10 @@ describe('shadow/polyfill', function () {
       host.appendChild(light1);
       host.appendChild(light2);
 
-      expect(slot1.getAssignedNodes().length).to.equal(1);
-      expect(slot1.getAssignedNodes()[0]).to.equal(light1);
-      expect(slot2.getAssignedNodes().length).to.equal(1);
-      expect(slot2.getAssignedNodes()[0]).to.equal(light2);
+      expect(slot1.assignedNodes().length).to.equal(1);
+      expect(slot1.assignedNodes()[0]).to.equal(light1);
+      expect(slot2.assignedNodes().length).to.equal(1);
+      expect(slot2.assignedNodes()[0]).to.equal(light2);
     });
 
     it('host -> light dom -> shadow root', function () {
@@ -168,19 +168,19 @@ describe('shadow/polyfill', function () {
 
       // After adding a slot, we should see it distributed.
       root.appendChild(slot1);
-      expect(slot1.getAssignedNodes().length).to.equal(1);
-      expect(slot1.getAssignedNodes()[0]).to.equal(light1);
+      expect(slot1.assignedNodes().length).to.equal(1);
+      expect(slot1.assignedNodes()[0]).to.equal(light1);
 
       // After removing we should not.
       root.appendChild(slot2);
-      expect(slot2.getAssignedNodes().length).to.equal(1);
-      expect(slot2.getAssignedNodes()[0]).to.equal(light2);
+      expect(slot2.assignedNodes().length).to.equal(1);
+      expect(slot2.assignedNodes()[0]).to.equal(light2);
 
       // After removing we should not have any assigned nodes.
       root.removeChild(slot1);
       root.removeChild(slot2);
-      expect(slot1.getAssignedNodes().length).to.equal(0);
-      expect(slot2.getAssignedNodes().length).to.equal(0);
+      expect(slot1.assignedNodes().length).to.equal(0);
+      expect(slot2.assignedNodes().length).to.equal(0);
     });
   });
 });

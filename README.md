@@ -135,7 +135,7 @@ These are members which are already polyfilled along with notes about their impl
 #### Methods
 
 - `Element.attachShadow()`
-- `HTMLSlotElement.getAssignedNodes()` - Only available after being added to a shadow root.
+- `HTMLSlotElement.assignedNodes()` - Only available after being added to a shadow root.
 - `Node.appendChild()`
 - `Node.hasChildNodes()`
 - `Node.insertBefore()`

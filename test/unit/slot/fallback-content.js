@@ -18,7 +18,7 @@ describe('fallback-content', function () {
 
     it('should have no assigned nodes', function () {
       expect(slot.____assignedNodes.length).to.equal(0);
-      expect(slot.getAssignedNodes().length).to.equal(0);
+      expect(slot.assignedNodes().length).to.equal(0);
     });
 
     it('should be in a fallback state', function () {
@@ -41,7 +41,7 @@ describe('fallback-content', function () {
 
     it('should have no assigned nodes', function () {
       expect(slot.____assignedNodes.length).to.equal(0);
-      expect(slot.getAssignedNodes().length).to.equal(0);
+      expect(slot.assignedNodes().length).to.equal(0);
     });
 
     it('should be in a fallback state', function () {
@@ -57,7 +57,7 @@ describe('fallback-content', function () {
       });
 
       it('should contain assigned nodes', function () {
-        expect(slot.getAssignedNodes()[0]).to.equal(newNode);
+        expect(slot.assignedNodes()[0]).to.equal(newNode);
       });
 
       it('should not be in a fallback state', function () {
@@ -70,7 +70,7 @@ describe('fallback-content', function () {
         });
 
         it('should not contain the assigned nodes', function () {
-          expect(slot.getAssignedNodes().length).to.equal(0);
+          expect(slot.assignedNodes().length).to.equal(0);
         });
 
         it('should return to a fallback state', function () {

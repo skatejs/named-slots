@@ -165,7 +165,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
     return;
   }
 
-  const assignedNodes = slot.getAssignedNodes();
+  const assignedNodes = slot.assignedNodes();
   const shouldGoIntoContentMode = assignedNodes.length === 0;
   const slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
 
@@ -192,7 +192,7 @@ function slotNodeFromSlot (node) {
   const slot = node.assignedSlot;
 
   if (slot) {
-    const assignedNodes = slot.getAssignedNodes();
+    const assignedNodes = slot.assignedNodes();
     const index = assignedNodes.indexOf(node);
 
     if (index > -1) {
@@ -302,7 +302,7 @@ function addNodeToRoot (root, node, insertBefore) {
 // ensures that if the slot doesn't have any assigned nodes yet, that the node
 // is actually displayed, otherwise it's just registered as child content.
 function addNodeToSlot (slot, node, insertBefore) {
-  const isInDefaultMode = slot.getAssignedNodes().length === 0;
+  const isInDefaultMode = slot.assignedNodes().length === 0;
   registerNode(slot, node, insertBefore, function (eachNode) {
     if (isInDefaultMode) {
       slot.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
@@ -314,7 +314,7 @@ function addNodeToSlot (slot, node, insertBefore) {
 // doesn't have any assigned nodes yet, that the node is actually removed,
 // otherwise it's just unregistered.
 function removeNodeFromSlot (slot, node) {
-  const isInDefaultMode = slot.getAssignedNodes().length === 0;
+  const isInDefaultMode = slot.assignedNodes().length === 0;
   unregisterNode(slot, node, function () {
     if (isInDefaultMode) {
       slot.__removeChild(node);
@@ -368,7 +368,7 @@ function removeNodeFromRoot (root, node) {
 }
 
 function removeSlotFromRoot (root, node) {
-  node.getAssignedNodes().forEach(slotNodeFromSlot);
+  node.assignedNodes().forEach(slotNodeFromSlot);
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
 }
 
@@ -445,7 +445,7 @@ const members = {
   // For testing purposes.
   ____isInFallbackMode: {
     get () {
-      return this.getAssignedNodes().length === 0;
+      return this.assignedNodes().length === 0;
     }
   },
 
@@ -573,7 +573,7 @@ const members = {
       return this.children[0] || null;
     }
   },
-  getAssignedNodes: {
+  assignedNodes: {
     value () {
       if (isSlotNode(this)) {
         let assigned = assignedToSlotMap.get(this);

@@ -6,7 +6,7 @@ before_script:
   - sh -e /etc/init.d/xvfb start
   - npm install
 script:
-  - gulp build
+  - bundle
   - if [ "${TRAVIS_SECURE_ENV_VARS}" = "true" ]; then
     npm test -- --saucelabs;
     else

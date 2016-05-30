@@ -174,7 +174,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
 
   // Remove the fallback content and state if we're going into content mode.
   if (shouldGoIntoContentMode) {
-    forEach.call(slot.childNodes, node => slot.__removeChild(node));
+    forEach.call(slot.__childNodes, node => slot.__removeChild(node));
   }
 
   if (slotInsertBeforeIndex > -1) {

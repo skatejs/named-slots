@@ -1,4 +1,4 @@
-import create from '../lib/create';
+import create from '../../lib/create';
 
 describe('slotchange-event', function () {
   let host, root, slot;

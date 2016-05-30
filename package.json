@@ -1,13 +1,12 @@
 {
   "name": "skatejs-named-slots",
+  "build:global": "skatejsNamedSlots",
   "version": "0.1.9",
   "description": "A polygap (partial polyfill) for the Shadow DOM Named Slot API.",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "jsnext:main": "src/index.js",
   "scripts": {
-    "lint": "gulp lint",
-    "test": "gulp test",
-    "build": "gulp build"
+    "test": "karma start --single-run"
   },
   "repository": {
     "type": "git",
@@ -27,10 +26,9 @@
   },
   "homepage": "https://github.com/skatejs/named-slots#readme",
   "devDependencies": {
-    "eslint": "1.10.3",
+    "eslint": "2.11.0",
     "eslint-plugin-react": "^3.16.1",
-    "gulp": "gulpjs/gulp#73eced0",
-    "skatejs-build": "skatejs/build#ddcfadb9e920aeba3850c793c78cd1efbdb7c8ed"
+    "skatejs-build": "skatejs/build#cdcbcfc"
   },
   "dependencies": {
     "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",

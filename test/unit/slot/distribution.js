@@ -1,5 +1,5 @@
 import '../../../src/index';
-import create from '../lib/create';
+import create from '../../lib/create';
 
 describe('slot/distribution', function () {
   let slot;

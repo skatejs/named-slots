@@ -1,4 +1,4 @@
-import create from '../lib/create';
+import create from '../../lib/create';
 
 describe('fallback-content', function () {
   let host, root, slot;

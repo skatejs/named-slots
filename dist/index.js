@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global.skatejsNamedSlots = factory());
-}(this, function () {
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    (factory((global.skatejsNamedSlots = global.skatejsNamedSlots || {})));
+}(this, function (exports) {
 
     var babelHelpers = {};
     babelHelpers.typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
@@ -626,7 +626,7 @@
         return;
       }
 
-      var assignedNodes = slot.getAssignedNodes();
+      var assignedNodes = slot.assignedNodes();
       var shouldGoIntoContentMode = assignedNodes.length === 0;
       var slotInsertBeforeIndex = assignedNodes.indexOf(insertBefore);
 
@@ -655,7 +655,7 @@
       var slot = node.assignedSlot;
 
       if (slot) {
-        var assignedNodes = slot.getAssignedNodes();
+        var assignedNodes = slot.assignedNodes();
         var index = assignedNodes.indexOf(node);
 
         if (index > -1) {
@@ -767,7 +767,7 @@
     // ensures that if the slot doesn't have any assigned nodes yet, that the node
     // is actually displayed, otherwise it's just registered as child content.
     function addNodeToSlot(slot, node, insertBefore) {
-      var isInDefaultMode = slot.getAssignedNodes().length === 0;
+      var isInDefaultMode = slot.assignedNodes().length === 0;
       registerNode(slot, node, insertBefore, function (eachNode) {
         if (isInDefaultMode) {
           slot.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
@@ -779,7 +779,7 @@
     // doesn't have any assigned nodes yet, that the node is actually removed,
     // otherwise it's just unregistered.
     function removeNodeFromSlot(slot, node) {
-      var isInDefaultMode = slot.getAssignedNodes().length === 0;
+      var isInDefaultMode = slot.assignedNodes().length === 0;
       unregisterNode(slot, node, function () {
         if (isInDefaultMode) {
           slot.__removeChild(node);
@@ -833,7 +833,7 @@
     }
 
     function removeSlotFromRoot(root, node) {
-      node.getAssignedNodes().forEach(slotNodeFromSlot);
+      node.assignedNodes().forEach(slotNodeFromSlot);
       delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
     }
 
@@ -910,7 +910,7 @@
       // For testing purposes.
       ____isInFallbackMode: {
         get: function get() {
-          return this.getAssignedNodes().length === 0;
+          return this.assignedNodes().length === 0;
         }
       },
 
@@ -1040,7 +1040,7 @@
           return this.children[0] || null;
         }
       },
-      getAssignedNodes: {
+      assignedNodes: {
         value: function value() {
           if (isSlotNode(this)) {
             var assigned = assignedToSlotMap.get(this);
@@ -1321,24 +1321,14 @@
       })();
     }
 
-
-
-    var api = Object.freeze({
-      default: version
-    });
-
     var previousGlobal = window.skatejsNamedSlots;
-    version.noConflict = function noConflict() {
+    exports.noConflict = function () {
       window.skatejsNamedSlots = previousGlobal;
       return this;
     };
-    window.skatejsNamedSlots = version;
-    for (var name in api) {
-      version[name] = api[name];
-    }
-    version.version = '0.1.9';
+    exports.version = '0.1.9';
 
-    return version;
+    exports['default'] = version;
 
 }));
 //# sourceMappingURL=index.js.map

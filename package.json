@@ -31,7 +31,7 @@
   "devDependencies": {
     "eslint": "2.11.0",
     "eslint-plugin-react": "^3.16.1",
-    "skatejs-build": "skatejs/build#55db628c68696f0b06c8dce3d9b47ef1683e31cc"
+    "skatejs-build": "skatejs/build#e24f4a9bdd2e62ff4de260df8901dbd86b3db2c7"
   },
   "dependencies": {
     "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",

@@ -222,6 +222,6 @@ We've written some simple perf tests to show overhead against native. These vary
 
 1. Clone the repo
 2. `npm install`
-3. `gulp perf`
+3. `npm run test/perf`
 
 For most purposes, the performance should be acceptable. That said, we're always looking at ways to imporove.

@@ -1,5 +1,5 @@
-import '../../src/index';
-import bench from '../lib/bench';
+import '../src/index';
+import bench from './lib/bench';
 
 describe('add / remove', function () {
   const div = document.createElement.bind(document, 'div');

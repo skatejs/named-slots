@@ -373,7 +373,7 @@ function removeNodeFromRoot (root, node) {
 function removeSlotFromRoot (root, node) {
   node.assignedNodes().forEach(slotNodeFromSlot);
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
-  delete slotToRootMap.get(node);
+  slotToRootMap.delete(node);
 }
 
 // TODO terribly inefficient
@@ -489,7 +489,15 @@ const members = {
   },
   assignedSlot: {
     get () {
-      return (nodeToSlotMap.get(this) && hostToModeMap.get(rootToHostMap.get(slotToRootMap.get(nodeToSlotMap.get(this)))) === 'open') ? nodeToSlotMap.get(this) : null;
+      const slot = nodeToSlotMap.get(this);
+
+      if (!slot) return null;
+
+      const root = slotToRootMap.get(slot);
+      const host = rootToHostMap.get(root);
+      const mode = hostToModeMap.get(host);
+
+      return mode === 'open' ? slot : null;
     }
   },
   attachShadow: {

@@ -9,7 +9,9 @@
     "test": "karma start --single-run",
     "test/watch": "karma start",
     "test/perf": "karma start --single-run --perf",
-    "build": "rollup --config && rollup --config --min"
+    "build": "rollup --config && rollup --config --min",
+    "lint": "eslint -c node_modules/skatejs-build/.eslintrc src",
+    "prerelease": "npm test && eslint -c node_modules/skatejs-build/.eslintrc src && npm run build"
   },
   "repository": {
     "type": "git",

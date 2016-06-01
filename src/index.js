@@ -491,7 +491,9 @@ const members = {
     get () {
       const slot = nodeToSlotMap.get(this);
 
-      if (!slot) return null;
+      if (!slot) {
+        return null;
+      }
 
       const root = slotToRootMap.get(slot);
       const host = rootToHostMap.get(root);
@@ -834,7 +836,6 @@ if (!('attachShadow' in document.createElement('div'))) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
       const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
-      
       const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName);
       const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName);
 

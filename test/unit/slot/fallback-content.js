@@ -5,7 +5,7 @@ describe('fallback-content', function () {
 
   beforeEach(function () {
     host = create('div');
-    root = host.attachShadow({ mode: 'closed' });
+    root = host.attachShadow({ mode: 'open' });
     slot = create('slot');
     root.appendChild(slot);
   });

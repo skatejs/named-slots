@@ -15,7 +15,7 @@ describe('skatejs-named-slots dom', function () {
 
   beforeEach(function () {
     host = document.createElement('div');
-    root = host.attachShadow({ mode: 'closed' });
+    root = host.attachShadow({ mode: 'open' });
     slot = create('slot');
 
     // Now it has something to assign nodes to.

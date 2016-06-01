@@ -4,10 +4,28 @@ import create from '../../lib/create';
 describe('light/polyfill', function () {
   let host, light1, light2, root, slot, text;
 
+  describe('when mode is closed', function () {
+    beforeEach(function () {
+      slot = create('slot');
+      host = create('div');
+      root = host.attachShadow({ mode: 'closed' });
+
+      root.appendChild(slot);
+
+      light1 = create('light1');
+
+      host.appendChild(light1);
+    });
+
+    it('assignedSlot', function () {
+      expect(light1.assignedSlot).to.equal(null);
+    });
+  });
+
   beforeEach(function () {
     slot = create('slot');
     host = create('div');
-    root = host.attachShadow({ mode: 'closed' });
+    root = host.attachShadow({ mode: 'open' });
 
     root.appendChild(slot);
 
@@ -54,7 +72,7 @@ describe('light/polyfill', function () {
     beforeEach(function () {
       anotherHost = create('div');
       anotherNode = create('div');
-      anotherRoot = anotherHost.attachShadow({ mode: 'closed' });
+      anotherRoot = anotherHost.attachShadow({ mode: 'open' });
       anotherSlot = create('slot');
 
       anotherRoot.appendChild(anotherSlot);
@@ -118,7 +136,7 @@ describe('light/polyfill', function () {
     beforeEach(function () {
       anotherHost = create('div');
       anotherNode = create('div');
-      anotherRoot = anotherHost.attachShadow({ mode: 'closed' });
+      anotherRoot = anotherHost.attachShadow({ mode: 'open' });
       anotherSlot = create('slot');
 
       anotherRoot.appendChild(anotherSlot);
@@ -174,7 +192,7 @@ describe('light/polyfill', function () {
       namedSlot = create('slot', {name: 'mySlot'});
       unnamedSlot = create('slot');
       host = create('div');
-      root = host.attachShadow({ mode: 'closed' });
+      root = host.attachShadow({ mode: 'open' });
 
       root.appendChild(namedSlot);
       root.appendChild(unnamedSlot);

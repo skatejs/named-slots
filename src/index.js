@@ -48,6 +48,7 @@ const nodeToParentNodeMap = new WeakMap();
 const nodeToSlotMap = new WeakMap();
 const rootToHostMap = new WeakMap();
 const rootToSlotMap = new WeakMap();
+const slotToRootMap = new WeakMap();
 
 
 // Unfortunately manual DOM parsing is because of WebKit.
@@ -332,6 +333,8 @@ function addSlotToRoot (root, slot) {
   }
 
   rootToSlotMap.get(root)[slotName] = slot;
+  !slotToRootMap.has(slot) && slotToRootMap.set(slot, root);
+
   eachChildNode(rootToHostMap.get(root), function (eachNode) {
     if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
       slotNodeIntoSlot(slot, eachNode);
@@ -370,6 +373,7 @@ function removeNodeFromRoot (root, node) {
 function removeSlotFromRoot (root, node) {
   node.assignedNodes().forEach(slotNodeFromSlot);
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
+  delete slotToRootMap.get(node);
 }
 
 // TODO terribly inefficient
@@ -485,7 +489,7 @@ const members = {
   },
   assignedSlot: {
     get () {
-      return nodeToSlotMap.get(this) || null;
+      return (nodeToSlotMap.get(this) && hostToModeMap.get(rootToHostMap.get(slotToRootMap.get(nodeToSlotMap.get(this)))) === 'open') ? nodeToSlotMap.get(this) : null;
     }
   },
   attachShadow: {

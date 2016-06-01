@@ -156,7 +156,7 @@ describe('shadow/polyfill', function () {
       const slot1 = create('slot', { name: 'light1' });
       const slot2 = create('slot', { name: 'light2' });
       const host = create('div', [light1, light2]);
-      const root = host.attachShadow({ mode: 'closed' });
+      const root = host.attachShadow({ mode: 'open' });
 
       // Child nodes should be in the host even if there's no slots.
       expect(host.childNodes.length).to.equal(2);

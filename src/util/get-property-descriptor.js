@@ -3,7 +3,7 @@ const div = document.createElement('div');
 function getPrototype(obj, key) {
   let descriptor;
 
-  while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) { // eslint-disable-line max-len, no-cond-assign
+  while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) { // eslint-disable-line no-cond-assign
     obj = Object.getPrototypeOf(obj);
   }
   return descriptor;

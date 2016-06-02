@@ -266,13 +266,13 @@ function unregisterNode(host, node, func) {
 }
 
 function addNodeToNode(host, node, insertBefore) {
-  registerNode(host, node, insertBefore, (eachNode) => {
+  registerNode(host, node, insertBefore, eachNode => {
     host.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
   });
 }
 
 function addNodeToHost(host, node, insertBefore) {
-  registerNode(host, node, insertBefore, (eachNode) => {
+  registerNode(host, node, insertBefore, eachNode => {
     const rootNode = hostToRootMap.get(host);
     const slotNodes = rootToSlotMap.get(rootNode);
     const slotNode = slotNodes[getSlotNameFromNode(eachNode)];
@@ -297,7 +297,7 @@ function addSlotToRoot(root, slot) {
     slotToRootMap.set(slot, root);
   }
 
-  eachChildNode(rootToHostMap.get(root), (eachNode) => {
+  eachChildNode(rootToHostMap.get(root), eachNode => {
     if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
       slotNodeIntoSlot(slot, eachNode);
     }
@@ -305,7 +305,7 @@ function addSlotToRoot(root, slot) {
 }
 
 function addNodeToRoot(root, node, insertBefore) {
-  eachNodeOrFragmentNodes(node, (child) => {
+  eachNodeOrFragmentNodes(node, child => {
     if (isSlotNode(child)) {
       addSlotToRoot(root, child);
     } else {
@@ -326,7 +326,7 @@ function addNodeToRoot(root, node, insertBefore) {
 // is actually displayed, otherwise it's just registered as child content.
 function addNodeToSlot(slot, node, insertBefore) {
   const isInDefaultMode = slot.assignedNodes().length === 0;
-  registerNode(slot, node, insertBefore, (eachNode) => {
+  registerNode(slot, node, insertBefore, eachNode => {
     if (isInDefaultMode) {
       slot.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
     }
@@ -519,7 +519,7 @@ const members = {
       }
 
       const lightNodes = makeLikeNodeList([].slice.call(this.childNodes));
-      const shadowRoot = document.createElement(opts.polyfillShadowRootTagName || defaultShadowRootTagName); // eslint-disable-line max-len
+      const shadowRoot = document.createElement(opts.polyfillShadowRootTagName || defaultShadowRootTagName);
 
       // Host and shadow root data.
       hostToModeMap.set(this, mode);
@@ -576,7 +576,7 @@ const members = {
   children: {
     get() {
       const chs = [];
-      eachChildNode(this, (node) => {
+      eachChildNode(this, node => {
         if (node.nodeType === 1) {
           chs.push(node);
         }
@@ -623,7 +623,7 @@ const members = {
         8: getCommentNodeOuterHtml,
       };
 
-      eachChildNode(this, (node) => {
+      eachChildNode(this, node => {
         const getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
         innerHTML += getOuterHtml(node);
       });
@@ -690,7 +690,7 @@ const members = {
     get() {
       const host = this;
       let found;
-      return eachChildNode(this.parentNode, (child) => {
+      return eachChildNode(this.parentNode, child => {
         if (found && child.nodeType === 1) {
           return child;
         }
@@ -703,7 +703,9 @@ const members = {
   outerHTML: {
     get() {
       const name = this.tagName.toLowerCase();
-      const attributes = Array.prototype.slice.call(this.attributes).map((attr) => (` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`)).join(''); // eslint-disable-line max-len
+      const attributes = Array.prototype.slice.call(this.attributes).map((attr) =>
+        (` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`)
+      ).join('');
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
     },
 
@@ -715,7 +717,7 @@ const members = {
         if (canPatchNativeAccessors) {
           this.__outerHTML = outerHTML;  // this will throw a native error;
         } else {
-          throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.'); // eslint-disable-line max-len
+          throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.');
         }
       }
     },
@@ -744,7 +746,7 @@ const members = {
     get() {
       const host = this;
       let found;
-      return eachChildNode(this.parentNode, (child) => {
+      return eachChildNode(this.parentNode, child => {
         if (found && host === child) {
           return found;
         }
@@ -801,7 +803,7 @@ const members = {
   textContent: {
     get() {
       let textContent = '';
-      eachChildNode(this, (node) => {
+      eachChildNode(this, node => {
         if (node.nodeType !== Node.COMMENT_NODE) {
           textContent += node.textContent;
         }
@@ -827,7 +829,7 @@ if (!('attachShadow' in document.createElement('div'))) {
   const textNode = document.createTextNode('');
   const commNode = document.createComment('');
 
-  Object.keys(members).forEach((memberName) => {
+  Object.keys(members).forEach(memberName => {
     const memberProperty = members[memberName];
 
     // All properties should be configurable.
@@ -843,8 +845,8 @@ if (!('attachShadow' in document.createElement('div'))) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
       const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
-      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName); // eslint-disable-line max-len
-      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName); // eslint-disable-line max-len
+      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName);
+      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName);
       const nativeMemberName = '__' + memberName;
 
       Object.defineProperty(elementProto, memberName, memberProperty);

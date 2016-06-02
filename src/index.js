@@ -53,7 +53,7 @@ const slotToRootMap = new WeakMap();
 
 // Unfortunately manual DOM parsing is because of WebKit.
 const parser = new DOMParser();
-function parse (html) {
+function parse(html) {
   const tree = document.createElement('div');
 
   // Everything not WebKit can do this easily.
@@ -74,26 +74,38 @@ function parse (html) {
   return document.importNode(tree, true);
 }
 
-function staticProp (obj, name, value) {
+function staticProp(obj, name, value) {
   Object.defineProperty(obj, name, {
     configurable: true,
-    get () { return value; }
+    get() { return value; },
   });
 }
 
 
 // Slotting helpers.
 
-function arrayItem (idx) {
+function arrayItem(idx) {
   return this[idx];
 }
 
-function makeLikeNodeList (arr) {
+function makeLikeNodeList(arr) {
   arr.item = arrayItem;
   return arr;
 }
 
-function getNodeType (node) {
+function isHostNode(node) {
+  return !!hostToRootMap.get(node);
+}
+
+function isSlotNode(node) {
+  return node.tagName === 'SLOT';
+}
+
+function isRootNode(node) {
+  return node.tagName === defaultShadowRootTagNameUc;
+}
+
+function getNodeType(node) {
   if (isHostNode(node)) {
     return 'host';
   }
@@ -109,19 +121,7 @@ function getNodeType (node) {
   return 'node';
 }
 
-function isHostNode (node) {
-  return !!hostToRootMap.get(node);
-}
-
-function isSlotNode (node) {
-  return node.tagName === 'SLOT';
-}
-
-function isRootNode (node) {
-  return node.tagName === defaultShadowRootTagNameUc;
-}
-
-function findClosest (node, func) {
+function findClosest(node, func) {
   while (node) {
     if (node === document) {
       break;
@@ -133,15 +133,15 @@ function findClosest (node, func) {
   }
 }
 
-function getSlotNameFromSlot (node) {
+function getSlotNameFromSlot(node) {
   return node.getAttribute && node.getAttribute('name') || 'default';
 }
 
-function getSlotNameFromNode (node) {
+function getSlotNameFromNode(node) {
   return node.getAttribute && node.getAttribute('slot') || 'default';
 }
 
-function slotNodeIntoSlot (slot, node, insertBefore) {
+function slotNodeIntoSlot(slot, node, insertBefore) {
   // Don't slot nodes that have content but are only whitespace. This is an
   // anomaly that I don't think the spec deals with.
   //
@@ -175,7 +175,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
 
   // Remove the fallback content and state if we're going into content mode.
   if (shouldGoIntoContentMode) {
-    forEach.call(slot.childNodes, node => slot.__removeChild(node));
+    forEach.call(slot.childNodes, child => slot.__removeChild(child));
   }
 
   if (slotInsertBeforeIndex > -1) {
@@ -189,7 +189,7 @@ function slotNodeIntoSlot (slot, node, insertBefore) {
   slot.____triggerSlotChangeEvent();
 }
 
-function slotNodeFromSlot (node) {
+function slotNodeFromSlot(node) {
   const slot = node.assignedSlot;
 
   if (slot) {
@@ -207,7 +207,7 @@ function slotNodeFromSlot (node) {
 
       // If this was the last slotted node, then insert fallback content.
       if (shouldGoIntoDefaultMode) {
-        forEach.call(slot.childNodes, node => slot.__appendChild(node));
+        forEach.call(slot.childNodes, child => slot.__appendChild(child));
       }
 
       slot.____triggerSlotChangeEvent();
@@ -216,7 +216,7 @@ function slotNodeFromSlot (node) {
 }
 
 // Returns the index of the node in the host's childNodes.
-function indexOfNode (host, node) {
+function indexOfNode(host, node) {
   const chs = host.childNodes;
   const chsLen = chs.length;
   for (let a = 0; a < chsLen; a++) {
@@ -229,9 +229,9 @@ function indexOfNode (host, node) {
 
 // Adds the node to the list of childNodes on the host and fakes any necessary
 // information such as parentNode.
-function registerNode (host, node, insertBefore, func) {
+function registerNode(host, node, insertBefore, func) {
   const index = indexOfNode(host, insertBefore);
-  eachNodeOrFragmentNodes(node, function (eachNode, eachIndex) {
+  eachNodeOrFragmentNodes(node, (eachNode, eachIndex) => {
     func(eachNode, eachIndex);
 
     if (canPatchNativeAccessors) {
@@ -249,7 +249,7 @@ function registerNode (host, node, insertBefore, func) {
 }
 
 // Cleans up registerNode().
-function unregisterNode (host, node, func) {
+function unregisterNode(host, node, func) {
   const index = indexOfNode(host, node);
 
   if (index > -1) {
@@ -265,14 +265,14 @@ function unregisterNode (host, node, func) {
   }
 }
 
-function addNodeToNode (host, node, insertBefore) {
-  registerNode(host, node, insertBefore, function (eachNode) {
+function addNodeToNode(host, node, insertBefore) {
+  registerNode(host, node, insertBefore, (eachNode) => {
     host.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
   });
 }
 
-function addNodeToHost (host, node, insertBefore) {
-  registerNode(host, node, insertBefore, function (eachNode) {
+function addNodeToHost(host, node, insertBefore) {
+  registerNode(host, node, insertBefore, (eachNode) => {
     const rootNode = hostToRootMap.get(host);
     const slotNodes = rootToSlotMap.get(rootNode);
     const slotNode = slotNodes[getSlotNameFromNode(eachNode)];
@@ -282,12 +282,34 @@ function addNodeToHost (host, node, insertBefore) {
   });
 }
 
-function addNodeToRoot (root, node, insertBefore) {
-  eachNodeOrFragmentNodes(node, function (node) {
-    if (isSlotNode(node)) {
-      addSlotToRoot(root, node);
+function addSlotToRoot(root, slot) {
+  const slotName = getSlotNameFromSlot(slot);
+
+  // Ensure a slot node's childNodes are overridden at the earliest point
+  // possible for WebKit.
+  if (!canPatchNativeAccessors && !slot.childNodes.push) {
+    staticProp(slot, 'childNodes', []);
+  }
+
+  rootToSlotMap.get(root)[slotName] = slot;
+
+  if (!slotToRootMap.has(slot)) {
+    slotToRootMap.set(slot, root);
+  }
+
+  eachChildNode(rootToHostMap.get(root), (eachNode) => {
+    if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
+      slotNodeIntoSlot(slot, eachNode);
+    }
+  });
+}
+
+function addNodeToRoot(root, node, insertBefore) {
+  eachNodeOrFragmentNodes(node, (child) => {
+    if (isSlotNode(child)) {
+      addSlotToRoot(root, child);
     } else {
-      const slotNodes = node.querySelectorAll && node.querySelectorAll('slot');
+      const slotNodes = child.querySelectorAll && child.querySelectorAll('slot');
       if (slotNodes) {
         const slotNodesLen = slotNodes.length;
         for (let a = 0; a < slotNodesLen; a++) {
@@ -302,9 +324,9 @@ function addNodeToRoot (root, node, insertBefore) {
 // Adds a node to a slot. In other words, adds default content to a slot. It
 // ensures that if the slot doesn't have any assigned nodes yet, that the node
 // is actually displayed, otherwise it's just registered as child content.
-function addNodeToSlot (slot, node, insertBefore) {
+function addNodeToSlot(slot, node, insertBefore) {
   const isInDefaultMode = slot.assignedNodes().length === 0;
-  registerNode(slot, node, insertBefore, function (eachNode) {
+  registerNode(slot, node, insertBefore, (eachNode) => {
     if (isInDefaultMode) {
       slot.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
     }
@@ -314,48 +336,35 @@ function addNodeToSlot (slot, node, insertBefore) {
 // Removes a node from a slot (default content). It ensures that if the slot
 // doesn't have any assigned nodes yet, that the node is actually removed,
 // otherwise it's just unregistered.
-function removeNodeFromSlot (slot, node) {
+function removeNodeFromSlot(slot, node) {
   const isInDefaultMode = slot.assignedNodes().length === 0;
-  unregisterNode(slot, node, function () {
+  unregisterNode(slot, node, () => {
     if (isInDefaultMode) {
       slot.__removeChild(node);
     }
   });
 }
 
-function addSlotToRoot (root, slot) {
-  const slotName = getSlotNameFromSlot(slot);
-
-  // Ensure a slot node's childNodes are overridden at the earliest point
-  // possible for WebKit.
-  if (!canPatchNativeAccessors && !slot.childNodes.push) {
-    staticProp(slot, 'childNodes', []);
-  }
-
-  rootToSlotMap.get(root)[slotName] = slot;
-  !slotToRootMap.has(slot) && slotToRootMap.set(slot, root);
-
-  eachChildNode(rootToHostMap.get(root), function (eachNode) {
-    if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
-      slotNodeIntoSlot(slot, eachNode);
-    }
-  });
-}
-
-function removeNodeFromNode (host, node) {
-  unregisterNode(host, node, function () {
+function removeNodeFromNode(host, node) {
+  unregisterNode(host, node, () => {
     host.__removeChild(node);
   });
 }
 
-function removeNodeFromHost (host, node) {
-  unregisterNode(host, node, function () {
+function removeNodeFromHost(host, node) {
+  unregisterNode(host, node, () => {
     slotNodeFromSlot(node);
   });
 }
 
-function removeNodeFromRoot (root, node) {
-  unregisterNode(root, node, function () {
+function removeSlotFromRoot(root, node) {
+  node.assignedNodes().forEach(slotNodeFromSlot);
+  delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
+  slotToRootMap.delete(node);
+}
+
+function removeNodeFromRoot(root, node) {
+  unregisterNode(root, node, () => {
     if (isSlotNode(node)) {
       removeSlotFromRoot(root, node);
     } else {
@@ -370,26 +379,20 @@ function removeNodeFromRoot (root, node) {
   });
 }
 
-function removeSlotFromRoot (root, node) {
-  node.assignedNodes().forEach(slotNodeFromSlot);
-  delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
-  slotToRootMap.delete(node);
-}
-
 // TODO terribly inefficient
-function getRootNode (host) {
+function getRootNode(host) {
   if (isRootNode(host)) {
     return host;
-  } else {
-    if (!host.parentNode) {
-      return;
-    }
-
-    return getRootNode(host.parentNode);
   }
+
+  if (!host.parentNode) {
+    return;
+  }
+
+  return getRootNode(host.parentNode);
 }
 
-function appendChildOrInsertBefore (host, newNode, refNode) {
+function appendChildOrInsertBefore(host, newNode, refNode) {
   const nodeType = getNodeType(host);
   const parentNode = newNode.parentNode;
   const rootNode = getRootNode(host);
@@ -420,9 +423,9 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
     if (canPatchNativeAccessors) {
       nodeToParentNodeMap.set(newNode, host);
       return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
-    } else {
-      return addNodeToNode(host, newNode, refNode);
     }
+
+    return addNodeToNode(host, newNode, refNode);
   }
 
   if (nodeType === 'slot') {
@@ -441,54 +444,54 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
 const members = {
   // For testing purposes.
   ____assignedNodes: {
-    get () {
+    get() {
       return this.______assignedNodes || (this.______assignedNodes = []);
-    }
+    },
   },
 
   // For testing purposes.
   ____isInFallbackMode: {
-    get () {
+    get() {
       return this.assignedNodes().length === 0;
-    }
+    },
   },
 
   ____slotChangeListeners: {
-    get () {
+    get() {
       if (typeof this.______slotChangeListeners === 'undefined') {
         this.______slotChangeListeners = 0;
       }
       return this.______slotChangeListeners;
     },
-    set (value) {
+    set(value) {
       this.______slotChangeListeners = value;
-    }
+    },
   },
   ____triggerSlotChangeEvent: {
-    value: debounce(function () {
+    value: debounce(function callback() {
       if (this.____slotChangeListeners) {
         this.dispatchEvent(new CustomEvent('slotchange', {
           bubbles: false,
-          cancelable: false
+          cancelable: false,
         }));
       }
-    })
+    }),
   },
   addEventListener: {
-    value (name, func, opts) {
+    value(name, func, opts) {
       if (name === 'slotchange' && isSlotNode(this)) {
         this.____slotChangeListeners++;
       }
       return this.__addEventListener(name, func, opts);
-    }
+    },
   },
   appendChild: {
-    value (newNode) {
+    value(newNode) {
       return appendChildOrInsertBefore(this, newNode);
-    }
+    },
   },
   assignedSlot: {
-    get () {
+    get() {
       const slot = nodeToSlotMap.get(this);
 
       if (!slot) {
@@ -500,10 +503,10 @@ const members = {
       const mode = hostToModeMap.get(host);
 
       return mode === 'open' ? slot : null;
-    }
+    },
   },
   attachShadow: {
-    value (opts) {
+    value(opts) {
       const mode = opts && opts.mode;
       if (mode !== 'closed' && mode !== 'open') {
         throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
@@ -516,7 +519,7 @@ const members = {
       }
 
       const lightNodes = makeLikeNodeList([].slice.call(this.childNodes));
-      const shadowRoot = document.createElement(opts.polyfillShadowRootTagName || defaultShadowRootTagName);
+      const shadowRoot = document.createElement(opts.polyfillShadowRootTagName || defaultShadowRootTagName); // eslint-disable-line max-len
 
       // Host and shadow root data.
       hostToModeMap.set(this, mode);
@@ -549,76 +552,84 @@ const members = {
 
       // The shadow root is actually the only child of the host.
       return this.__appendChild(shadowRoot);
-    }
+    },
   },
   childElementCount: {
-    get () {
+    get() {
       return this.children.length;
-    }
+    },
   },
   childNodes: {
-    get () {
+    get() {
       if (canPatchNativeAccessors && getNodeType(this) === 'node') {
         return this.__childNodes;
       }
       let childNodes = nodeToChildNodesMap.get(this);
-      childNodes || nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
+
+      if (!childNodes) {
+        nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
+      }
+
       return childNodes;
-    }
+    },
   },
   children: {
-    get () {
+    get() {
       const chs = [];
-      eachChildNode(this, function (node) {
+      eachChildNode(this, (node) => {
         if (node.nodeType === 1) {
           chs.push(node);
         }
       });
       return makeLikeNodeList(chs);
-    }
+    },
   },
   firstChild: {
-    get () {
+    get() {
       return this.childNodes[0] || null;
-    }
+    },
   },
   firstElementChild: {
-    get () {
+    get() {
       return this.children[0] || null;
-    }
+    },
   },
   assignedNodes: {
-    value () {
+    value() {
       if (isSlotNode(this)) {
         let assigned = assignedToSlotMap.get(this);
-        assigned || assignedToSlotMap.set(this, assigned = []);
+
+        if (!assigned) {
+          assignedToSlotMap.set(this, assigned = []);
+        }
+
         return assigned;
       }
-    }
+    },
   },
   hasChildNodes: {
-    value () {
+    value() {
       return this.childNodes.length > 0;
-    }
+    },
   },
   innerHTML: {
-    get () {
+    get() {
       let innerHTML = '';
 
       const getHtmlNodeOuterHtml = (node) => node.outerHTML;
       const getOuterHtmlByNodeType = {
         1: getHtmlNodeOuterHtml,
         3: getEscapedTextContent,
-        8: getCommentNodeOuterHtml
+        8: getCommentNodeOuterHtml,
       };
 
-      eachChildNode(this, function (node) {
+      eachChildNode(this, (node) => {
         const getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
         innerHTML += getOuterHtml(node);
       });
       return innerHTML;
     },
-    set (innerHTML) {
+    set(innerHTML) {
       const parsed = parse(innerHTML);
 
       while (this.hasChildNodes()) {
@@ -638,48 +649,48 @@ const members = {
 
         this.appendChild(firstChild);
       }
-    }
+    },
   },
   insertBefore: {
-    value (newNode, refNode) {
+    value(newNode, refNode) {
       return appendChildOrInsertBefore(this, newNode, refNode);
-    }
+    },
   },
   lastChild: {
-    get () {
+    get() {
       const ch = this.childNodes;
       return ch[ch.length - 1] || null;
-    }
+    },
   },
   lastElementChild: {
-    get () {
+    get() {
       const ch = this.children;
       return ch[ch.length - 1] || null;
-    }
+    },
   },
   name: {
-    get () {
+    get() {
       return this.getAttribute('name');
     },
-    set (name) {
+    set(name) {
       return this.setAttribute('name', name);
-    }
+    },
   },
   nextSibling: {
-    get () {
+    get() {
       const host = this;
-      return eachChildNode(this.parentNode, function (child, index, nodes) {
+      return eachChildNode(this.parentNode, (child, index, nodes) => {
         if (host === child) {
           return nodes[index + 1] || null;
         }
       });
-    }
+    },
   },
   nextElementSibling: {
-    get () {
+    get() {
       const host = this;
       let found;
-      return eachChildNode(this.parentNode, function (child) {
+      return eachChildNode(this.parentNode, (child) => {
         if (found && child.nodeType === 1) {
           return child;
         }
@@ -687,18 +698,16 @@ const members = {
           found = true;
         }
       });
-    }
+    },
   },
   outerHTML: {
-    get () {
+    get() {
       const name = this.tagName.toLowerCase();
-      const attributes = Array.prototype.slice.call(this.attributes).map(function (attr) {
-        return ` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`;
-      }).join('');
+      const attributes = Array.prototype.slice.call(this.attributes).map((attr) => (` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`)).join(''); // eslint-disable-line max-len
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
     },
 
-    set (outerHTML) {
+    set(outerHTML) {
       if (this.parentNode) {
         const parsed = parse(outerHTML);
         this.parentNode.replaceChild(parsed.firstChild, this);
@@ -706,38 +715,36 @@ const members = {
         if (canPatchNativeAccessors) {
           this.__outerHTML = outerHTML;  // this will throw a native error;
         } else {
-          throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.');
+          throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.'); // eslint-disable-line max-len
         }
       }
-    }
+    },
   },
   parentElement: {
-    get () {
-      return findClosest(this.parentNode, function (node) {
-        return node.nodeType === 1;
-      });
-    }
+    get() {
+      return findClosest(this.parentNode, (node) => node.nodeType === 1);
+    },
   },
   parentNode: {
-    get () {
+    get() {
       return nodeToParentNodeMap.get(this) || this.__parentNode || null;
-    }
+    },
   },
   previousSibling: {
-    get () {
+    get() {
       const host = this;
-      return eachChildNode(this.parentNode, function (child, index, nodes) {
+      return eachChildNode(this.parentNode, (child, index, nodes) => {
         if (host === child) {
           return nodes[index - 1] || null;
         }
       });
-    }
+    },
   },
   previousElementSibling: {
-    get () {
+    get() {
       const host = this;
       let found;
-      return eachChildNode(this.parentNode, function (child) {
+      return eachChildNode(this.parentNode, (child) => {
         if (found && host === child) {
           return found;
         }
@@ -745,18 +752,18 @@ const members = {
           found = child;
         }
       });
-    }
+    },
   },
   removeChild: {
-    value (refNode) {
+    value(refNode) {
       const nodeType = getNodeType(this);
 
       if (nodeType === 'node') {
         if (canPatchNativeAccessors) {
           return this.__removeChild(refNode);
-        } else {
-          return removeNodeFromNode(this, refNode);
         }
+
+        return removeNodeFromNode(this, refNode);
       }
 
       if (nodeType === 'slot') {
@@ -770,38 +777,38 @@ const members = {
       if (nodeType === 'root') {
         return removeNodeFromRoot(this, refNode);
       }
-    }
+    },
   },
   removeEventListener: {
-    value (name, func, opts) {
+    value(name, func, opts) {
       if (name === 'slotchange' && this.____slotChangeListeners && isSlotNode(this)) {
         this.____slotChangeListeners--;
       }
       return this.__removeEventListener(name, func, opts);
-    }
+    },
   },
   replaceChild: {
-    value (newNode, refNode) {
+    value(newNode, refNode) {
       this.insertBefore(newNode, refNode);
       return this.removeChild(refNode);
-    }
+    },
   },
   shadowRoot: {
-    get () {
+    get() {
       return hostToModeMap.get(this) === 'open' ? hostToRootMap.get(this) : null;
-    }
+    },
   },
   textContent: {
-    get () {
+    get() {
       let textContent = '';
-      eachChildNode(this, function (node) {
+      eachChildNode(this, (node) => {
         if (node.nodeType !== Node.COMMENT_NODE) {
           textContent += node.textContent;
         }
       });
       return textContent;
     },
-    set (textContent) {
+    set(textContent) {
       while (this.hasChildNodes()) {
         this.removeChild(this.firstChild);
       }
@@ -809,8 +816,8 @@ const members = {
         return;
       }
       this.appendChild(document.createTextNode(textContent));
-    }
-  }
+    },
+  },
 };
 
 if (!('attachShadow' in document.createElement('div'))) {
@@ -820,7 +827,7 @@ if (!('attachShadow' in document.createElement('div'))) {
   const textNode = document.createTextNode('');
   const commNode = document.createComment('');
 
-  Object.keys(members).forEach(function (memberName) {
+  Object.keys(members).forEach((memberName) => {
     const memberProperty = members[memberName];
 
     // All properties should be configurable.
@@ -836,13 +843,14 @@ if (!('attachShadow' in document.createElement('div'))) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
       const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
-      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName);
-      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName);
+      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName); // eslint-disable-line max-len
+      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName); // eslint-disable-line max-len
+      const nativeMemberName = '__' + memberName;
 
       Object.defineProperty(elementProto, memberName, memberProperty);
 
       if (nativeDescriptor) {
-        Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+        Object.defineProperty(elementProto, nativeMemberName, nativeDescriptor);
       }
 
       if (shouldOverrideInTextNode) {
@@ -850,7 +858,7 @@ if (!('attachShadow' in document.createElement('div'))) {
       }
 
       if (shouldOverrideInTextNode && nativeTextDescriptor) {
-        Object.defineProperty(textProto, '__' + memberName, nativeTextDescriptor);
+        Object.defineProperty(textProto, nativeMemberName, nativeTextDescriptor);
       }
 
       if (shouldOverrideInCommentNode) {
@@ -858,7 +866,7 @@ if (!('attachShadow' in document.createElement('div'))) {
       }
 
       if (shouldOverrideInCommentNode && nativeCommDescriptor) {
-        Object.defineProperty(commProto, '__' + memberName, nativeCommDescriptor);
+        Object.defineProperty(commProto, nativeMemberName, nativeCommDescriptor);
       }
     }
   });

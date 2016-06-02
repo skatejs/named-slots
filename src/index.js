@@ -48,6 +48,7 @@ const nodeToParentNodeMap = new WeakMap();
 const nodeToSlotMap = new WeakMap();
 const rootToHostMap = new WeakMap();
 const rootToSlotMap = new WeakMap();
+const slotToRootMap = new WeakMap();
 
 
 // Unfortunately manual DOM parsing is because of WebKit.
@@ -332,6 +333,8 @@ function addSlotToRoot (root, slot) {
   }
 
   rootToSlotMap.get(root)[slotName] = slot;
+  !slotToRootMap.has(slot) && slotToRootMap.set(slot, root);
+
   eachChildNode(rootToHostMap.get(root), function (eachNode) {
     if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
       slotNodeIntoSlot(slot, eachNode);
@@ -370,6 +373,7 @@ function removeNodeFromRoot (root, node) {
 function removeSlotFromRoot (root, node) {
   node.assignedNodes().forEach(slotNodeFromSlot);
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
+  slotToRootMap.delete(node);
 }
 
 // TODO terribly inefficient
@@ -485,7 +489,17 @@ const members = {
   },
   assignedSlot: {
     get () {
-      return nodeToSlotMap.get(this) || null;
+      const slot = nodeToSlotMap.get(this);
+
+      if (!slot) {
+        return null;
+      }
+
+      const root = slotToRootMap.get(slot);
+      const host = rootToHostMap.get(root);
+      const mode = hostToModeMap.get(host);
+
+      return mode === 'open' ? slot : null;
     }
   },
   attachShadow: {
@@ -822,7 +836,6 @@ if (!('attachShadow' in document.createElement('div'))) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
       const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
-      
       const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName);
       const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName);
 

@@ -847,7 +847,7 @@ if (!('attachShadow' in document.createElement('div'))) {
       const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
       const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName);
       const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName);
-      const nativeMemberName = '__' + memberName;
+      const nativeMemberName = `__${memberName}`;
 
       Object.defineProperty(elementProto, memberName, memberProperty);
 

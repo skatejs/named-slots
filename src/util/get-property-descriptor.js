@@ -3,7 +3,7 @@ const div = document.createElement('div');
 function getPrototype(obj, key) {
   let descriptor;
 
-  while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) {
+  while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) { // eslint-disable-line no-cond-assign
     obj = Object.getPrototypeOf(obj);
   }
   return descriptor;
@@ -12,14 +12,14 @@ export default function (obj, key) {
   if (obj instanceof Node) {
     obj = div;
   }
-  let proto = getPrototype(obj, key);
+  const proto = getPrototype(obj, key);
 
   if (proto) {
     const getter = proto.get;
     const setter = proto.set;
     const descriptor = {
       configurable: true,
-      enumerable: true
+      enumerable: true,
     };
 
     if (getter) {

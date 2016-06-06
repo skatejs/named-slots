@@ -288,7 +288,7 @@ function addSlotToRoot(root, slot) {
   // Ensure a slot node's childNodes are overridden at the earliest point
   // possible for WebKit.
   if (!canPatchNativeAccessors && !slot.childNodes.push) {
-    staticProp(slot, 'childNodes', []);
+    staticProp(slot, 'childNodes', [...slot.childNodes]);
   }
 
   rootToSlotMap.get(root)[slotName] = slot;
@@ -638,6 +638,19 @@ const members = {
 
       while (parsed.hasChildNodes()) {
         const firstChild = parsed.firstChild;
+
+        // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
+        // slot.__childNodes is out of sync with slot.childNodes.
+        // to fix it we have to manually remove and insert them
+        if (canPatchNativeAccessors && getNodeType(firstChild) == 'slot' && (firstChild.__childNodes.length != firstChild.childNodes.length)) {
+          while (firstChild.hasChildNodes()) {
+            firstChild.removeChild(firstChild.firstChild);
+          }
+
+          for (let i=0; i<firstChild.__childNodes.length; i++) {
+            firstChild.appendChild(firstChild.__childNodes[i]);
+          }
+        }
 
         // When we polyfill everything on HTMLElement.prototype, we overwrite
         // properties. This makes it so that parentNode reports null even though

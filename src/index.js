@@ -642,12 +642,12 @@ const members = {
         // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
         // slot.__childNodes is out of sync with slot.childNodes.
         // to fix it we have to manually remove and insert them
-        if (canPatchNativeAccessors && getNodeType(firstChild) == 'slot' && (firstChild.__childNodes.length != firstChild.childNodes.length)) {
+        if (canPatchNativeAccessors && getNodeType(firstChild) === 'slot' && (firstChild.__childNodes.length !== firstChild.childNodes.length)) {
           while (firstChild.hasChildNodes()) {
             firstChild.removeChild(firstChild.firstChild);
           }
 
-          for (let i=0; i<firstChild.__childNodes.length; i++) {
+          for (let i = 0; i < firstChild.__childNodes.length; i++) {
             firstChild.appendChild(firstChild.__childNodes[i]);
           }
         }

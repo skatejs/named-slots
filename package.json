@@ -1,7 +1,6 @@
 {
   "name": "skatejs-named-slots",
   "build:global": "skatejsNamedSlots",
-  "version": "0.1.9",
   "description": "A polygap (partial polyfill) for the Shadow DOM Named Slot API.",
   "main": "dist/index.js",
   "jsnext:main": "src/index.js",
@@ -11,7 +10,8 @@
     "test/perf": "karma start --single-run --perf",
     "build": "rollup --config && rollup --config --min",
     "lint": "eslint -c node_modules/skatejs-build/.eslintrc src",
-    "prerelease": "npm test && eslint -c node_modules/skatejs-build/.eslintrc src && npm run build"
+    "prerelease": "npm test && eslint -c node_modules/skatejs-build/.eslintrc src && npm run build",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "repository": {
     "type": "git",
@@ -33,11 +33,17 @@
   "devDependencies": {
     "eslint": "2.11.0",
     "eslint-plugin-react": "^3.16.1",
-    "skatejs-build": "skatejs/build#e24f4a9bdd2e62ff4de260df8901dbd86b3db2c7"
+    "skatejs-build": "1.1.0",
+    "semantic-release": "^4.3.5"
   },
   "dependencies": {
     "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",
     "debounce": "^1.0.0",
     "weakmap": "0.0.6"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   }
 }

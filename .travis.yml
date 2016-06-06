@@ -12,6 +12,11 @@ script:
     else
     npm test -- --browsers Firefox;
     fi
+after_success:
+  - npm run semantic-release
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/
 env:
   global:
     - secure: YjSeTZX3pH+9JXrx/Ie7rRBq8vsrIcAKIaW0IsY3kDGa4x4jaRvO51nVI2IUhcXZpiwMzWpLu7aa/EHH3YsYOZDXzcCQC8Vif9OUKwd9tN6K7PFhuK8iXCbR7hKHCB3eXhtgvqdhx3JPVP654L0789qfVp2GV4DycNDfKw0ZAXFMRs1x+PqU5/BEKJAc1XU4y/ov+ce7WzPbuWvmSx84cK1l79bz/6HRxAD25NTxplq98rvLZ4ulMjPVJQ03JGWF30rFs/R3psDy6d6LAwhATSgWrsTE0IkHpTzTAJf8wNphP03wTrf8SpKGChq//pZH9iTU/Ib+xnkjSIl4FR49QPM4Gme1guqm5sE3lDAvGTeCGVjVeamuE8imCKnX/CTV4TyAFDoIQG1MHhupz9SAveC2bAYUKyK9SkXooX5RQr+1atmcNE6szMQJ2CQ5Z6uaMFmEcwm4lwVTBd3vZxn09O+VayxSfysth/5taObrwP2mkbYcxrynsRPpjlesAdTm00DhqI9u5kMuRX5H6fBUxtZpgDwrtk2qC0LUlv6IJXI1Hqos+gnr6yKYCvd6dmYvBck+aL/AMG6oOJNkT5inuBoKLcBjdfhCuqIRPUdOODtSwy3ZfbYOiXt/MRl5sicmway6aQkydEB8lZja96LxgpJCFJkKRgjFzKdyllzcLi0=

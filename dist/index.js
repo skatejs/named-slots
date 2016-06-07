@@ -36,7 +36,7 @@
       for (var a = 0; a < chsLen; a++) {
         var ret = func(chs[a], a, chs);
         if (typeof ret !== 'undefined') {
-          return ret;
+          return ret; // eslint-disable-line consistent-return
         }
       }
     }
@@ -59,6 +59,7 @@
       var descriptor = void 0;
 
       while (obj && !(descriptor = Object.getOwnPropertyDescriptor(obj, key))) {
+        // eslint-disable-line no-cond-assign
         obj = Object.getPrototypeOf(obj);
       }
       return descriptor;
@@ -554,6 +555,18 @@
       return arr;
     }
 
+    function isHostNode(node) {
+      return !!hostToRootMap.get(node);
+    }
+
+    function isSlotNode(node) {
+      return node.tagName === 'SLOT';
+    }
+
+    function isRootNode(node) {
+      return node.tagName === defaultShadowRootTagNameUc;
+    }
+
     function getNodeType(node) {
       if (isHostNode(node)) {
         return 'host';
@@ -568,18 +581,6 @@
       }
 
       return 'node';
-    }
-
-    function isHostNode(node) {
-      return !!hostToRootMap.get(node);
-    }
-
-    function isSlotNode(node) {
-      return node.tagName === 'SLOT';
-    }
-
-    function isRootNode(node) {
-      return node.tagName === defaultShadowRootTagNameUc;
     }
 
     function findClosest(node, func) {
@@ -636,8 +637,8 @@
 
       // Remove the fallback content and state if we're going into content mode.
       if (shouldGoIntoContentMode) {
-        forEach.call(slot.childNodes, function (node) {
-          return slot.__removeChild(node);
+        forEach.call(slot.childNodes, function (child) {
+          return slot.__removeChild(child);
         });
       }
 
@@ -670,8 +671,8 @@
 
           // If this was the last slotted node, then insert fallback content.
           if (shouldGoIntoDefaultMode) {
-            forEach.call(slot.childNodes, function (node) {
-              return slot.__appendChild(node);
+            forEach.call(slot.childNodes, function (child) {
+              return slot.__appendChild(child);
             });
           }
 
@@ -747,12 +748,34 @@
       });
     }
 
+    function addSlotToRoot(root, slot) {
+      var slotName = getSlotNameFromSlot(slot);
+
+      // Ensure a slot node's childNodes are overridden at the earliest point
+      // possible for WebKit.
+      if (!canPatchNativeAccessors && !slot.childNodes.push) {
+        staticProp(slot, 'childNodes', [].concat(babelHelpers.toConsumableArray(slot.childNodes)));
+      }
+
+      rootToSlotMap.get(root)[slotName] = slot;
+
+      if (!slotToRootMap.has(slot)) {
+        slotToRootMap.set(slot, root);
+      }
+
+      eachChildNode(rootToHostMap.get(root), function (eachNode) {
+        if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
+          slotNodeIntoSlot(slot, eachNode);
+        }
+      });
+    }
+
     function addNodeToRoot(root, node, insertBefore) {
-      eachNodeOrFragmentNodes(node, function (node) {
-        if (isSlotNode(node)) {
-          addSlotToRoot(root, node);
+      eachNodeOrFragmentNodes(node, function (child) {
+        if (isSlotNode(child)) {
+          addSlotToRoot(root, child);
         } else {
-          var slotNodes = node.querySelectorAll && node.querySelectorAll('slot');
+          var slotNodes = child.querySelectorAll && child.querySelectorAll('slot');
           if (slotNodes) {
             var slotNodesLen = slotNodes.length;
             for (var a = 0; a < slotNodesLen; a++) {
@@ -788,25 +811,6 @@
       });
     }
 
-    function addSlotToRoot(root, slot) {
-      var slotName = getSlotNameFromSlot(slot);
-
-      // Ensure a slot node's childNodes are overridden at the earliest point
-      // possible for WebKit.
-      if (!canPatchNativeAccessors && !slot.childNodes.push) {
-        staticProp(slot, 'childNodes', []);
-      }
-
-      rootToSlotMap.get(root)[slotName] = slot;
-      !slotToRootMap.has(slot) && slotToRootMap.set(slot, root);
-
-      eachChildNode(rootToHostMap.get(root), function (eachNode) {
-        if (!eachNode.assignedSlot && slotName === getSlotNameFromNode(eachNode)) {
-          slotNodeIntoSlot(slot, eachNode);
-        }
-      });
-    }
-
     function removeNodeFromNode(host, node) {
       unregisterNode(host, node, function () {
         host.__removeChild(node);
@@ -817,6 +821,12 @@
       unregisterNode(host, node, function () {
         slotNodeFromSlot(node);
       });
+    }
+
+    function removeSlotFromRoot(root, node) {
+      node.assignedNodes().forEach(slotNodeFromSlot);
+      delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
+      slotToRootMap.delete(node);
     }
 
     function removeNodeFromRoot(root, node) {
@@ -835,23 +845,17 @@
       });
     }
 
-    function removeSlotFromRoot(root, node) {
-      node.assignedNodes().forEach(slotNodeFromSlot);
-      delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
-      slotToRootMap.delete(node);
-    }
-
     // TODO terribly inefficient
     function getRootNode(host) {
       if (isRootNode(host)) {
         return host;
-      } else {
-        if (!host.parentNode) {
-          return;
-        }
-
-        return getRootNode(host.parentNode);
       }
+
+      if (!host.parentNode) {
+        return;
+      }
+
+      return getRootNode(host.parentNode);
     }
 
     function appendChildOrInsertBefore(host, newNode, refNode) {
@@ -885,9 +889,9 @@
         if (canPatchNativeAccessors) {
           nodeToParentNodeMap.set(newNode, host);
           return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
-        } else {
-          return addNodeToNode(host, newNode, refNode);
         }
+
+        return addNodeToNode(host, newNode, refNode);
       }
 
       if (nodeType === 'slot') {
@@ -900,6 +904,18 @@
 
       if (nodeType === 'root') {
         return addNodeToRoot(host, newNode, refNode);
+      }
+    }
+
+    function syncSlotChildNodes(firstChild) {
+      if (canPatchNativeAccessors && getNodeType(firstChild) === 'slot' && firstChild.__childNodes.length !== firstChild.childNodes.length) {
+        while (firstChild.hasChildNodes()) {
+          firstChild.removeChild(firstChild.firstChild);
+        }
+
+        for (var i = 0; i < firstChild.__childNodes.length; i++) {
+          firstChild.appendChild(firstChild.__childNodes[i]);
+        }
       }
     }
 
@@ -930,7 +946,7 @@
         }
       },
       ____triggerSlotChangeEvent: {
-        value: debounce(function () {
+        value: debounce(function callback() {
           if (this.____slotChangeListeners) {
             this.dispatchEvent(new CustomEvent('slotchange', {
               bubbles: false,
@@ -956,7 +972,9 @@
         get: function get() {
           var slot = nodeToSlotMap.get(this);
 
-          if (!slot) return null;
+          if (!slot) {
+            return null;
+          }
 
           var root = slotToRootMap.get(slot);
           var host = rootToHostMap.get(root);
@@ -1027,7 +1045,11 @@
             return this.__childNodes;
           }
           var childNodes = nodeToChildNodesMap.get(this);
-          childNodes || nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
+
+          if (!childNodes) {
+            nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
+          }
+
           return childNodes;
         }
       },
@@ -1056,7 +1078,11 @@
         value: function value() {
           if (isSlotNode(this)) {
             var assigned = assignedToSlotMap.get(this);
-            assigned || assignedToSlotMap.set(this, assigned = []);
+
+            if (!assigned) {
+              assignedToSlotMap.set(this, assigned = []);
+            }
+
             return assigned;
           }
         }
@@ -1094,6 +1120,11 @@
 
           while (parsed.hasChildNodes()) {
             var firstChild = parsed.firstChild;
+
+            // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
+            // slot.__childNodes is out of sync with slot.childNodes.
+            // to fix it we have to manually remove and insert them
+            syncSlotChildNodes(firstChild);
 
             // When we polyfill everything on HTMLElement.prototype, we overwrite
             // properties. This makes it so that parentNode reports null even though
@@ -1220,9 +1251,9 @@
           if (nodeType === 'node') {
             if (canPatchNativeAccessors) {
               return this.__removeChild(refNode);
-            } else {
-              return removeNodeFromNode(this, refNode);
             }
+
+            return removeNodeFromNode(this, refNode);
           }
 
           if (nodeType === 'slot') {
@@ -1303,14 +1334,14 @@
             var nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
             var nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
             var nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
-
             var shouldOverrideInTextNode = memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1 || ~defineInTextNodes.indexOf(memberName);
             var shouldOverrideInCommentNode = memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1 || ~defineInCommNodes.indexOf(memberName);
+            var nativeMemberName = '__' + memberName;
 
             Object.defineProperty(elementProto, memberName, memberProperty);
 
             if (nativeDescriptor) {
-              Object.defineProperty(elementProto, '__' + memberName, nativeDescriptor);
+              Object.defineProperty(elementProto, nativeMemberName, nativeDescriptor);
             }
 
             if (shouldOverrideInTextNode) {
@@ -1318,7 +1349,7 @@
             }
 
             if (shouldOverrideInTextNode && nativeTextDescriptor) {
-              Object.defineProperty(textProto, '__' + memberName, nativeTextDescriptor);
+              Object.defineProperty(textProto, nativeMemberName, nativeTextDescriptor);
             }
 
             if (shouldOverrideInCommentNode) {
@@ -1326,7 +1357,7 @@
             }
 
             if (shouldOverrideInCommentNode && nativeCommDescriptor) {
-              Object.defineProperty(commProto, '__' + memberName, nativeCommDescriptor);
+              Object.defineProperty(commProto, nativeMemberName, nativeCommDescriptor);
             }
           }
         });
@@ -1338,7 +1369,7 @@
       window.skatejsNamedSlots = previousGlobal;
       return this;
     };
-    exports.version = '0.1.9';
+    exports.version = 'undefined';
 
     exports['default'] = version;
 

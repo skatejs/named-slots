@@ -441,6 +441,18 @@ function appendChildOrInsertBefore(host, newNode, refNode) {
   }
 }
 
+function syncSlotChildNodes(firstChild) {
+  if (canPatchNativeAccessors && getNodeType(firstChild) === 'slot' && (firstChild.__childNodes.length !== firstChild.childNodes.length)) {
+    while (firstChild.hasChildNodes()) {
+      firstChild.removeChild(firstChild.firstChild);
+    }
+
+    for (let i = 0; i < firstChild.__childNodes.length; i++) {
+      firstChild.appendChild(firstChild.__childNodes[i]);
+    }
+  }
+}
+
 const members = {
   // For testing purposes.
   ____assignedNodes: {
@@ -642,15 +654,7 @@ const members = {
         // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
         // slot.__childNodes is out of sync with slot.childNodes.
         // to fix it we have to manually remove and insert them
-        if (canPatchNativeAccessors && getNodeType(firstChild) === 'slot' && (firstChild.__childNodes.length !== firstChild.childNodes.length)) {
-          while (firstChild.hasChildNodes()) {
-            firstChild.removeChild(firstChild.firstChild);
-          }
-
-          for (let i = 0; i < firstChild.__childNodes.length; i++) {
-            firstChild.appendChild(firstChild.__childNodes[i]);
-          }
-        }
+        syncSlotChildNodes(firstChild);
 
         // When we polyfill everything on HTMLElement.prototype, we overwrite
         // properties. This makes it so that parentNode reports null even though

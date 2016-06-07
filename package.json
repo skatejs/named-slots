@@ -33,7 +33,7 @@
   "devDependencies": {
     "eslint": "2.11.0",
     "eslint-plugin-react": "^3.16.1",
-    "skatejs-build": "skatejs/build#c801537a357b04137c0b8cf5844783c94fe54ee2",
+    "skatejs-build": "skatejs/build#cdcbcfc",
     "semantic-release": "^4.3.5"
   },
   "dependencies": {

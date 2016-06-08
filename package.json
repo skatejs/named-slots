@@ -15,6 +15,10 @@
     "type": "git",
     "url": "git+https://github.com/skatejs/named-slots.git"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "keywords": [
     "named",
     "slots",

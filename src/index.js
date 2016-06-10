@@ -648,13 +648,14 @@ const members = {
         this.removeChild(this.firstChild);
       }
 
+      // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
+      // slot.__childNodes is out of sync with slot.childNodes.
+      // to fix it we have to manually remove and insert them
+      const slots = parsed.querySelectorAll('slot');
+      forEach.call(slots, slot => {syncSlotChildNodes(slot);});
+
       while (parsed.hasChildNodes()) {
         const firstChild = parsed.firstChild;
-
-        // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
-        // slot.__childNodes is out of sync with slot.childNodes.
-        // to fix it we have to manually remove and insert them
-        syncSlotChildNodes(firstChild);
 
         // When we polyfill everything on HTMLElement.prototype, we overwrite
         // properties. This makes it so that parentNode reports null even though

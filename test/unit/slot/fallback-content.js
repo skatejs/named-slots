@@ -84,8 +84,8 @@ describe('fallback-content', function () {
     let fallback;
 
     beforeEach(function () {
-      root.innerHTML = '<slot><div></div></slot>';
-      slot = root.firstChild;
+      root.innerHTML = '<div><slot><div></div></slot></div>';
+      slot = root.firstChild.firstChild;
       fallback = slot.firstChild;
     });
 

@@ -442,13 +442,21 @@ function appendChildOrInsertBefore(host, newNode, refNode) {
 }
 
 function syncSlotChildNodes(firstChild) {
-  if (canPatchNativeAccessors && getNodeType(firstChild) === 'slot' && (firstChild.__childNodes.length !== firstChild.childNodes.length)) {
-    while (firstChild.hasChildNodes()) {
-      firstChild.removeChild(firstChild.firstChild);
-    }
+  const parentNode = firstChild.parentNode;
+  if (firstChild && parentNode && parentNode.querySelectorAll) {
+    const allSlotNodes = parentNode.querySelectorAll('slot');
 
-    for (let i = 0; i < firstChild.__childNodes.length; i++) {
-      firstChild.appendChild(firstChild.__childNodes[i]);
+    for (let i=0; i<allSlotNodes.length; i++) {
+      let node = allSlotNodes[i];
+      if (canPatchNativeAccessors && getNodeType(node) === 'slot' && (node.__childNodes.length !== node.childNodes.length)) {
+        while (node.hasChildNodes()) {
+          node.removeChild(node.firstChild);
+        }
+
+        for (let i = 0; i < node.__childNodes.length; i++) {
+          node.appendChild(node.__childNodes[i]);
+        }
+      }
     }
   }
 }

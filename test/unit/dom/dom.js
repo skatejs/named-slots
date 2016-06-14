@@ -134,6 +134,11 @@ describe('skatejs-named-slots dom', function () {
         } else {
           canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div><div></div>texttext2<!--comment--><!--comment2-->');
         }
+
+        let changed = document.createElement('div');
+        let changedElem = elem.appendChild(changed);
+        expect(changedElem).not.to.equal(undefined);
+        expect(changedElem).to.equal(changed);
       }
     });
 
@@ -218,6 +223,26 @@ describe('skatejs-named-slots dom', function () {
       expect(root.childNodes[0]).to.equal(local2);
       expect(root.childNodes[1]).to.equal(local1);
       expect(root.childNodes[root.childNodes.length-1]).to.equal(local3);
+
+
+      let div = document.createElement('div');
+      let elem, changed;
+
+      div.innerHTML = "<div></div>";
+      changed = document.createElement('div');
+      elem = div.insertBefore(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = document.createElement('div');
+      elem = root.insertBefore(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = document.createElement('div');
+      elem = host.insertBefore(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
     });
 
     it('removeChild()', function () {
@@ -326,6 +351,27 @@ describe('skatejs-named-slots dom', function () {
       if (canPatchNativeAccessors) {
         expect(root.__innerHTML).to.equal('');
       }
+
+      let div = document.createElement('div');
+      let elem, changed;
+      host.innerHTML = "<div></div>";
+      root.innerHTML = "<div></div>";
+
+      div.innerHTML = "<div></div><div></div>";
+      changed = div.childNodes[0];
+      elem = div.removeChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = host.childNodes[0];
+      elem = host.removeChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = root.childNodes[0];
+      elem = root.removeChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
     });
 
     it('replaceChild()', function () {
@@ -983,56 +1029,4 @@ describe('skatejs-named-slots dom', function () {
       expect(elem.parentNode).to.equal(frag);
     });
   });
-
-  describe('Return elements', function () {
-    it('appendChild, removeChild, insertBefore should return new/deleted node', function () {
-      let div = document.createElement('div');
-      let changed = document.createElement('div');
-      let elem = div.appendChild(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-
-      div.innerHTML = "<div></div><div></div>";
-      changed = div.childNodes[0];
-      elem = div.removeChild(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-
-      div.innerHTML = "<div></div>";
-      changed = document.createElement('div');
-      elem = div.insertBefore(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-
-      changed = document.createElement('div');
-      elem = root.appendChild(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-
-      changed = document.createElement('div');
-      elem = host.appendChild(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-
-      changed = document.createElement('div');
-      elem = root.insertBefore(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-
-      changed = document.createElement('div');
-      elem = host.insertBefore(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-
-      changed = host.childNodes[0];
-      elem = host.removeChild(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-
-      changed = root.childNodes[0];
-      elem = root.removeChild(changed);
-      expect(elem).not.to.equal(undefined);
-      expect(elem).to.equal(changed);
-    })
-  })
 });

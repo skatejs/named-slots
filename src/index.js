@@ -5,7 +5,7 @@ import debounce from 'debounce';
 import getEscapedTextContent from './util/get-escaped-text-content';
 import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import version from './version';
-import WeakMap from 'weakmap';
+import 'webcomponents.js/src/WeakMap/WeakMap.js';
 import 'custom-event-polyfill';
 
 const arrProto = Array.prototype;

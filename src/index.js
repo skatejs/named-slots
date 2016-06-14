@@ -441,23 +441,13 @@ function appendChildOrInsertBefore(host, newNode, refNode) {
   }
 }
 
-function syncSlotChildNodes(firstChild) {
-  const parentNode = firstChild.parentNode;
-  if (firstChild && parentNode && parentNode.querySelectorAll) {
-    const allSlotNodes = parentNode.querySelectorAll('slot');
-
-    for (let i=0; i<allSlotNodes.length; i++) {
-      let node = allSlotNodes[i];
-      if (canPatchNativeAccessors && getNodeType(node) === 'slot' && (node.__childNodes.length !== node.childNodes.length)) {
-        while (node.hasChildNodes()) {
-          node.removeChild(node.firstChild);
-        }
-
-        for (let i = 0; i < node.__childNodes.length; i++) {
-          node.appendChild(node.__childNodes[i]);
-        }
-      }
+function syncSlotChildNodes(node) {
+  if (canPatchNativeAccessors && getNodeType(node) === 'slot' && (node.__childNodes.length !== node.childNodes.length)) {
+    while (node.hasChildNodes()) {
+      node.removeChild(node.firstChild);
     }
+
+    forEach.call(node.__childNodes, child => node.appendChild(child));
   }
 }
 
@@ -660,7 +650,7 @@ const members = {
       // slot.__childNodes is out of sync with slot.childNodes.
       // to fix it we have to manually remove and insert them
       const slots = parsed.querySelectorAll('slot');
-      forEach.call(slots, slot => {syncSlotChildNodes(slot);});
+      forEach.call(slots, slot => syncSlotChildNodes(slot));
 
       while (parsed.hasChildNodes()) {
         const firstChild = parsed.firstChild;

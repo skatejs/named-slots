@@ -983,4 +983,56 @@ describe('skatejs-named-slots dom', function () {
       expect(elem.parentNode).to.equal(frag);
     });
   });
+
+  describe('Return elements', function () {
+    it('appendChild, removeChild, insertBefore should return new/deleted node', function () {
+      let div = document.createElement('div');
+      let changed = document.createElement('div');
+      let elem = div.appendChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      div.innerHTML = "<div></div><div></div>";
+      changed = div.childNodes[0];
+      elem = div.removeChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      div.innerHTML = "<div></div>";
+      changed = document.createElement('div');
+      elem = div.insertBefore(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = document.createElement('div');
+      elem = root.appendChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = document.createElement('div');
+      elem = host.appendChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = document.createElement('div');
+      elem = root.insertBefore(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = document.createElement('div');
+      elem = host.insertBefore(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = host.childNodes[0];
+      elem = host.removeChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+
+      changed = root.childNodes[0];
+      elem = root.removeChild(changed);
+      expect(elem).not.to.equal(undefined);
+      expect(elem).to.equal(changed);
+    })
+  })
 });

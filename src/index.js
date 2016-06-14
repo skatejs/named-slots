@@ -187,8 +187,6 @@ function slotNodeIntoSlot(slot, node, insertBefore) {
   }
 
   slot.____triggerSlotChangeEvent();
-
-  return node;
 }
 
 function slotNodeFromSlot(node) {
@@ -248,8 +246,6 @@ function registerNode(host, node, insertBefore, func) {
       arrProto.push.call(host.childNodes, eachNode);
     }
   });
-
-  return node;
 }
 
 // Cleans up registerNode().
@@ -266,24 +262,22 @@ function unregisterNode(host, node, func) {
     }
 
     arrProto.splice.call(host.childNodes, index, 1);
-
-    return node;
   }
 }
 
 function addNodeToNode(host, node, insertBefore) {
-  return registerNode(host, node, insertBefore, eachNode => {
+  registerNode(host, node, insertBefore, eachNode => {
     host.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
   });
 }
 
 function addNodeToHost(host, node, insertBefore) {
-  return registerNode(host, node, insertBefore, eachNode => {
+  registerNode(host, node, insertBefore, eachNode => {
     const rootNode = hostToRootMap.get(host);
     const slotNodes = rootToSlotMap.get(rootNode);
     const slotNode = slotNodes[getSlotNameFromNode(eachNode)];
     if (slotNode) {
-      return slotNodeIntoSlot(slotNode, eachNode, insertBefore);
+      slotNodeIntoSlot(slotNode, eachNode, insertBefore);
     }
   });
 }
@@ -308,8 +302,6 @@ function addSlotToRoot(root, slot) {
       slotNodeIntoSlot(slot, eachNode);
     }
   });
-
-  return slot;
 }
 
 function addNodeToRoot(root, node, insertBefore) {
@@ -326,7 +318,7 @@ function addNodeToRoot(root, node, insertBefore) {
       }
     }
   });
-  return addNodeToNode(root, node, insertBefore);
+  addNodeToNode(root, node, insertBefore);
 }
 
 // Adds a node to a slot. In other words, adds default content to a slot. It
@@ -334,7 +326,7 @@ function addNodeToRoot(root, node, insertBefore) {
 // is actually displayed, otherwise it's just registered as child content.
 function addNodeToSlot(slot, node, insertBefore) {
   const isInDefaultMode = slot.assignedNodes().length === 0;
-  return registerNode(slot, node, insertBefore, eachNode => {
+  registerNode(slot, node, insertBefore, eachNode => {
     if (isInDefaultMode) {
       slot.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
     }
@@ -346,7 +338,7 @@ function addNodeToSlot(slot, node, insertBefore) {
 // otherwise it's just unregistered.
 function removeNodeFromSlot(slot, node) {
   const isInDefaultMode = slot.assignedNodes().length === 0;
-  return unregisterNode(slot, node, () => {
+  unregisterNode(slot, node, () => {
     if (isInDefaultMode) {
       slot.__removeChild(node);
     }
@@ -354,13 +346,13 @@ function removeNodeFromSlot(slot, node) {
 }
 
 function removeNodeFromNode(host, node) {
-  return unregisterNode(host, node, () => {
-    return host.__removeChild(node);
+  unregisterNode(host, node, () => {
+    host.__removeChild(node);
   });
 }
 
 function removeNodeFromHost(host, node) {
-  return unregisterNode(host, node, () => {
+  unregisterNode(host, node, () => {
     slotNodeFromSlot(node);
   });
 }
@@ -372,7 +364,7 @@ function removeSlotFromRoot(root, node) {
 }
 
 function removeNodeFromRoot(root, node) {
-  return unregisterNode(root, node, () => {
+  unregisterNode(root, node, () => {
     if (isSlotNode(node)) {
       removeSlotFromRoot(root, node);
     } else {
@@ -507,7 +499,8 @@ const members = {
   },
   appendChild: {
     value(newNode) {
-      return appendChildOrInsertBefore(this, newNode);
+      appendChildOrInsertBefore(this, newNode);
+      return newNode;
     },
   },
   assignedSlot: {
@@ -678,7 +671,9 @@ const members = {
   },
   insertBefore: {
     value(newNode, refNode) {
-      return appendChildOrInsertBefore(this, newNode, refNode);
+      appendChildOrInsertBefore(this, newNode, refNode);
+
+      return newNode;
     },
   },
   lastChild: {
@@ -790,19 +785,19 @@ const members = {
           return this.__removeChild(refNode);
         }
 
-        return removeNodeFromNode(this, refNode);
+        return removeNodeFromNode(this, refNode) || refNode;
       }
 
       if (nodeType === 'slot') {
-        return removeNodeFromSlot(this, refNode);
+        return removeNodeFromSlot(this, refNode) || refNode;
       }
 
       if (nodeType === 'host') {
-        return removeNodeFromHost(this, refNode);
+        return removeNodeFromHost(this, refNode) || refNode;
       }
 
       if (nodeType === 'root') {
-        return removeNodeFromRoot(this, refNode);
+        return removeNodeFromRoot(this, refNode) || refNode;
       }
     },
   },

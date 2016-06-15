@@ -441,15 +441,13 @@ function appendChildOrInsertBefore(host, newNode, refNode) {
   }
 }
 
-function syncSlotChildNodes(firstChild) {
-  if (canPatchNativeAccessors && getNodeType(firstChild) === 'slot' && (firstChild.__childNodes.length !== firstChild.childNodes.length)) {
-    while (firstChild.hasChildNodes()) {
-      firstChild.removeChild(firstChild.firstChild);
+function syncSlotChildNodes(node) {
+  if (canPatchNativeAccessors && getNodeType(node) === 'slot' && (node.__childNodes.length !== node.childNodes.length)) {
+    while (node.hasChildNodes()) {
+      node.removeChild(node.firstChild);
     }
 
-    for (let i = 0; i < firstChild.__childNodes.length; i++) {
-      firstChild.appendChild(firstChild.__childNodes[i]);
-    }
+    forEach.call(node.__childNodes, child => node.appendChild(child));
   }
 }
 
@@ -648,13 +646,14 @@ const members = {
         this.removeChild(this.firstChild);
       }
 
+      // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
+      // slot.__childNodes is out of sync with slot.childNodes.
+      // to fix it we have to manually remove and insert them
+      const slots = parsed.querySelectorAll('slot');
+      forEach.call(slots, slot => syncSlotChildNodes(slot));
+
       while (parsed.hasChildNodes()) {
         const firstChild = parsed.firstChild;
-
-        // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
-        // slot.__childNodes is out of sync with slot.childNodes.
-        // to fix it we have to manually remove and insert them
-        syncSlotChildNodes(firstChild);
 
         // When we polyfill everything on HTMLElement.prototype, we overwrite
         // properties. This makes it so that parentNode reports null even though

@@ -497,7 +497,8 @@ const members = {
   },
   appendChild: {
     value(newNode) {
-      return appendChildOrInsertBefore(this, newNode);
+      appendChildOrInsertBefore(this, newNode);
+      return newNode;
     },
   },
   assignedSlot: {
@@ -669,7 +670,9 @@ const members = {
   },
   insertBefore: {
     value(newNode, refNode) {
-      return appendChildOrInsertBefore(this, newNode, refNode);
+      appendChildOrInsertBefore(this, newNode, refNode);
+
+      return newNode;
     },
   },
   lastChild: {
@@ -776,25 +779,24 @@ const members = {
     value(refNode) {
       const nodeType = getNodeType(this);
 
-      if (nodeType === 'node') {
-        if (canPatchNativeAccessors) {
-          return this.__removeChild(refNode);
-        }
-
-        return removeNodeFromNode(this, refNode);
+      switch (nodeType) {
+        case 'node':
+          if (canPatchNativeAccessors) {
+            return this.__removeChild(refNode);
+          }
+          removeNodeFromNode(this, refNode);
+          break;
+        case 'slot':
+          removeNodeFromSlot(this, refNode);
+          break;
+        case 'host':
+          removeNodeFromHost(this, refNode);
+          break;
+        case 'root':
+          removeNodeFromRoot(this, refNode);
+          break;
       }
-
-      if (nodeType === 'slot') {
-        return removeNodeFromSlot(this, refNode);
-      }
-
-      if (nodeType === 'host') {
-        return removeNodeFromHost(this, refNode);
-      }
-
-      if (nodeType === 'root') {
-        return removeNodeFromRoot(this, refNode);
-      }
+      return refNode;
     },
   },
   removeEventListener: {

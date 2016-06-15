@@ -780,25 +780,24 @@ const members = {
     value(refNode) {
       const nodeType = getNodeType(this);
 
-      if (nodeType === 'node') {
-        if (canPatchNativeAccessors) {
-          return this.__removeChild(refNode);
-        }
-
-        return removeNodeFromNode(this, refNode) || refNode;
+      switch (nodeType) {
+        case 'node':
+          if (canPatchNativeAccessors) {
+            return this.__removeChild(refNode);
+          }
+          removeNodeFromNode(this, refNode);
+          break;
+        case 'slot':
+          removeNodeFromSlot(this, refNode);
+          break;
+        case 'host':
+          removeNodeFromHost(this, refNode);
+          break;
+        case 'root':
+          removeNodeFromRoot(this, refNode);
+          break;
       }
-
-      if (nodeType === 'slot') {
-        return removeNodeFromSlot(this, refNode) || refNode;
-      }
-
-      if (nodeType === 'host') {
-        return removeNodeFromHost(this, refNode) || refNode;
-      }
-
-      if (nodeType === 'root') {
-        return removeNodeFromRoot(this, refNode) || refNode;
-      }
+      return refNode;
     },
   },
   removeEventListener: {

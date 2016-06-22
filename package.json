@@ -33,9 +33,9 @@
   },
   "homepage": "https://github.com/skatejs/named-slots#readme",
   "devDependencies": {
-    "eslint": "2.11.0",
+    "eslint": "^2.11.0",
     "eslint-plugin-react": "^3.16.1",
-    "skatejs-build": "2.1.1"
+    "skatejs-build": "^4.2.2"
   },
   "dependencies": {
     "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",

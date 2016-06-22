@@ -4,6 +4,9 @@ import getPropertyDescriptor from './util/get-property-descriptor';
 import debounce from 'debounce';
 import getEscapedTextContent from './util/get-escaped-text-content';
 import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
+import findSlots from './util/find-slots';
+import isRootNode from './util/is-root-node';
+import isSlotNode from './util/is-slot-node';
 import version from './version';
 import 'webcomponents.js/src/WeakMap/WeakMap.js';
 import 'custom-event-polyfill';
@@ -16,7 +19,6 @@ const { forEach } = arrProto;
 // root the only thing that can receive instructions on how the host should
 // render to the browser.
 const defaultShadowRootTagName = '_shadow_root_';
-const defaultShadowRootTagNameUc = defaultShadowRootTagName.toUpperCase();
 
 // * WebKit only *
 //
@@ -95,14 +97,6 @@ function makeLikeNodeList(arr) {
 
 function isHostNode(node) {
   return !!hostToRootMap.get(node);
-}
-
-function isSlotNode(node) {
-  return node.tagName === 'SLOT';
-}
-
-function isRootNode(node) {
-  return node.tagName === defaultShadowRootTagNameUc;
 }
 
 function getNodeType(node) {
@@ -309,7 +303,7 @@ function addNodeToRoot(root, node, insertBefore) {
     if (isSlotNode(child)) {
       addSlotToRoot(root, child);
     } else {
-      const slotNodes = child.querySelectorAll && child.querySelectorAll('slot');
+      const slotNodes = findSlots(child);
       if (slotNodes) {
         const slotNodesLen = slotNodes.length;
         for (let a = 0; a < slotNodesLen; a++) {
@@ -368,7 +362,7 @@ function removeNodeFromRoot(root, node) {
     if (isSlotNode(node)) {
       removeSlotFromRoot(root, node);
     } else {
-      const nodes = node.querySelectorAll && node.querySelectorAll('slot');
+      const nodes = findSlots(node);
       if (nodes) {
         for (let a = 0; a < nodes.length; a++) {
           removeSlotFromRoot(root, nodes[a]);
@@ -650,7 +644,7 @@ const members = {
       // when we are doing this: root.innerHTML = "<slot><div></div></slot>";
       // slot.__childNodes is out of sync with slot.childNodes.
       // to fix it we have to manually remove and insert them
-      const slots = parsed.querySelectorAll('slot');
+      const slots = findSlots(parsed);
       forEach.call(slots, slot => syncSlotChildNodes(slot));
 
       while (parsed.hasChildNodes()) {

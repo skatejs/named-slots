@@ -1,7 +1,7 @@
 import isRootNode from './is-root-node';
 import isSlotNode from './is-slot-node';
 
-export default function(root) {
+export default function (root) {
   const slots = [];
 
   // IE complains if you call nextNode() on a tree walker that isn't an element.

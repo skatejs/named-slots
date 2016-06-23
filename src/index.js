@@ -774,21 +774,21 @@ const members = {
       const nodeType = getNodeType(this);
 
       switch (nodeType) {
-        case 'node':
-          if (canPatchNativeAccessors) {
-            return this.__removeChild(refNode);
-          }
-          removeNodeFromNode(this, refNode);
-          break;
-        case 'slot':
-          removeNodeFromSlot(this, refNode);
-          break;
-        case 'host':
-          removeNodeFromHost(this, refNode);
-          break;
-        case 'root':
-          removeNodeFromRoot(this, refNode);
-          break;
+      case 'node':
+        if (canPatchNativeAccessors) {
+          return this.__removeChild(refNode);
+        }
+        removeNodeFromNode(this, refNode);
+        break;
+      case 'slot':
+        removeNodeFromSlot(this, refNode);
+        break;
+      case 'host':
+        removeNodeFromHost(this, refNode);
+        break;
+      case 'root':
+        removeNodeFromRoot(this, refNode);
+        break;
       }
       return refNode;
     },

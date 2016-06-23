@@ -1,3 +1,3 @@
-export default function(node) {
+export default function (node) {
   return node.tagName === 'SLOT';
 }

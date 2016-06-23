@@ -13,4 +13,5 @@ import './unit/slot/change-event.js';
 import './unit/slot/distribution';
 import './unit/slot/fallback-content';
 import './unit/slot/polyfill';
+import './unit/util/find-slots';
 import './unit/webcomponents/initialisation';

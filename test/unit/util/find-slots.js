@@ -43,7 +43,7 @@ describe('util/find-slots called from', () => {
     expect(findSlots(root1).length).to.equal(1);
     expect(findSlots(root1)[0].name).to.equal(null);
 
-    root1.innerHTML = '<div></div><slot></slot><div><slot name="name1"></slot></div><slot name="name2"></slot>';
+    root1.innerHTML = '<div></div><slot></slot><div></div><div><slot name="name1"></slot></div><slot name="name2"></slot>';
     expect(findSlots(host).length).to.equal(0);
     expect(findSlots(root1).length).to.equal(3);
     expect(findSlots(root1)[0].name).to.equal(null);
@@ -51,7 +51,7 @@ describe('util/find-slots called from', () => {
     expect(findSlots(root1)[2].name).to.equal('name2');
 
     let root2 = root1.childNodes[2].attachShadow({mode: 'open'});
-    root2.innerHTML = '<div></div><slot></slot><div><slot name="name3"></slot></div><slot name="name4"></slot>';
+    root2.innerHTML = '<div></div><slot></slot><div></div><div><slot name="name3"></slot></div><slot name="name4"></slot>';
 
     expect(findSlots(host).length).to.equal(0);
     expect(findSlots(root1).length).to.equal(3);

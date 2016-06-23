@@ -1,35 +1,22 @@
-import isRootNode from './is-root-node';
 import isSlotNode from './is-slot-node';
 
-export default function (root) {
-  const slots = [];
+export default function findSlots (root, slots = []) {
+  const { childNodes } = root;
 
-  // IE complains if you call nextNode() on a tree walker that isn't an element.
-  if (root.nodeType !== Node.ELEMENT_NODE) {
-    return [];
+  if (!childNodes || root.nodeType !== Node.ELEMENT_NODE) {
+    return slots;
   }
 
-  // IE requies the last argument, so we must provide both the 3rd and last.
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null, false);
-  let inDescendantRoot = false;
+  const { length } = childNodes;
 
-  while (walker.nextNode()) {
-    const { currentNode } = walker;
-    const isCurrentSlot = isSlotNode(currentNode);
+  for (let a = 0; a < length; a++) {
+    const childNode = childNodes[a];
 
-    if (inDescendantRoot && isCurrentSlot) {
-      inDescendantRoot = false;
-      continue;
+    if (isSlotNode(childNode)) {
+      slots.push(childNode);
     }
-
-    if (isRootNode(currentNode)) {
-      inDescendantRoot = true;
-      continue;
-    }
-
-    if (!inDescendantRoot && isCurrentSlot) {
-      slots.push(currentNode);
-    }
+    
+    findSlots(childNode, slots);
   }
 
   return slots;

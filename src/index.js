@@ -776,6 +776,7 @@ const members = {
       switch (nodeType) {
       case 'node':
         if (canPatchNativeAccessors) {
+          nodeToParentNodeMap.set(refNode, null);
           return this.__removeChild(refNode);
         }
         removeNodeFromNode(this, refNode);
@@ -788,6 +789,8 @@ const members = {
         break;
       case 'root':
         removeNodeFromRoot(this, refNode);
+        break;
+      default:
         break;
       }
       return refNode;

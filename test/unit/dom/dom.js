@@ -372,8 +372,14 @@ describe('skatejs-named-slots dom', function () {
       elem = root.removeChild(changed);
       expect(elem).not.to.equal(undefined);
       expect(elem).to.equal(changed);
-    });
 
+      let div2 = document.createElement('div');
+      div2.appendChild(host);
+      let parent = host.parentNode;
+      parent.removeChild(host);
+      expect(host.parentNode).to.equal(null);
+    });
+    
     it('replaceChild()', function () {
       testReplaceChild(host, true);
       root.innerHTML = '';

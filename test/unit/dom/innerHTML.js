@@ -122,8 +122,8 @@ describe('dom: innerHTML', function () {
         expect(elem.innerHTML).to.equal('');
         expect(elem.childNodes.length).to.equal(0);
 
-        if (type !== 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('');
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('');
           expect(elem.__childNodes.length).to.equal(0);
         }
       });

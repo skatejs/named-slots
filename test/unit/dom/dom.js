@@ -1035,4 +1035,15 @@ describe('skatejs-named-slots dom', function () {
       expect(elem.parentNode).to.equal(frag);
     });
   });
+
+  describe('SVGElement', function () {
+    it('should be polyfilled', function () {
+      const div = document.createElement('div');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      div.attachShadow({ mode: 'open' });
+      div.shadowRoot.appendChild(document.createElement('slot'));
+      div.appendChild(svg);
+      expect(svg.parentNode).to.equal(div);
+    });
+  });
 });

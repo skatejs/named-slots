@@ -838,9 +838,10 @@ const members = {
 };
 
 if (!('attachShadow' in document.createElement('div'))) {
-  const elementProto = HTMLElement.prototype;
-  const textProto = Text.prototype;
   const commProto = Comment.prototype;
+  const elementProto = HTMLElement.prototype;
+  const svgProto = SVGElement.prototype;
+  const textProto = Text.prototype;
   const textNode = document.createTextNode('');
   const commNode = document.createComment('');
 
@@ -865,6 +866,7 @@ if (!('attachShadow' in document.createElement('div'))) {
       const nativeMemberName = `__${memberName}`;
 
       Object.defineProperty(elementProto, memberName, memberProperty);
+      Object.defineProperty(svgProto, memberName, memberProperty);
 
       if (nativeDescriptor) {
         Object.defineProperty(elementProto, nativeMemberName, nativeDescriptor);

@@ -7,6 +7,7 @@ import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import findSlots from './util/find-slots';
 import isRootNode from './util/is-root-node';
 import isSlotNode from './util/is-slot-node';
+import pseudoArrayToArray from './util/pseudo-array-to-array';
 import version from './version';
 import 'webcomponents.js/src/WeakMap/WeakMap.js';
 import 'custom-event-polyfill';
@@ -281,8 +282,8 @@ function addSlotToRoot(root, slot) {
 
   // Ensure a slot node's childNodes are overridden at the earliest point
   // possible for WebKit.
-  if (!canPatchNativeAccessors && !slot.childNodes.push) {
-    staticProp(slot, 'childNodes', [...slot.childNodes]);
+  if (!canPatchNativeAccessors && !Array.isArray(slot.childNodes)) {
+    staticProp(slot, 'childNodes', pseudoArrayToArray(slot.childNodes));
   }
 
   rootToSlotMap.get(root)[slotName] = slot;
@@ -392,8 +393,8 @@ function appendChildOrInsertBefore(host, newNode, refNode) {
   const rootNode = getRootNode(host);
 
   // Ensure childNodes is patched so we can manually update it for WebKit.
-  if (!canPatchNativeAccessors && !host.childNodes.push) {
-    staticProp(host, 'childNodes', [...host.childNodes]);
+  if (!canPatchNativeAccessors && !Array.isArray(host.childNodes)) {
+    staticProp(host, 'childNodes', pseudoArrayToArray(host.childNodes));
   }
 
   if (rootNode && getNodeType(newNode) === 'slot') {
@@ -776,6 +777,7 @@ const members = {
       switch (nodeType) {
       case 'node':
         if (canPatchNativeAccessors) {
+          nodeToParentNodeMap.set(refNode, null);
           return this.__removeChild(refNode);
         }
         removeNodeFromNode(this, refNode);
@@ -788,6 +790,8 @@ const members = {
         break;
       case 'root':
         removeNodeFromRoot(this, refNode);
+        break;
+      default:
         break;
       }
       return refNode;
@@ -835,9 +839,10 @@ const members = {
 };
 
 if (!('attachShadow' in document.createElement('div'))) {
-  const elementProto = HTMLElement.prototype;
-  const textProto = Text.prototype;
   const commProto = Comment.prototype;
+  const elementProto = HTMLElement.prototype;
+  const svgProto = SVGElement.prototype;
+  const textProto = Text.prototype;
   const textNode = document.createTextNode('');
   const commNode = document.createComment('');
 
@@ -862,6 +867,7 @@ if (!('attachShadow' in document.createElement('div'))) {
       const nativeMemberName = `__${memberName}`;
 
       Object.defineProperty(elementProto, memberName, memberProperty);
+      Object.defineProperty(svgProto, memberName, memberProperty);
 
       if (nativeDescriptor) {
         Object.defineProperty(elementProto, nativeMemberName, nativeDescriptor);

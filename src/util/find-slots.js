@@ -1,6 +1,6 @@
 import isSlotNode from './is-slot-node';
 
-export default function findSlots (root, slots = []) {
+export default function findSlots(root, slots = []) {
   const { childNodes } = root;
 
   if (!childNodes || root.nodeType !== Node.ELEMENT_NODE) {
@@ -15,7 +15,6 @@ export default function findSlots (root, slots = []) {
     if (isSlotNode(childNode)) {
       slots.push(childNode);
     }
-    
     findSlots(childNode, slots);
   }
 

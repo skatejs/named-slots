@@ -229,8 +229,14 @@ describe('skatejs-named-slots dom', function () {
       elem = root.removeChild(changed);
       expect(elem).not.to.equal(undefined);
       expect(elem).to.equal(changed);
-    });
 
+      let div2 = document.createElement('div');
+      div2.appendChild(host);
+      let parent = host.parentNode;
+      parent.removeChild(host);
+      expect(host.parentNode).to.equal(null);
+    });
+    
     it('replaceChild()', function () {
       testReplaceChild(host, true);
       root.innerHTML = '';
@@ -537,6 +543,17 @@ describe('skatejs-named-slots dom', function () {
       const elem = document.createElement('div');
       frag.appendChild(elem);
       expect(elem.parentNode).to.equal(frag);
+    });
+  });
+
+  describe('SVGElement', function () {
+    it('should be polyfilled', function () {
+      const div = document.createElement('div');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      div.attachShadow({ mode: 'open' });
+      div.shadowRoot.appendChild(document.createElement('slot'));
+      div.appendChild(svg);
+      expect(svg.parentNode).to.equal(div);
     });
   });
 });

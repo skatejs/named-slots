@@ -56,59 +56,151 @@ describe('dom: insertBefore', function () {
 
         expect(elem.innerHTML).to.equal('<div></div><div></div><test></test>');
         expect(elem.childNodes[2]).to.equal(inserted);
+
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('<div></div><div></div><test></test>');
+          expect(elem.__childNodes[2]).to.equal(inserted);
+        }
       });
 
       it(`should insert an element node to a parent with no children`, () => {
+        let inserted = document.createElement('test');
+        elem.insertBefore(inserted);
 
+        expect(elem.innerHTML).to.equal('<test></test>');
+        expect(elem.childNodes[0]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('<test></test>');
+          expect(elem.__childNodes[0]).to.equal(inserted);
+        }
       });
 
       it(`should insert a text node to a parent with no children`, () => {
+        let inserted = document.createTextNode('text');
+        elem.insertBefore(inserted);
 
+        expect(elem.innerHTML).to.equal('text');
+        expect(elem.childNodes[0]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('text');
+          expect(elem.__childNodes[0]).to.equal(inserted);
+        }
       });
 
       it(`should insert a comment node to a parent with no children`, () => {
+        let inserted = document.createComment('comment');
+        elem.insertBefore(inserted);
 
+        expect(elem.innerHTML).to.equal('<!--comment-->');
+        expect(elem.childNodes[0]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('<!--comment-->');
+          expect(elem.__childNodes[0]).to.equal(inserted);
+        }
       });
 
       it(`should insert an element node to a parent with one child`, () => {
+        elem.innerHTML = '<div></div>';
+        let inserted = document.createElement('test');
+        elem.insertBefore(inserted, elem.childNodes[0]);
 
+        expect(elem.innerHTML).to.equal('<test></test><div></div>');
+        expect(elem.childNodes[0]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('<test></test><div></div>');
+          expect(elem.__childNodes[0]).to.equal(inserted);
+        }
       });
 
       it(`should insert a text node to a parent with one child`, () => {
+        elem.innerHTML = '<div></div>';
+        let inserted = document.createTextNode('text');
+        elem.insertBefore(inserted, elem.childNodes[0]);
 
+        expect(elem.innerHTML).to.equal('text<div></div>');
+        expect(elem.childNodes[0]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('text<div></div>');
+          expect(elem.__childNodes[0]).to.equal(inserted);
+        }
       });
 
       it(`should insert a comment node to a parent with one child`, () => {
+        elem.innerHTML = '<div></div>';
+        let inserted = document.createComment('comment');
+        elem.insertBefore(inserted, elem.childNodes[0]);
 
+        expect(elem.innerHTML).to.equal('<!--comment--><div></div>');
+        expect(elem.childNodes[0]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('<!--comment--><div></div>');
+          expect(elem.__childNodes[0]).to.equal(inserted);
+        }
       });
 
-
       it(`should insert an element node to a parent with two or more children`, () => {
+        elem.innerHTML = '<div1></div1><div2></div2><div3></div3>';
+        let inserted = document.createElement('test');
+        elem.insertBefore(inserted, elem.childNodes[1]);
 
+        expect(elem.innerHTML).to.equal('<div1></div1><test></test><div2></div2><div3></div3>');
+        expect(elem.childNodes[1]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('<div1></div1><test></test><div2></div2><div3></div3>');
+          expect(elem.__childNodes[1]).to.equal(inserted);
+        }
       });
 
       it(`should insert a text node to a parent with two or more children`, () => {
+        elem.innerHTML = '<div1></div1><div2></div2><div3></div3>';
+        let inserted = document.createTextNode('text');
+        elem.insertBefore(inserted, elem.childNodes[1]);
 
+        expect(elem.innerHTML).to.equal('<div1></div1>text<div2></div2><div3></div3>');
+        expect(elem.childNodes[1]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('<div1></div1>text<div2></div2><div3></div3>');
+          expect(elem.__childNodes[1]).to.equal(inserted);
+        }
       });
 
       it(`should insert a comment node to a parent with two or more children`, () => {
+        elem.innerHTML = '<div1></div1><div2></div2><div3></div3>';
+        let inserted = document.createComment('comment');
+        elem.insertBefore(inserted, elem.childNodes[1]);
 
+        expect(elem.innerHTML).to.equal('<div1></div1><!--comment--><div2></div2><div3></div3>');
+        expect(elem.childNodes[1]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal('<div1></div1><!--comment--><div2></div2><div3></div3>');
+          expect(elem.__childNodes[1]).to.equal(inserted);
+        }
       });
 
-      it(`should work properly on a complex tree`, () => {
+      it(`should insert a node with children`, () => {
+        let insertedHTML = '<div4></div4><!--comment--><div5><div6>text</div6></div5>';
+        elem.innerHTML = '<div1><div></div></div1><div2></div2><div3></div3>';
+        let inserted = document.createElement('test');
+        inserted.innerHTML = insertedHTML;
+        elem.insertBefore(inserted, elem.childNodes[2]);
 
+        expect(elem.innerHTML).to.equal(`<div1><div></div></div1><div2></div2><test>${insertedHTML}</test><div3></div3>`);
+        expect(elem.childNodes[2]).to.equal(inserted);
 
+        if (type !== 'host' && canPatchNativeAccessors) {
+          expect(elem.__innerHTML).to.equal(`<div1><div></div></div1><div2></div2><test>${insertedHTML}</test><div3></div3>`);
+          expect(elem.__childNodes[2]).to.equal(inserted);
+        }
       });
-
     });
   }
 });

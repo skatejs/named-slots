@@ -18,6 +18,11 @@ import './unit/dom/firstElementChild';
 import './unit/dom/hasChildNodes';
 import './unit/dom/innerHTML';
 import './unit/dom/insertBefore';
+import './unit/dom/lastChild';
+import './unit/dom/lastElementChild';
+import './unit/dom/outerHTML';
+import './unit/dom/textContent';
+import './unit/dom/removeChild';
 
 //
 // import './unit/light/polyfill';

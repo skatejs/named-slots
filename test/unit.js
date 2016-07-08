@@ -26,12 +26,12 @@ import './unit/dom/removeChild';
 import './unit/dom/replaceChild';
 import './unit/dom/SVGElement';
 
-//
-// import './unit/light/polyfill';
-// import './unit/shadow/polyfill';
-// import './unit/slot/change-event.js';
-// import './unit/slot/distribution';
-// import './unit/slot/fallback-content';
-// import './unit/slot/polyfill';
-// import './unit/util/find-slots';
-// import './unit/webcomponents/initialisation';
+
+import './unit/light/polyfill';
+import './unit/shadow/polyfill';
+import './unit/slot/change-event.js';
+import './unit/slot/distribution';
+import './unit/slot/fallback-content';
+import './unit/slot/polyfill';
+import './unit/util/find-slots';
+import './unit/webcomponents/initialisation';

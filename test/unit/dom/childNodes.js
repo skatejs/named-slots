@@ -102,6 +102,84 @@ describe('dom: childNodes', function () {
           canPatchNativeAccessors && expect(elem.__childNodes.length).to.equal(0);
         }
       });
+
+      it('should be correct nodes if children were appended or inserted', () => {
+        let node1 = document.createElement('node1');
+        let node2 = document.createElement('node2');
+        let node3 = document.createTextNode('text1');
+        let node4 = document.createTextNode('text2');
+        let node5 = document.createComment('comment1');
+        let node6 = document.createComment('comment2');
+
+
+        elem.appendChild(node1);
+        expect(elem.childNodes[0]).to.equal(node1);
+        expect(elem.innerHTML).to.equal('<node1></node1>');
+        if (type !== 'host') {
+          canPatchNativeAccessors && expect(elem.__childNodes[0]).to.equal(node1);
+        }
+
+        elem.appendChild(node2);
+        expect(elem.childNodes[1]).to.equal(node2);
+        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>');
+        if (type !== 'host') {
+          canPatchNativeAccessors && expect(elem.__childNodes[1]).to.equal(node2);
+        }
+
+        elem.appendChild(node3);
+        expect(elem.childNodes[2]).to.equal(node3);
+        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>text1');
+        if (type !== 'host') {
+          canPatchNativeAccessors && expect(elem.__childNodes[2]).to.equal(node3);
+        }
+
+        elem.insertBefore(node4);
+        expect(elem.childNodes[3]).to.equal(node4);
+        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>text1text2');
+        if (type !== 'host') {
+          canPatchNativeAccessors && expect(elem.__childNodes[3]).to.equal(node4);
+        }
+
+        elem.insertBefore(node5);
+        expect(elem.childNodes[4]).to.equal(node5);
+        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>text1text2<!--comment1-->');
+        if (type !== 'host') {
+          canPatchNativeAccessors && expect(elem.__childNodes[4]).to.equal(node5);
+        }
+
+        elem.insertBefore(node6);
+        expect(elem.childNodes[5]).to.equal(node6);
+        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>text1text2<!--comment1--><!--comment2-->');
+        if (type !== 'host') {
+          canPatchNativeAccessors && expect(elem.__childNodes[5]).to.equal(node6);
+        }
+      });
+
+      it('should return correct nodes if children were removed', () => {
+        let node1 = document.createElement('node1');
+        let node3 = document.createTextNode('text1');
+        let node5 = document.createComment('comment1');
+        elem.appendChild(node1);
+        elem.appendChild(node3);
+        elem.appendChild(node5);
+
+        elem.removeChild(elem.firstChild);
+        expect(elem.childNodes.length).to.equal(2);
+        expect(elem.childNodes[0]).to.equal(node3);
+        expect(elem.innerHTML).to.equal('text1<!--comment1-->');
+        if (type !== 'host') {
+          canPatchNativeAccessors && expect(elem.__childNodes[0]).to.equal(node3);
+        }
+
+        elem.removeChild(elem.firstChild);
+        expect(elem.childNodes.length).to.equal(1);
+        expect(elem.childNodes[0]).to.equal(node5);
+        expect(elem.innerHTML).to.equal('<!--comment1-->');
+        if (type !== 'host') {
+          canPatchNativeAccessors && expect(elem.__childNodes[0]).to.equal(node5);
+        }
+      });
+
     });
   }
 });

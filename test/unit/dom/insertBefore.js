@@ -57,9 +57,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('<div></div><div></div><test></test>');
         expect(elem.childNodes[2]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('<div></div><div></div><test></test>');
-          expect(elem.__childNodes[2]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(3);
         }
       });
 
@@ -70,9 +69,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('<test></test>');
         expect(elem.childNodes[0]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('<test></test>');
-          expect(elem.__childNodes[0]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(1);
         }
       });
 
@@ -83,9 +81,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('text');
         expect(elem.childNodes[0]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('text');
-          expect(elem.__childNodes[0]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(1);
         }
       });
 
@@ -96,9 +93,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('<!--comment-->');
         expect(elem.childNodes[0]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('<!--comment-->');
-          expect(elem.__childNodes[0]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(0);
         }
       });
 
@@ -110,9 +106,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('<test></test><div></div>');
         expect(elem.childNodes[0]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('<test></test><div></div>');
-          expect(elem.__childNodes[0]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -124,9 +119,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('text<div></div>');
         expect(elem.childNodes[0]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('text<div></div>');
-          expect(elem.__childNodes[0]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -138,9 +132,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('<!--comment--><div></div>');
         expect(elem.childNodes[0]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('<!--comment--><div></div>');
-          expect(elem.__childNodes[0]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(1);
         }
       });
 
@@ -152,9 +145,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('<div1></div1><test></test><div2></div2><div3></div3>');
         expect(elem.childNodes[1]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('<div1></div1><test></test><div2></div2><div3></div3>');
-          expect(elem.__childNodes[1]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(4);
         }
       });
 
@@ -166,9 +158,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('<div1></div1>text<div2></div2><div3></div3>');
         expect(elem.childNodes[1]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('<div1></div1>text<div2></div2><div3></div3>');
-          expect(elem.__childNodes[1]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(4);
         }
       });
 
@@ -180,9 +171,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal('<div1></div1><!--comment--><div2></div2><div3></div3>');
         expect(elem.childNodes[1]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('<div1></div1><!--comment--><div2></div2><div3></div3>');
-          expect(elem.__childNodes[1]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(3);
         }
       });
 
@@ -196,9 +186,8 @@ describe('dom: insertBefore', function () {
         expect(elem.innerHTML).to.equal(`<div1><div></div></div1><div2></div2><test>${insertedHTML}</test><div3></div3>`);
         expect(elem.childNodes[2]).to.equal(inserted);
 
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal(`<div1><div></div></div1><div2></div2><test>${insertedHTML}</test><div3></div3>`);
-          expect(elem.__childNodes[2]).to.equal(inserted);
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(4);
         }
       });
     });

@@ -72,7 +72,7 @@ describe('dom: firstElementChild', function () {
         }
       });
 
-      it(`should NOT return correct comment node from a parent with just one child`, () => {
+      it(`should NOT return comment node from a parent with just one child`, () => {
         let appended = document.createComment('comment');
         elem.appendChild(appended);
         expect(elem.firstElementChild).to.equal(null);
@@ -113,7 +113,7 @@ describe('dom: firstElementChild', function () {
         }
       });
 
-      it(`should return correct comment node from a parent with two or more children`, () => {
+      it(`should skip first comment node from a parent with two or more children`, () => {
         let appended = document.createComment('comment');
         let elNode = document.createElement('test2');
 

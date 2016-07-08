@@ -10,7 +10,6 @@ describe('dom: firstElementChild', function () {
   function runTests(type) {
     describe(`${type}: `, () => {
       let host, root, slot, div, elem;
-      let numbers = [0, 1, 2, 3];
 
       beforeEach(function () {
         host = document.createElement('div');

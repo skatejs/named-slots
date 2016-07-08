@@ -23,6 +23,8 @@ import './unit/dom/lastElementChild';
 import './unit/dom/outerHTML';
 import './unit/dom/textContent';
 import './unit/dom/removeChild';
+import './unit/dom/replaceChild';
+import './unit/dom/SVGElement';
 
 //
 // import './unit/light/polyfill';

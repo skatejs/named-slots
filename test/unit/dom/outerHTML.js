@@ -116,43 +116,6 @@ describe('dom: outerHTML', function () {
           canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<_shadow_root_><div></div></_shadow_root_>');
         }
       });
-
-
-      it(`should throw an error when setting outerHTML to an element with no parent`, () => {
-        if (type === 'host' || type === 'div') {
-          const errorMsg = 'Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.';
-          const errorMsgOpera = 'Failed to call host setter';
-          elem.innerHTML = '';
-          expect(elem.outerHTML).to.equal('<div></div>');
-
-          if (canPatchNativeAccessors) {
-            let throwsErrorNatively = false;
-            try {
-              elem.__outerHTML = '';
-            } catch(e) {
-              throwsErrorNatively = true;
-            }
-
-            if (throwsErrorNatively) {
-              let throwsErrorFromPolyfill = false;
-              try {
-                elem.outerHTML = '<p></p>';
-              } catch(e) {
-                throwsErrorFromPolyfill = true;
-                expect([errorMsg, errorMsgOpera].indexOf(e.message)).to.be.above(-1);
-              }
-              expect(throwsErrorFromPolyfill).to.equal(true);
-            }
-
-          } else {
-            expect(function() {
-              elem.outerHTML = '<p></p>';
-            }).to.throw(Error, errorMsg);
-          }
-        }
-      });
-
-
     });
   }
 });

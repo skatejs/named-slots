@@ -55,9 +55,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal('<div></div>');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><div></div></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div></div>');
+          expect(slot.assignedNodes().length).to.equal(1);
         }
       });
 
@@ -68,9 +66,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal('<test></test><div></div>');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><test></test><div></div></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<test></test><div></div>');
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -82,9 +78,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal(`${html}<div></div>`);
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`<_shadow_root_><slot>${html}<div></div></slot></_shadow_root_>`);
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`${html}<div></div>`);
+          expect(slot.assignedNodes().length).to.equal(3);
         }
       });
 
@@ -97,9 +91,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal(`<div>${html}</div>`);
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`<_shadow_root_><slot><div>${html}</div></slot></_shadow_root_>`);
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`<div>${html}</div>`);
+          expect(slot.assignedNodes().length).to.equal(1);
         }
       });
 
@@ -113,9 +105,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal(`${html}<div>${html}</div>`);
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`<_shadow_root_><slot>${html}<div>${html}</div></slot></_shadow_root_>`);
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`${html}<div>${html}</div>`);
+          expect(slot.assignedNodes().length).to.equal(3);
         }
       });
 
@@ -125,9 +115,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal('text');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot>text</slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('text');
+          expect(slot.assignedNodes().length).to.equal(1);
         }
       });
 
@@ -138,9 +126,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal('<test></test>text');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><test></test>text</slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<test></test>text');
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -153,9 +139,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal(`${html}text`);
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`<_shadow_root_><slot>${html}text</slot></_shadow_root_>`);
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`${html}text`);
+          expect(slot.assignedNodes().length).to.equal(3);
         }
       });
 
@@ -165,9 +149,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal('<!--comment-->');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<!--comment-->');
+          expect(slot.assignedNodes().length).to.equal(0);
         }
       });
 
@@ -178,9 +160,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal('<test></test><!--comment-->');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><test></test></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<test></test><!--comment-->');
+          expect(slot.assignedNodes().length).to.equal(1);
         }
       });
 
@@ -193,9 +173,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal(`${html}<!--comment-->`);
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`<_shadow_root_><slot>${html}</slot></_shadow_root_>`);
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`${html}<!--comment-->`);
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -214,9 +192,7 @@ describe('dom: appendChild', function () {
         expect(elem.innerHTML).to.equal(resultHTML);
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`<_shadow_root_><slot>${resultHTML}</slot></_shadow_root_>`);
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal(`${resultHTML}`);
+          expect(slot.assignedNodes().length).to.equal(3);
         }
       });
 

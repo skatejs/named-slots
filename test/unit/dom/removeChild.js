@@ -75,9 +75,7 @@ describe('dom: removeChild', function () {
         expect(elem.innerHTML).to.be.equal('');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('');
+          expect(slot.assignedNodes().length).to.equal(0);
         }
       });
 
@@ -88,9 +86,7 @@ describe('dom: removeChild', function () {
         expect(elem.innerHTML).to.be.equal('');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('');
+          expect(slot.assignedNodes().length).to.equal(0);
         }
       });
 
@@ -101,9 +97,7 @@ describe('dom: removeChild', function () {
         expect(elem.innerHTML).to.be.equal('');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('');
+          expect(slot.assignedNodes().length).to.equal(0);
         }
       });
 
@@ -114,9 +108,7 @@ describe('dom: removeChild', function () {
         expect(elem.innerHTML).to.be.equal('<test></test><test3></test3>');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><test></test><test3></test3></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<test></test><test3></test3>');
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -127,9 +119,7 @@ describe('dom: removeChild', function () {
         expect(elem.innerHTML).to.be.equal('<test2></test2>another text');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><test2></test2>another text</slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<test2></test2>another text');
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -140,9 +130,7 @@ describe('dom: removeChild', function () {
         expect(elem.innerHTML).to.be.equal('<test2></test2>another text');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><test2></test2>another text</slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<test2></test2>another text');
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -153,9 +141,7 @@ describe('dom: removeChild', function () {
         expect(elem.innerHTML).to.be.equal('<!--comment--><test></test>another text');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><test></test>another text</slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<!--comment--><test></test>another text');
+          expect(slot.assignedNodes().length).to.equal(2);
         }
       });
 
@@ -169,9 +155,7 @@ describe('dom: removeChild', function () {
         expect(elem.innerHTML).to.be.equal('<test6></test6>');
 
         if (type === 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<_shadow_root_><slot><test6></test6></slot></_shadow_root_>');
-        } else {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<test6></test6>');
+          expect(slot.assignedNodes().length).to.equal(1);
         }
       });
     });

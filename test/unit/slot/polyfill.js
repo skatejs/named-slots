@@ -13,16 +13,6 @@ describe('slot/polyfill', function () {
     expect(slot.firstElementChild).to.equal(fallback, 'before');
   });
 
-  it('Element.innerHTML', function () {
-    expect(slot.innerHTML).to.equal('<p>fallback</p>');
-    slot.innerHTML = '<span>default</span>';
-    expect(slot.innerHTML).to.equal('<span>default</span>');
-  });
-
-  it('Element.outerHTML', function () {
-    expect(slot.outerHTML).to.equal('<slot><p>fallback</p></slot>');
-  });
-
   it('Node.appendChild()', function () {
     const newNode = create('div');
     slot.appendChild(newNode);

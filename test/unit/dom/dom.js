@@ -2,6 +2,12 @@ import create from '../../lib/create';
 import hasAllAttributes from '../../lib/has-all-attributes';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
+function expectToBeLikeNodeList(val) {
+  expect(val).not.to.equal(undefined, 'like NodeList: undefined');
+  expect(val.length).to.be.a('number', 'like NodeList: length not a number');
+  expect(val.item).to.be.a('function', 'like NodeList: item not a function');
+}
+
 describe('skatejs-named-slots dom', function () {
   let host, root, slot, div1, div2, div3, div4, div5;
 
@@ -1044,6 +1050,7 @@ describe('skatejs-named-slots dom', function () {
       div.shadowRoot.appendChild(document.createElement('slot'));
       div.appendChild(svg);
       expect(svg.parentNode).to.equal(div);
+      expectToBeLikeNodeList(svg.childNodes);
     });
   });
 });

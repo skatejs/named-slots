@@ -1,5 +1,4 @@
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
-import create from '../../lib/create';
 
 describe('dom: childNodes', () => {
   function runTests(type) {
@@ -14,7 +13,7 @@ describe('dom: childNodes', () => {
       beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
-        slot = create('slot');
+        slot = document.createElement('slot');
 
         root.appendChild(slot);
 

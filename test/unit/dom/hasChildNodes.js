@@ -1,4 +1,3 @@
-import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
 describe('dom: hasChildNodes', () => {
@@ -13,7 +12,7 @@ describe('dom: hasChildNodes', () => {
       beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
-        slot = create('slot');
+        slot = document.createElement('slot');
 
         root.appendChild(slot);
 
@@ -71,7 +70,7 @@ describe('dom: hasChildNodes', () => {
         }
       });
 
-      it('should return true if there is more than one child nodes', () => {
+      it('should return true if there is more than one child node', () => {
         elem.innerHTML = '<div></div>text<div></div>';
         expect(elem.hasChildNodes()).to.equal(true);
 

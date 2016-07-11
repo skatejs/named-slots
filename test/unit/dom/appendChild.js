@@ -1,5 +1,3 @@
-import create from '../../lib/create';
-
 describe('dom: appendChild', () => {
   function runTests(type) {
     describe(`${type}: `, () => {
@@ -12,7 +10,7 @@ describe('dom: appendChild', () => {
       beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
-        slot = create('slot');
+        slot = document.createElement('slot');
 
         root.appendChild(slot);
 

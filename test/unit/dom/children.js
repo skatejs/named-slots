@@ -1,4 +1,3 @@
-import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
 describe('dom: children', () => {
@@ -14,7 +13,7 @@ describe('dom: children', () => {
       beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
-        slot = create('slot');
+        slot = document.createElement('slot');
 
         root.appendChild(slot);
 

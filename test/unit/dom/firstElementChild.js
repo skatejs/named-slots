@@ -1,4 +1,3 @@
-import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
 describe('dom: firstElementChild', () => {
@@ -13,7 +12,7 @@ describe('dom: firstElementChild', () => {
       beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
-        slot = create('slot');
+        slot = document.createElement('slot');
 
         root.appendChild(slot);
 
@@ -124,10 +123,9 @@ describe('dom: firstElementChild', () => {
       });
 
       it('should skip first comment node from a parent with two or more children', () => {
-        const appended = document.createComment('comment');
         const elNode = document.createElement('test2');
 
-        elem.appendChild(appended);
+        elem.appendChild(document.createComment('comment'));
         elem.appendChild(elNode);
         elem.appendChild(document.createElement('test3'));
         expect(elem.firstElementChild).to.equal(elNode);

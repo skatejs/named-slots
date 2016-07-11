@@ -1,4 +1,3 @@
-import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 import hasAllAttributes from '../../lib/has-all-attributes';
 
@@ -15,7 +14,7 @@ describe('dom: innerHTML', () => {
       beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
-        slot = create('slot');
+        slot = document.createElement('slot');
 
         root.appendChild(slot);
 
@@ -91,15 +90,15 @@ describe('dom: innerHTML', () => {
 
       it('created text nodes get escaped when being appended', () => {
         const text = document.createTextNode('<u>foo & bar</u>');
-        const textCont = '&lt;u&gt;foo &amp; bar&lt;/u&gt;';
+        const escapedText = '&lt;u&gt;foo &amp; bar&lt;/u&gt;';
 
         elem.appendChild(text);
-        expect(elem.innerHTML).to.equal(textCont);
+        expect(elem.innerHTML).to.equal(escapedText);
         expect(elem.childNodes.length).to.equal(1);
 
         if (type !== 'host') {
           if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal(textCont);
+            expect(elem.__innerHTML).to.equal(escapedText);
           }
         } else {
           expect(slot.assignedNodes().length).to.equal(1);
@@ -112,12 +111,12 @@ describe('dom: innerHTML', () => {
         const processingInstructionsAfterInnerHtml = '<!--?xml-stylesheet href="mycss.css" type="text/css"?-->';
 
         elem.innerHTML = processingInstruction;
-        expect([processingInstruction, processingInstructionsAfterInnerHtml].indexOf(elem.innerHTML)).to.be.above(-1); // different browsers process this differently
+        expect([processingInstruction, processingInstructionsAfterInnerHtml]).to.include(elem.innerHTML); // different browsers process this differently
         expect(elem.childNodes.length).to.equal(1);
 
         if (type !== 'host') {
           if (canPatchNativeAccessors) {
-            expect([processingInstruction, processingInstructionsAfterInnerHtml].indexOf(elem.__innerHTML)).to.be.above(-1);
+            expect([processingInstruction, processingInstructionsAfterInnerHtml]).to.include(elem.__innerHTML);
           }
         } else {
           expect(slot.assignedNodes().length).to.equal(0);  // non text / html nodes should not be slotted
@@ -233,7 +232,7 @@ describe('dom: innerHTML', () => {
         }
       });
 
-      it('should return correct value if html was replaced', () => {
+      it('should return correct value if child element was replaced', () => {
         elem.innerHTML = '<div1></div1><div2><div3></div3><div4></div4></div2><div3></div3>';
         elem.replaceChild(document.createElement('div'), elem.firstChild);
         expect(elem.innerHTML).to.equal('<div></div><div2><div3></div3><div4></div4></div2><div3></div3>');

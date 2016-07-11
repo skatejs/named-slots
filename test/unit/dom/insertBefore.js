@@ -1,5 +1,3 @@
-import create from '../../lib/create';
-
 describe('dom: insertBefore', () => {
   function runTests(type) {
     describe(`${type}: `, () => {
@@ -12,7 +10,7 @@ describe('dom: insertBefore', () => {
       beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
-        slot = create('slot');
+        slot = document.createElement('slot');
 
         root.appendChild(slot);
 
@@ -34,10 +32,11 @@ describe('dom: insertBefore', () => {
         }
       });
 
-      it('should not insert anything if there is nothing to insert', () => {
+      it('should throw if nothing to insert', () => {
         expect(() => {
           elem.insertBefore(null);
         }).to.throw(Error);
+        expect(elem.childNodes.length).to.equal(0);
       });
 
       it('should return the inserted node', () => {

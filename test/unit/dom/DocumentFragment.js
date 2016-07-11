@@ -1,5 +1,5 @@
-describe('DocumentFragment', function () {
-  it('should report the corect parent node for nested nodes', function () {
+describe('DocumentFragment', () => {
+  it('should report the correct parent node for nested nodes', () => {
     const frag = document.createDocumentFragment();
     const elem = document.createElement('div');
     frag.appendChild(elem);

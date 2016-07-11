@@ -1,8 +1,8 @@
 import version from '../src/version';
 import '../src/index';
 
-describe('skatejs-named-slots', function () {
-  it('version', function () {
+describe('skatejs-named-slots', () => {
+  it('version', () => {
     expect(version).to.be.a('string');
   });
 });

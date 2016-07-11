@@ -1,17 +1,16 @@
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 import create from '../../lib/create';
 
-describe('dom: removeChild', function () {
-  runTests('div');
-  runTests('slot');
-  runTests('host');
-  runTests('root');
-
+describe('dom: removeChild', () => {
   function runTests(type) {
     describe(`${type}: `, () => {
-      let host, root, slot, div, elem;
+      let host;
+      let root;
+      let slot;
+      let div;
+      let elem;
 
-      beforeEach(function () {
+      beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = create('slot');
@@ -20,55 +19,57 @@ describe('dom: removeChild', function () {
 
         div = document.createElement('div');
 
-        switch(type) {
-          case 'div':
-            elem = div;
-            break;
-          case 'slot':
-            elem = slot;
-            break;
-          case 'root':
-            root.innerHTML = '';
-            elem = root;
-            break;
-          default:
-            elem = host;
+        switch (type) {
+        case 'div':
+          elem = div;
+          break;
+        case 'slot':
+          elem = slot;
+          break;
+        case 'root':
+          root.innerHTML = '';
+          elem = root;
+          break;
+        default:
+          elem = host;
         }
       });
 
-      it(`should return removed element node`, () => {
-        let removed = document.createElement('div');
+      it('should return removed element node', () => {
+        const removed = document.createElement('div');
         elem.appendChild(removed);
-        let res = elem.removeChild(removed);
+        const res = elem.removeChild(removed);
         expect(res).to.be.equal(removed);
       });
 
-      it(`should return removed text node`, () => {
-        let removed = document.createTextNode('text');
+      it('should return removed text node', () => {
+        const removed = document.createTextNode('text');
         elem.appendChild(removed);
-        let res = elem.removeChild(removed);
-        expect(res).to.be.equal(removed);
-      });
-
-
-      it(`should return removed comment node`, () => {
-        let removed = document.createComment('comment');
-        elem.appendChild(removed);
-        let res = elem.removeChild(removed);
+        const res = elem.removeChild(removed);
         expect(res).to.be.equal(removed);
       });
 
 
-      it(`removedChild should not have parent`, () => {
-        let removed = document.createElement('div');
+      it('should return removed comment node', () => {
+        const removed = document.createComment('comment');
+        elem.appendChild(removed);
+        const res = elem.removeChild(removed);
+        expect(res).to.be.equal(removed);
+      });
+
+
+      it('removedChild should not have parent', () => {
+        const removed = document.createElement('div');
         elem.appendChild(removed);
         elem.removeChild(removed);
 
         expect(removed.parentNode).to.be.equal(null);
-        canPatchNativeAccessors && expect(removed.__parentNode).to.be.equal(null);
+        if (canPatchNativeAccessors) {
+          expect(removed.__parentNode).to.be.equal(null);
+        }
       });
 
-      it(`should remove a single element node`, () => {
+      it('should remove a single element node', () => {
         elem.innerHTML = '<test></test>';
         elem.removeChild(elem.childNodes[0]);
 
@@ -79,7 +80,7 @@ describe('dom: removeChild', function () {
         }
       });
 
-      it(`should remove a single text node`, () => {
+      it('should remove a single text node', () => {
         elem.innerHTML = 'text';
         elem.removeChild(elem.childNodes[0]);
 
@@ -90,7 +91,7 @@ describe('dom: removeChild', function () {
         }
       });
 
-      it(`should remove a single comment node`, () => {
+      it('should remove a single comment node', () => {
         elem.innerHTML = '<!--comment-->';
         elem.removeChild(elem.childNodes[0]);
 
@@ -101,7 +102,7 @@ describe('dom: removeChild', function () {
         }
       });
 
-      it(`should remove a single element node from a parent with children`, () => {
+      it('should remove a single element node from a parent with children', () => {
         elem.innerHTML = '<test></test><test2></test2><test3></test3>';
         elem.removeChild(elem.childNodes[1]);
 
@@ -112,7 +113,7 @@ describe('dom: removeChild', function () {
         }
       });
 
-      it(`should remove a single text node from a parent with children`, () => {
+      it('should remove a single text node from a parent with children', () => {
         elem.innerHTML = 'text<test2></test2>another text';
         elem.removeChild(elem.firstChild);
 
@@ -123,7 +124,7 @@ describe('dom: removeChild', function () {
         }
       });
 
-      it(`should remove a single comment node from a parent with children`, () => {
+      it('should remove a single comment node from a parent with children', () => {
         elem.innerHTML = '<!--comment--><test2></test2>another text';
         elem.removeChild(elem.firstChild);
 
@@ -134,7 +135,7 @@ describe('dom: removeChild', function () {
         }
       });
 
-      it(`should remove an element node with children`, () => {
+      it('should remove an element node with children', () => {
         elem.innerHTML = '<!--comment--><test2><test3><test5>some text</test5></test3><test4></test4></test2><test></test>another text';
         elem.removeChild(elem.childNodes[1]);
 
@@ -145,7 +146,7 @@ describe('dom: removeChild', function () {
         }
       });
 
-      it(`should be able to remove child after child`, () => {
+      it('should be able to remove child after child', () => {
         elem.innerHTML = '<!--comment--><test2><test3><test5>some text</test5></test3><test4></test4></test2><test></test>another text<test6></test6>';
         elem.removeChild(elem.firstChild);
         elem.removeChild(elem.childNodes[1]);
@@ -160,4 +161,9 @@ describe('dom: removeChild', function () {
       });
     });
   }
+
+  runTests('div');
+  runTests('slot');
+  runTests('host');
+  runTests('root');
 });

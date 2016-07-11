@@ -15,7 +15,7 @@ describe('util/find-slots called from', () => {
     const host = document.createElement('div');
     const slot = document.createElement('slot');
 
-    host.attachShadow({mode: 'open'});
+    host.attachShadow({ mode: 'open' });
     host.shadowRoot.appendChild(slot);
 
     expect(findSlots(host).length).to.equal(0);
@@ -25,19 +25,19 @@ describe('util/find-slots called from', () => {
     const host = document.createElement('div');
     const slot = document.createElement('slot');
 
-    host.attachShadow({mode: 'open'});
+    host.attachShadow({ mode: 'open' });
     host.shadowRoot.appendChild(slot);
 
     expect(findSlots(host.shadowRoot).length).to.equal(1);
     expect(findSlots(host.shadowRoot)[0]).to.equal(slot);
   });
 
-  it('different combinations of slots, roots and nodes', function () {
+  it('different combinations of slots, roots and nodes', () => {
     const host = document.createElement('div');
     host.innerHTML = '<div></div><div></div><div></div>';
     expect(findSlots(host).length).to.equal(0);
 
-    let root1 = host.childNodes[1].attachShadow({mode: 'open'});
+    const root1 = host.childNodes[1].attachShadow({ mode: 'open' });
     root1.innerHTML = '<div></div><slot></slot><div></div>';
     expect(findSlots(host).length).to.equal(0);
     expect(findSlots(root1).length).to.equal(1);
@@ -50,7 +50,7 @@ describe('util/find-slots called from', () => {
     expect(findSlots(root1)[1].name).to.equal('name1');
     expect(findSlots(root1)[2].name).to.equal('name2');
 
-    let root2 = root1.childNodes[2].attachShadow({mode: 'open'});
+    const root2 = root1.childNodes[2].attachShadow({ mode: 'open' });
     root2.innerHTML = '<div></div><slot></slot><div></div><div><slot name="name3"></slot></div><slot name="name4"></slot>';
 
     expect(findSlots(host).length).to.equal(0);
@@ -63,5 +63,5 @@ describe('util/find-slots called from', () => {
     expect(findSlots(root2)[0].name).to.equal(null);
     expect(findSlots(root2)[1].name).to.equal('name3');
     expect(findSlots(root2)[2].name).to.equal('name4');
-  })
+  });
 });

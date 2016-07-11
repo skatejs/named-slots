@@ -1,17 +1,15 @@
-import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 import create from '../../lib/create';
 
-describe('dom: insertBefore', function () {
-  runTests('div');
-  runTests('slot');
-  runTests('host');
-  runTests('root');
-
+describe('dom: insertBefore', () => {
   function runTests(type) {
     describe(`${type}: `, () => {
-      let host, root, slot, div, elem;
+      let host;
+      let root;
+      let slot;
+      let div;
+      let elem;
 
-      beforeEach(function () {
+      beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = create('slot');
@@ -20,38 +18,38 @@ describe('dom: insertBefore', function () {
 
         div = document.createElement('div');
 
-        switch(type) {
-          case 'div':
-            elem = div;
-            break;
-          case 'slot':
-            elem = slot;
-            break;
-          case 'root':
-            root.innerHTML = '';
-            elem = root;
-            break;
-          default:
-            elem = host;
+        switch (type) {
+        case 'div':
+          elem = div;
+          break;
+        case 'slot':
+          elem = slot;
+          break;
+        case 'root':
+          root.innerHTML = '';
+          elem = root;
+          break;
+        default:
+          elem = host;
         }
       });
 
-      it(`should not insert anything if there is nothing to insert`, () => {
-        expect(function() {
+      it('should not insert anything if there is nothing to insert', () => {
+        expect(() => {
           elem.insertBefore(null);
         }).to.throw(Error);
       });
 
-      it(`should return the inserted node`, () => {
-        let inserted = document.createElement('div');
-        let changedElem = elem.insertBefore(inserted);
+      it('should return the inserted node', () => {
+        const inserted = document.createElement('div');
+        const changedElem = elem.insertBefore(inserted);
         expect(changedElem).not.to.equal(undefined);
         expect(changedElem).to.equal(inserted);
       });
 
-      it(`should append node if referenceNode is null`, () => {
+      it('should append node if referenceNode is null', () => {
         elem.innerHTML = '<div></div><div></div>';
-        let inserted = document.createElement('test');
+        const inserted = document.createElement('test');
         elem.insertBefore(inserted);
 
         expect(elem.innerHTML).to.equal('<div></div><div></div><test></test>');
@@ -62,8 +60,8 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert an element node to a parent with no children`, () => {
-        let inserted = document.createElement('test');
+      it('should insert an element node to a parent with no children', () => {
+        const inserted = document.createElement('test');
         elem.insertBefore(inserted);
 
         expect(elem.innerHTML).to.equal('<test></test>');
@@ -74,8 +72,8 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert a text node to a parent with no children`, () => {
-        let inserted = document.createTextNode('text');
+      it('should insert a text node to a parent with no children', () => {
+        const inserted = document.createTextNode('text');
         elem.insertBefore(inserted);
 
         expect(elem.innerHTML).to.equal('text');
@@ -86,8 +84,8 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert a comment node to a parent with no children`, () => {
-        let inserted = document.createComment('comment');
+      it('should insert a comment node to a parent with no children', () => {
+        const inserted = document.createComment('comment');
         elem.insertBefore(inserted);
 
         expect(elem.innerHTML).to.equal('<!--comment-->');
@@ -98,9 +96,9 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert an element node to a parent with one child`, () => {
+      it('should insert an element node to a parent with one child', () => {
         elem.innerHTML = '<div></div>';
-        let inserted = document.createElement('test');
+        const inserted = document.createElement('test');
         elem.insertBefore(inserted, elem.childNodes[0]);
 
         expect(elem.innerHTML).to.equal('<test></test><div></div>');
@@ -111,9 +109,9 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert a text node to a parent with one child`, () => {
+      it('should insert a text node to a parent with one child', () => {
         elem.innerHTML = '<div></div>';
-        let inserted = document.createTextNode('text');
+        const inserted = document.createTextNode('text');
         elem.insertBefore(inserted, elem.childNodes[0]);
 
         expect(elem.innerHTML).to.equal('text<div></div>');
@@ -124,9 +122,9 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert a comment node to a parent with one child`, () => {
+      it('should insert a comment node to a parent with one child', () => {
         elem.innerHTML = '<div></div>';
-        let inserted = document.createComment('comment');
+        const inserted = document.createComment('comment');
         elem.insertBefore(inserted, elem.childNodes[0]);
 
         expect(elem.innerHTML).to.equal('<!--comment--><div></div>');
@@ -137,9 +135,9 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert an element node to a parent with two or more children`, () => {
+      it('should insert an element node to a parent with two or more children', () => {
         elem.innerHTML = '<div1></div1><div2></div2><div3></div3>';
-        let inserted = document.createElement('test');
+        const inserted = document.createElement('test');
         elem.insertBefore(inserted, elem.childNodes[1]);
 
         expect(elem.innerHTML).to.equal('<div1></div1><test></test><div2></div2><div3></div3>');
@@ -150,9 +148,9 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert a text node to a parent with two or more children`, () => {
+      it('should insert a text node to a parent with two or more children', () => {
         elem.innerHTML = '<div1></div1><div2></div2><div3></div3>';
-        let inserted = document.createTextNode('text');
+        const inserted = document.createTextNode('text');
         elem.insertBefore(inserted, elem.childNodes[1]);
 
         expect(elem.innerHTML).to.equal('<div1></div1>text<div2></div2><div3></div3>');
@@ -163,9 +161,9 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert a comment node to a parent with two or more children`, () => {
+      it('should insert a comment node to a parent with two or more children', () => {
         elem.innerHTML = '<div1></div1><div2></div2><div3></div3>';
-        let inserted = document.createComment('comment');
+        const inserted = document.createComment('comment');
         elem.insertBefore(inserted, elem.childNodes[1]);
 
         expect(elem.innerHTML).to.equal('<div1></div1><!--comment--><div2></div2><div3></div3>');
@@ -176,10 +174,10 @@ describe('dom: insertBefore', function () {
         }
       });
 
-      it(`should insert a node with children`, () => {
-        let insertedHTML = '<div4></div4><!--comment--><div5><div6>text</div6></div5>';
+      it('should insert a node with children', () => {
+        const insertedHTML = '<div4></div4><!--comment--><div5><div6>text</div6></div5>';
         elem.innerHTML = '<div1><div></div></div1><div2></div2><div3></div3>';
-        let inserted = document.createElement('test');
+        const inserted = document.createElement('test');
         inserted.innerHTML = insertedHTML;
         elem.insertBefore(inserted, elem.childNodes[2]);
 
@@ -192,4 +190,9 @@ describe('dom: insertBefore', function () {
       });
     });
   }
+
+  runTests('div');
+  runTests('slot');
+  runTests('host');
+  runTests('root');
 });

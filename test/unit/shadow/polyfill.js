@@ -2,45 +2,45 @@ import '../../../src/index';
 import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
-describe('shadow/polyfill', function () {
+describe('shadow/polyfill', () => {
   const invalidModeMessage = 'You must specify { mode } as "open" or "closed" to attachShadow().';
 
-  it('mode: [not specified]', function () {
+  it('mode: [not specified]', () => {
     const host = create('div');
     expect(host.attachShadow.bind(host)).to.throw(invalidModeMessage);
   });
 
-  it('mode: [invalid value (not "open" or "closed")]', function () {
+  it('mode: [invalid value (not "open" or "closed")]', () => {
     const host = create('div');
     expect(host.attachShadow.bind(host, { mode: 'invalid' })).to.throw(invalidModeMessage);
   });
 
-  it('mode: "open"', function () {
+  it('mode: "open"', () => {
     const host = create('div');
     const root = host.attachShadow({ mode: 'open' });
     expect(host.shadowRoot).to.equal(root);
   });
 
-  it('mode: "closed"', function () {
+  it('mode: "closed"', () => {
     const host = create('div');
     host.attachShadow({ mode: 'closed' });
     expect(host.shadowRoot).to.equal(null);
   });
 
-  it('polyfillShadowRootTagName: [default="_shadow_root_"]', function () {
+  it('polyfillShadowRootTagName: [default="_shadow_root_"]', () => {
     const host = create('div');
     const root = host.attachShadow({ mode: 'open' });
     expect(root.tagName).to.equal('_SHADOW_ROOT_');
   });
 
-  it('polyfillShadowRootTagName: "test-ing"', function () {
+  it('polyfillShadowRootTagName: "test-ing"', () => {
     const host = create('div');
     const root = host.attachShadow({ mode: 'open', polyfillShadowRootTagName: 'test-ing' });
     expect(root.tagName).to.equal('TEST-ING');
   });
 
   if (canPatchNativeAccessors) {
-    it('proper node removal', function () {
+    it('proper node removal', () => {
       const host = create('div');
       host.appendChild(create('div'));
       host.appendChild(create('div'));
@@ -53,16 +53,16 @@ describe('shadow/polyfill', function () {
     });
   }
 
-  it('polyfilled properties with value should be writable', function() {
-    let elem = create('div');
+  it('polyfilled properties with value should be writable', () => {
+    const elem = create('div');
 
     expect(elem.removeEventListener).not.to.equal('');
     elem.removeEventListener = '';
     expect(elem.removeEventListener).to.equal('');
   });
 
-  describe('setup order', function () {
-    it('host -> shadow root -> light dom', function () {
+  describe('setup order', () => {
+    it('host -> shadow root -> light dom', () => {
       const light1 = create('div', { slot: 'light1' });
       const light2 = create('div', { slot: 'light2' });
       const slot1 = create('slot', { name: 'light1' });
@@ -81,7 +81,7 @@ describe('shadow/polyfill', function () {
       expect(slot2.assignedNodes()[0]).to.equal(light2);
     });
 
-    it('host -> light dom -> shadow root', function () {
+    it('host -> light dom -> shadow root', () => {
       const light1 = create('div', { slot: 'light1' });
       const light2 = create('div', { slot: 'light2' });
       const slot1 = create('slot', { name: 'light1' });

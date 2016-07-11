@@ -1,13 +1,13 @@
 import '../../../src/index';
 import create from '../../lib/create';
 
-describe('slot/distribution', function () {
+describe('slot/distribution', () => {
   let slot;
   let host;
   let root;
   let parent;
 
-  beforeEach(function () {
+  beforeEach(() => {
     host = document.createElement('div');
     root = host.attachShadow({ mode: 'closed' });
     parent = create('div');
@@ -17,7 +17,7 @@ describe('slot/distribution', function () {
     parent.appendChild(slot);
   });
 
-  it('distributes to the inner slot', function () {
+  it('distributes to the inner slot', () => {
     const light = document.createElement('light');
     host.appendChild(light);
     expect(host.childNodes[0]).to.equal(light, 'internal light dom');
@@ -56,7 +56,7 @@ describe('slot/distribution', function () {
       host2.appendChild(slot1);
       host2.attachShadow({ mode: 'open' });
       host2.shadowRoot.appendChild(slot2);
-      
+
       host1.appendChild(test);
       host1.attachShadow({ mode: 'open' });
       host1.shadowRoot.appendChild(host2);
@@ -86,7 +86,7 @@ describe('slot/distribution', function () {
       host2.appendChild(slot1);
       host2.attachShadow({ mode: 'open' });
       host2.shadowRoot.appendChild(slot2);
-      
+
       host1.appendChild(test);
       host1.attachShadow({ mode: 'open' });
       host1.shadowRoot.appendChild(host2);

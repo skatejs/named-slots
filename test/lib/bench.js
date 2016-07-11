@@ -1,16 +1,16 @@
 const TIMEOUT = 1000000;
 
-export default function (name, options) {
-  describe('', function () {
+export default (name, options) => {
+  describe('', () => {
     var bench;
     var title = this.fullTitle();
 
     // Ensure perf tests have enough time to cleanup after themselves.
-    afterEach(function () {
+    afterEach(() => {
       this.timeout(TIMEOUT);
     });
 
-    beforeEach(function () {
+    beforeEach(() => {
       options = typeof options === 'function' ? options() : options;
       options.name = `${title}${name}`;
 
@@ -18,11 +18,11 @@ export default function (name, options) {
       bench = new Benchmark(options);
     });
 
-    it(name, function (done) {
+    it(name, (done) => {
       this.title = options.name;
       this.timeout(TIMEOUT);
 
-      bench.on('complete', function (e) {
+      bench.on('complete', (e) => {
         /* global alert: false */
         alert(`${String(e.target)}`);
         done();

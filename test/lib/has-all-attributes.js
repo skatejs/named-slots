@@ -7,7 +7,7 @@
 export default function hasAllAttributes(el, attrs) {
   const exactNumber = el.attributes.length === attrs.length;
   let hasAttrs = true;
-  attrs.forEach(function (attr) {
+  attrs.forEach((attr) => {
     hasAttrs = hasAttrs && el.hasAttribute(attr);
   });
 

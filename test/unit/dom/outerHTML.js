@@ -1,17 +1,16 @@
 import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
-describe('dom: outerHTML', function () {
-  runTests('div');
-  runTests('slot');
-  runTests('host');
-  runTests('root');
-
+describe('dom: outerHTML', () => {
   function runTests(type) {
     describe(`${type}: `, () => {
-      let host, root, slot, div, elem;
+      let host;
+      let root;
+      let slot;
+      let div;
+      let elem;
 
-      beforeEach(function () {
+      beforeEach(() => {
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = create('slot');
@@ -20,19 +19,19 @@ describe('dom: outerHTML', function () {
 
         div = document.createElement('div');
 
-        switch(type) {
-          case 'div':
-            elem = div;
-            break;
-          case 'slot':
-            elem = slot;
-            break;
-          case 'root':
-            root.innerHTML = '';
-            elem = root;
-            break;
-          default:
-            elem = host;
+        switch (type) {
+        case 'div':
+          elem = div;
+          break;
+        case 'slot':
+          elem = slot;
+          break;
+        case 'root':
+          root.innerHTML = '';
+          elem = root;
+          break;
+        default:
+          elem = host;
         }
       });
 
@@ -40,13 +39,19 @@ describe('dom: outerHTML', function () {
         elem.innerHTML = '<test></test>';
         if (type === 'host' || type === 'div') {
           expect(elem.outerHTML).to.equal('<div><test></test></div>');
-          canPatchNativeAccessors && type === 'div' && expect(elem.__outerHTML).to.equal('<div><test></test></div>');
+          if (canPatchNativeAccessors && type === 'div') {
+            expect(elem.__outerHTML).to.equal('<div><test></test></div>');
+          }
         } else if (type === 'slot') {
           expect(elem.outerHTML).to.equal('<slot><test></test></slot>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<slot><test></test></slot>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<slot><test></test></slot>');
+          }
         } else if (type === 'root') {
           expect(elem.outerHTML).to.equal('<_shadow_root_><test></test></_shadow_root_>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<_shadow_root_><test></test></_shadow_root_>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<_shadow_root_><test></test></_shadow_root_>');
+          }
         }
       });
 
@@ -54,13 +59,19 @@ describe('dom: outerHTML', function () {
         elem.innerHTML = 'text';
         if (type === 'host' || type === 'div') {
           expect(elem.outerHTML).to.equal('<div>text</div>');
-          canPatchNativeAccessors && type === 'div' && expect(elem.__outerHTML).to.equal('<div>text</div>');
+          if (canPatchNativeAccessors && type === 'div') {
+            expect(elem.__outerHTML).to.equal('<div>text</div>');
+          }
         } else if (type === 'slot') {
           expect(elem.outerHTML).to.equal('<slot>text</slot>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<slot>text</slot>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<slot>text</slot>');
+          }
         } else if (type === 'root') {
           expect(elem.outerHTML).to.equal('<_shadow_root_>text</_shadow_root_>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<_shadow_root_>text</_shadow_root_>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<_shadow_root_>text</_shadow_root_>');
+          }
         }
       });
 
@@ -68,13 +79,19 @@ describe('dom: outerHTML', function () {
         elem.innerHTML = '<!--comment-->';
         if (type === 'host' || type === 'div') {
           expect(elem.outerHTML).to.equal('<div><!--comment--></div>');
-          canPatchNativeAccessors && type === 'div' && expect(elem.__outerHTML).to.equal('<div><!--comment--></div>');
+          if (canPatchNativeAccessors && type === 'div') {
+            expect(elem.__outerHTML).to.equal('<div><!--comment--></div>');
+          }
         } else if (type === 'slot') {
           expect(elem.outerHTML).to.equal('<slot><!--comment--></slot>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<slot><!--comment--></slot>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<slot><!--comment--></slot>');
+          }
         } else if (type === 'root') {
           expect(elem.outerHTML).to.equal('<_shadow_root_><!--comment--></_shadow_root_>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<_shadow_root_><!--comment--></_shadow_root_>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<_shadow_root_><!--comment--></_shadow_root_>');
+          }
         }
       });
 
@@ -82,13 +99,19 @@ describe('dom: outerHTML', function () {
         elem.innerHTML = '<test></test><test2>text</test2><!--comment-->';
         if (type === 'host' || type === 'div') {
           expect(elem.outerHTML).to.equal('<div><test></test><test2>text</test2><!--comment--></div>');
-          canPatchNativeAccessors && type === 'div' && expect(elem.__outerHTML).to.equal('<div><test></test><test2>text</test2><!--comment--></div>');
+          if (canPatchNativeAccessors && type === 'div') {
+            expect(elem.__outerHTML).to.equal('<div><test></test><test2>text</test2><!--comment--></div>');
+          }
         } else if (type === 'slot') {
           expect(elem.outerHTML).to.equal('<slot><test></test><test2>text</test2><!--comment--></slot>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<slot><test></test><test2>text</test2><!--comment--></slot>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<slot><test></test><test2>text</test2><!--comment--></slot>');
+          }
         } else if (type === 'root') {
           expect(elem.outerHTML).to.equal('<_shadow_root_><test></test><test2>text</test2><!--comment--></_shadow_root_>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<_shadow_root_><test></test><test2>text</test2><!--comment--></_shadow_root_>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<_shadow_root_><test></test><test2>text</test2><!--comment--></_shadow_root_>');
+          }
         }
       });
 
@@ -97,7 +120,9 @@ describe('dom: outerHTML', function () {
         elem.childNodes[0].childNodes[0].outerHTML = '<div4></div4>';
         expect(elem.innerHTML).to.equal('<div1><div4></div4><div3></div3></div1>');
         if (type !== 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div1><div4></div4><div3></div3></div1>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__innerHTML).to.equal('<div1><div4></div4><div3></div3></div1>');
+          }
         }
 
         elem.innerHTML = '<div1><div2></div2><div3></div3></div1>';
@@ -105,7 +130,9 @@ describe('dom: outerHTML', function () {
         expect(elem.innerHTML).to.equal('<div4></div4>');
 
         if (type !== 'host') {
-          canPatchNativeAccessors && expect(elem.__innerHTML).to.equal('<div4></div4>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__innerHTML).to.equal('<div4></div4>');
+          }
         }
 
         if (type === 'root') {
@@ -113,9 +140,16 @@ describe('dom: outerHTML', function () {
           // we can't change root with this, so nothing should happen
           elem.outerHTML = '<p></p>';
           expect(elem.outerHTML).to.equal('<_shadow_root_><div></div></_shadow_root_>');
-          canPatchNativeAccessors && expect(elem.__outerHTML).to.equal('<_shadow_root_><div></div></_shadow_root_>');
+          if (canPatchNativeAccessors) {
+            expect(elem.__outerHTML).to.equal('<_shadow_root_><div></div></_shadow_root_>');
+          }
         }
       });
     });
   }
+
+  runTests('div');
+  runTests('slot');
+  runTests('host');
+  runTests('root');
 });

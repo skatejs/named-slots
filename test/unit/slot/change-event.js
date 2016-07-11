@@ -1,19 +1,21 @@
 import create from '../../lib/create';
 
-describe('slotchange-event', function () {
-  let host, root, slot;
+describe('slotchange-event', () => {
+  let host;
+  let root;
+  let slot;
 
-  beforeEach(function () {
+  beforeEach(() => {
     slot = create('slot');
     host = create('div');
     root = host.attachShadow({ mode: 'closed' });
     root.appendChild(slot);
   });
 
-  it('should fire asynchronously', function (done) {
+  it('should fire asynchronously', (done) => {
     const elem = create('div');
 
-    slot.addEventListener('slotchange', function () {
+    slot.addEventListener('slotchange', () => {
       expect(host.childNodes.length).to.equal(1);
       expect(host.childNodes[0]).to.equal(elem);
       done();
@@ -22,11 +24,11 @@ describe('slotchange-event', function () {
     host.appendChild(elem);
   });
 
-  it('should fire once all synchronous dom operations are complete', function (done) {
+  it('should fire once all synchronous dom operations are complete', (done) => {
     const elem1 = create('div');
     const elem2 = create('div');
 
-    slot.addEventListener('slotchange', function () {
+    slot.addEventListener('slotchange', () => {
       expect(host.childNodes.length).to.equal(2);
       expect(host.childNodes[0]).to.equal(elem1);
       expect(host.childNodes[1]).to.equal(elem2);

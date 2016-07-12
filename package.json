@@ -40,7 +40,7 @@
   "dependencies": {
     "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",
     "debounce": "^1.0.0",
-    "webcomponents.js": "skatejs/webcomponentsjs#skate-v1"
+    "webcomponents.js": "webcomponents/webcomponentsjs#b77ca74"
   },
   "config": {
     "commitizen": {

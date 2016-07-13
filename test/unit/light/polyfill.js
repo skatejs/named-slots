@@ -1,11 +1,16 @@
 import '../../../src/index';
 import create from '../../lib/create';
 
-describe('light/polyfill', function () {
-  let host, light1, light2, root, slot, text;
+describe('light/polyfill', () => {
+  let host;
+  let light1;
+  let light2;
+  let root;
+  let slot;
+  let text;
 
-  describe('when mode is closed', function () {
-    beforeEach(function () {
+  describe('when mode is closed', () => {
+    beforeEach(() => {
       slot = create('slot');
       host = create('div');
       root = host.attachShadow({ mode: 'closed' });
@@ -17,12 +22,12 @@ describe('light/polyfill', function () {
       host.appendChild(light1);
     });
 
-    it('assignedSlot', function () {
+    it('assignedSlot', () => {
       expect(light1.assignedSlot).to.equal(null);
     });
   });
 
-  beforeEach(function () {
+  beforeEach(() => {
     slot = create('slot');
     host = create('div');
     root = host.attachShadow({ mode: 'open' });
@@ -38,38 +43,41 @@ describe('light/polyfill', function () {
     host.appendChild(light2);
   });
 
-  it('assignedSlot', function () {
+  it('assignedSlot', () => {
     expect(light1.assignedSlot).to.equal(slot);
   });
 
-  it('parentElement', function () {
+  it('parentElement', () => {
     expect(light1.parentElement).to.equal(host);
   });
 
-  it('parentNode', function () {
+  it('parentNode', () => {
     expect(light1.parentNode).to.equal(host);
   });
 
-  it('nextSibling', function () {
+  it('nextSibling', () => {
     expect(light1.nextSibling).to.equal(text);
   });
 
-  it('nextElementSibling', function () {
+  it('nextElementSibling', () => {
     expect(light1.nextElementSibling).to.equal(light2);
   });
 
-  it('previousSibling', function () {
+  it('previousSibling', () => {
     expect(light2.previousSibling).to.equal(text);
   });
 
-  it('previousElementSibling', function () {
+  it('previousElementSibling', () => {
     expect(light2.previousElementSibling).to.equal(light1);
   });
 
-  describe('when removed', function () {
-    let anotherHost, anotherNode, anotherRoot, anotherSlot;
+  describe('when removed', () => {
+    let anotherHost;
+    let anotherNode;
+    let anotherRoot;
+    let anotherSlot;
 
-    beforeEach(function () {
+    beforeEach(() => {
       anotherHost = create('div');
       anotherNode = create('div');
       anotherRoot = anotherHost.attachShadow({ mode: 'open' });
@@ -79,61 +87,64 @@ describe('light/polyfill', function () {
       host.removeChild(light1);
     });
 
-    it('should null parentNode', function () {
+    it('should null parentNode', () => {
       expect(light1.parentNode).to.equal(null);
     });
 
-    it('should null assignedSlot', function () {
+    it('should null assignedSlot', () => {
       expect(light1.assignedSlot).to.equal(null);
     });
 
-    describe('and reparented to the same host', function () {
-      beforeEach(function () {
+    describe('and reparented to the same host', () => {
+      beforeEach(() => {
         host.appendChild(light1);
       });
 
-      it('should reset parentNode', function () {
+      it('should reset parentNode', () => {
         expect(light1.parentNode).to.equal(host);
       });
 
-      it('should keep assignedSlot null', function () {
+      it('should keep assignedSlot null', () => {
         expect(light1.assignedSlot).to.equal(slot);
       });
     });
 
-    describe('and reparented to a different host', function () {
-      beforeEach(function () {
+    describe('and reparented to a different host', () => {
+      beforeEach(() => {
         anotherHost.appendChild(light1);
       });
 
-      it('should reset parentNode', function () {
+      it('should reset parentNode', () => {
         expect(light1.parentNode).to.equal(anotherHost);
       });
 
-      it('should keep assignedSlot null', function () {
+      it('should keep assignedSlot null', () => {
         expect(light1.assignedSlot).to.equal(anotherSlot);
       });
     });
 
-    describe('and reparented to a different node', function () {
-      beforeEach(function () {
+    describe('and reparented to a different node', () => {
+      beforeEach(() => {
         anotherNode.appendChild(light1);
       });
 
-      it('should reset parentNode', function () {
+      it('should reset parentNode', () => {
         expect(light1.parentNode).to.equal(anotherNode);
       });
 
-      it('should keep assignedSlot null', function () {
+      it('should keep assignedSlot null', () => {
         expect(light1.assignedSlot).to.equal(null);
       });
     });
   });
 
-  describe('when directly reparented', function () {
-    let anotherHost, anotherNode, anotherRoot, anotherSlot;
+  describe('when directly reparented', () => {
+    let anotherHost;
+    let anotherNode;
+    let anotherRoot;
+    let anotherSlot;
 
-    beforeEach(function () {
+    beforeEach(() => {
       anotherHost = create('div');
       anotherNode = create('div');
       anotherRoot = anotherHost.attachShadow({ mode: 'open' });
@@ -142,82 +153,88 @@ describe('light/polyfill', function () {
       anotherRoot.appendChild(anotherSlot);
     });
 
-    describe('to the same host', function () {
-      beforeEach(function () {
+    describe('to the same host', () => {
+      beforeEach(() => {
         host.appendChild(light1);
       });
 
-      it('should reset parentNode', function () {
+      it('should reset parentNode', () => {
         expect(light1.parentNode).to.equal(host);
       });
 
-      it('should reset assignedSlot', function () {
+      it('should reset assignedSlot', () => {
         expect(light1.assignedSlot).to.equal(slot);
       });
     });
 
-    describe('to a different host', function () {
-      beforeEach(function () {
+    describe('to a different host', () => {
+      beforeEach(() => {
         anotherHost.appendChild(light1);
       });
 
-      it('should reset parentNode', function () {
+      it('should reset parentNode', () => {
         expect(light1.parentNode).to.equal(anotherHost);
       });
 
-      it('should reset assignedSlot', function () {
+      it('should reset assignedSlot', () => {
         expect(light1.assignedSlot).to.equal(anotherSlot);
       });
     });
 
-    describe('to a different node', function () {
-      beforeEach(function () {
+    describe('to a different node', () => {
+      beforeEach(() => {
         anotherNode.appendChild(light1);
       });
 
-      it('should reset parentNode', function () {
+      it('should reset parentNode', () => {
         expect(light1.parentNode).to.equal(anotherNode);
       });
 
-      it('should reset assignedSlot', function () {
+      it('should reset assignedSlot', () => {
         expect(anotherNode.assignedSlot).to.equal(null);
       });
     });
   });
 
-  describe('when text nodes are projected to a different spot than element nodes', function () {
-    let host, light1, light2, root, namedSlot, unnamedSlot, text;
+  describe('when text nodes are projected to a different spot than element nodes', () => {
+    let hostLocal;
+    let light1Local;
+    let light2Local;
+    let rootLocal;
+    let namedSlot;
+    let unnamedSlot;
+    let textLocal;
 
-    beforeEach(function () {
-      namedSlot = create('slot', {name: 'mySlot'});
+    beforeEach(() => {
+      namedSlot = create('slot', { name: 'mySlot' });
       unnamedSlot = create('slot');
-      host = create('div');
-      root = host.attachShadow({ mode: 'open' });
+      hostLocal = create('div');
+      rootLocal = hostLocal.attachShadow({ mode: 'open' });
 
-      root.appendChild(namedSlot);
-      root.appendChild(unnamedSlot);
+      rootLocal.appendChild(namedSlot);
+      rootLocal.appendChild(unnamedSlot);
 
-      light1 = create('div', {slot: 'mySlot'});
-      light2 = create('div', {slot: 'mySlot'});
-      text = document.createTextNode('text');
+      light1Local = create('div', { slot: 'mySlot' });
+      light2Local = create('div', { slot: 'mySlot' });
+      textLocal = document.createTextNode('text');
 
-      host.appendChild(light1);
-      host.appendChild(text);
-      host.appendChild(light2);
+      hostLocal.appendChild(light1Local);
+      hostLocal.appendChild(textLocal);
+      hostLocal.appendChild(light2Local);
     });
 
-    it('should polyfill previousSibling of textNode', function () {
-      expect(text.previousSibling).to.equal(light1);
+    it('should polyfill previousSibling of textNode', () => {
+      expect(textLocal.previousSibling).to.equal(light1Local);
     });
 
-    it('should polyfill nextSibling of textNode', function () {
-      expect(text.nextSibling).to.equal(light2);
+    it('should polyfill nextSibling of textNode', () => {
+      expect(textLocal.nextSibling).to.equal(light2Local);
     });
 
-    it('should NOT polyfill textContent of textNode', function () {
-      expect(text.textContent).to.equal('text');
-      expect(Object.getPrototypeOf(text).hasOwnProperty('textContent')).to.be.false;
-      expect(Object.getPrototypeOf(text).hasOwnProperty('__textContent')).to.be.false;
+    it('should NOT polyfill textContent of textNode', () => {
+      expect(textLocal.textContent).to.equal('text');
+      expect(Object.getPrototypeOf(textLocal).hasOwnProperty('textContent')).to.equal(false);
+      expect(Object.getPrototypeOf(textLocal).hasOwnProperty('__textContent')).to.equal(false);
     });
   });
 });

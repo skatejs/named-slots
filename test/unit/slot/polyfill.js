@@ -1,11 +1,11 @@
 import '../../../src/index';
 import create from '../../lib/create';
 
-describe('slot/polyfill', function () {
+describe('slot/polyfill', () => {
   let fallback;
   let slot;
 
-  beforeEach(function () {
+  beforeEach(() => {
     fallback = create('p', ['fallback']);
     slot = create('slot', [fallback]);
 
@@ -13,17 +13,7 @@ describe('slot/polyfill', function () {
     expect(slot.firstElementChild).to.equal(fallback, 'before');
   });
 
-  it('Element.innerHTML', function () {
-    expect(slot.innerHTML).to.equal('<p>fallback</p>');
-    slot.innerHTML = '<span>default</span>';
-    expect(slot.innerHTML).to.equal('<span>default</span>');
-  });
-
-  it('Element.outerHTML', function () {
-    expect(slot.outerHTML).to.equal('<slot><p>fallback</p></slot>');
-  });
-
-  it('Node.appendChild()', function () {
+  it('Node.appendChild()', () => {
     const newNode = create('div');
     slot.appendChild(newNode);
     expect(slot.childNodes.length).to.equal(2);
@@ -31,19 +21,19 @@ describe('slot/polyfill', function () {
     expect(slot.childNodes[1]).to.equal(newNode);
   });
 
-  it('Node.childNodes', function () {
+  it('Node.childNodes', () => {
     expect(slot.childNodes[0]).to.equal(fallback);
   });
 
-  it('Node.firstChild', function () {
+  it('Node.firstChild', () => {
     expect(slot.firstChild).to.equal(fallback);
   });
 
-  it('Node.hasChildNodes()', function () {
+  it('Node.hasChildNodes()', () => {
     expect(slot.hasChildNodes()).to.equal(true);
   });
 
-  it('Node.insertBefore()', function () {
+  it('Node.insertBefore()', () => {
     const newNode = create('div');
     slot.insertBefore(newNode, fallback);
     expect(slot.childNodes.length).to.equal(2);
@@ -51,62 +41,62 @@ describe('slot/polyfill', function () {
     expect(slot.childNodes[1]).to.equal(fallback);
   });
 
-  it('Node.lastChild', function () {
+  it('Node.lastChild', () => {
     expect(slot.lastChild).to.equal(fallback);
   });
 
-  it('Node.removeChild()', function () {
+  it('Node.removeChild()', () => {
     slot.removeChild(fallback);
     expect(slot.hasChildNodes()).to.equal(false);
   });
 
-  it('Node.replaceChild()', function () {
+  it('Node.replaceChild()', () => {
     const newNode = create('div');
     slot.replaceChild(newNode, fallback);
     expect(slot.childNodes.length).to.equal(1);
     expect(slot.childNodes[0]).to.equal(newNode);
   });
 
-  it('Node.textContent', function () {
+  it('Node.textContent', () => {
     expect(slot.textContent).to.equal('fallback');
   });
 
-  it('ParentNode.childElementCount', function () {
+  it('ParentNode.childElementCount', () => {
     expect(slot.childElementCount).to.equal(1);
   });
 
-  it('ParentNode.children', function () {
+  it('ParentNode.children', () => {
     expect(slot.children[0]).to.equal(fallback);
   });
 
-  it('ParentNode.firstElementChild', function () {
+  it('ParentNode.firstElementChild', () => {
     expect(slot.firstElementChild).to.equal(fallback);
   });
 
-  it('ParentNode.lastElementChild', function () {
+  it('ParentNode.lastElementChild', () => {
     expect(slot.lastElementChild).to.equal(fallback);
   });
 
-  it('HTMLSlotElement.assignedNodes()', function () {
+  it('HTMLSlotElement.assignedNodes()', () => {
     expect(slot.assignedNodes().length).to.equal(0);
   });
 
-  it('HTMLSlotElement.assignedNodes({ deep: true })', function () {
+  it('HTMLSlotElement.assignedNodes({ deep: true })', () => {
 
   });
 
-  it('should not slot text nodes that are empty or have only whitespace', function () {
+  it('should not slot text nodes that are empty or have only whitespace', () => {
     const host = create('div');
     const root = host.attachShadow({ mode: 'closed' });
-    const slot = create('slot');
-    root.appendChild(slot);
+    const slot2 = create('slot');
+    root.appendChild(slot2);
 
     host.appendChild(document.createTextNode(''));
     host.appendChild(document.createTextNode(' '));
     host.appendChild(document.createTextNode('\n'));
     host.appendChild(document.createTextNode('testing'));
-    expect(slot.assignedNodes().length).to.equal(2);
-    expect(slot.assignedNodes()[0].textContent).to.equal('');
-    expect(slot.assignedNodes()[1].textContent).to.equal('testing');
+    expect(slot2.assignedNodes().length).to.equal(2);
+    expect(slot2.assignedNodes()[0].textContent).to.equal('');
+    expect(slot2.assignedNodes()[1].textContent).to.equal('testing');
   });
 });

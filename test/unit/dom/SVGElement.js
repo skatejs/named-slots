@@ -1,4 +1,10 @@
 describe('dom: SVGElement', () => {
+  function expectToBeLikeNodeList(val) {
+    expect(val).not.to.equal(undefined, 'like NodeList: undefined');
+    expect(val.length).to.be.a('number', 'like NodeList: length not a number');
+    expect(val.item).to.be.a('function', 'like NodeList: item not a function');
+  }
+
   function runTests(type) {
     describe(`${type}: `, () => {
       let host;
@@ -36,6 +42,7 @@ describe('dom: SVGElement', () => {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         elem.appendChild(svg);
         expect(svg.parentNode).to.equal(elem);
+        expectToBeLikeNodeList(svg.childNodes);
       });
     });
   }

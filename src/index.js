@@ -571,7 +571,7 @@ const members = {
         return this.__childNodes;
       }
       let childNodes = nodeToChildNodesMap.get(this);
-
+      
       if (!childNodes) {
         nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
       }
@@ -871,6 +871,7 @@ if (!('attachShadow' in document.createElement('div'))) {
 
       if (nativeDescriptor) {
         Object.defineProperty(elementProto, nativeMemberName, nativeDescriptor);
+        Object.defineProperty(svgProto, nativeMemberName, nativeDescriptor);
       }
 
       if (shouldOverrideInTextNode) {

@@ -1,5 +1,5 @@
 import '../src/index';
-import bench from './lib/bench';
+import benchmark from 'birdpoo';
 
 describe('add / remove', () => {
   const div = document.createElement.bind(document, 'div');
@@ -11,21 +11,27 @@ describe('add / remove', () => {
     el.removeChild(ch);
   }
 
-  bench('native', () => {
+  benchmark(() => {
     const elem = div();
     return { elem, fn };
+  }).then((opsPerSec) => {
+    console.log('native: ', opsPerSec);
   });
 
-  bench('prollyfill (no slot)', () => {
+  benchmark(() => {
     const elem = div();
     elem.attachShadow({ mode: 'closed' });
     return { elem, fn };
+  }).then((opsPerSec) => {
+    console.log('prollyfill (no slot): ', opsPerSec);
   });
 
-  bench('prollyfill (default slot)', () => {
+  benchmark(() => {
     const elem = div();
     const root = elem.attachShadow({ mode: 'closed' });
     root.innerHTML = '<slot></slot>';
     return { elem, fn };
+  }).then((opsPerSec) => {
+    console.log('prollyfill (default slot): ', opsPerSec);
   });
 });

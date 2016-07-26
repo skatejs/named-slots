@@ -4,16 +4,16 @@ import benchmark from 'birdpoo';
 describe('add / remove', () => {
   const div = document.createElement.bind(document, 'div');
 
-  function fn() {
+  function fn(elem) {
     const ch = div();
-    const el = this.elem;
+    const el = elem;
     el.appendChild(ch);
     el.removeChild(ch);
   }
 
   benchmark(() => {
     const elem = div();
-    return { elem, fn };
+    fn(elem);
   }).then((opsPerSec) => {
     console.log('native: ', opsPerSec);
   });
@@ -21,7 +21,7 @@ describe('add / remove', () => {
   benchmark(() => {
     const elem = div();
     elem.attachShadow({ mode: 'closed' });
-    return { elem, fn };
+    fn(elem);
   }).then((opsPerSec) => {
     console.log('prollyfill (no slot): ', opsPerSec);
   });
@@ -30,7 +30,7 @@ describe('add / remove', () => {
     const elem = div();
     const root = elem.attachShadow({ mode: 'closed' });
     root.innerHTML = '<slot></slot>';
-    return { elem, fn };
+    fn(elem);
   }).then((opsPerSec) => {
     console.log('prollyfill (default slot): ', opsPerSec);
   });

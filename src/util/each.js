@@ -13,12 +13,13 @@ export function eachChildNode(node, func) {
   }
 }
 
-export function eachNodeOrFragmentNodes(node, func) {
+export function appendEachNodeOrFragmentNodes(node, func) {
   if (node instanceof DocumentFragment) {
+    let a = 0;
     const chs = node.childNodes;
-    const chsLen = chs.length;
-    for (let a = 0; a < chsLen; a++) {
-      func(node.cloneNode(true).childNodes[a], a);
+    while (node.childNodes.length > 0) {
+      func(chs[0], a);
+      a++;
     }
   } else {
     func(node, 0);

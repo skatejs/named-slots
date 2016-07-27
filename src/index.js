@@ -1,4 +1,4 @@
-import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
+import { eachChildNode, appendEachNodeOrFragmentNodes } from './util/each';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import getPropertyDescriptor from './util/get-property-descriptor';
 import debounce from 'debounce';
@@ -226,7 +226,7 @@ function indexOfNode(host, node) {
 // information such as parentNode.
 function registerNode(host, node, insertBefore, func) {
   const index = indexOfNode(host, insertBefore);
-  eachNodeOrFragmentNodes(node, (eachNode, eachIndex) => {
+  appendEachNodeOrFragmentNodes(node, (eachNode, eachIndex) => {
     func(eachNode, eachIndex);
 
     if (canPatchNativeAccessors) {
@@ -300,7 +300,7 @@ function addSlotToRoot(root, slot) {
 }
 
 function addNodeToRoot(root, node, insertBefore) {
-  eachNodeOrFragmentNodes(node, child => {
+  appendEachNodeOrFragmentNodes(node, child => {
     if (isSlotNode(child)) {
       addSlotToRoot(root, child);
     } else {

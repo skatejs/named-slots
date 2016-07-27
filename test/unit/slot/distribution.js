@@ -42,7 +42,7 @@ describe('slot/distribution', () => {
     expect(slot.assignedNodes()[1]).to.equal(lightText);
   });
 
-  it('should not remove child elements when distributing a document fragment', () => {
+  it('should remove child elements when distributing a document fragment', () => {
 
     const div1 = document.createElement('div');
     const div2 = document.createElement('div');
@@ -52,7 +52,7 @@ describe('slot/distribution', () => {
     frag.appendChild(div2);
 
     host.appendChild(frag);
-    expect(frag.childNodes.length).to.equal(2);
+    expect(frag.childNodes.length).to.equal(0);
   });
 
   describe('distributes to the slot that is owned by the current shadow root, not slots of descendant shadow roots', () => {

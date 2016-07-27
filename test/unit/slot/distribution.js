@@ -43,11 +43,14 @@ describe('slot/distribution', () => {
   });
 
   it('should not remove child elements when distributing a document fragment', () => {
-    function fragmentFromString(strHTML) {
-      return document.createRange().createContextualFragment(strHTML);
-    }
 
-    const frag = fragmentFromString(`<div>a</div><div>b</div>`);
+    const div1 = document.createElement('div');
+    const div2 = document.createElement('div');
+
+    const frag = document.createDocumentFragment();
+    frag.appendChild(div1);
+    frag.appendChild(div2);
+
     host.appendChild(frag);
     expect(frag.childNodes.length).to.equal(2);
   });

@@ -38,8 +38,19 @@ describe('dom: appendChild', () => {
         }).to.throw(Error);
       });
 
-      it('should return an appended node', () => {
+      it('should return an appended div', () => {
         const appended = document.createElement('div');
+        const changedElem = elem.appendChild(appended);
+        expect(changedElem).not.to.equal(undefined);
+        expect(changedElem).to.equal(appended);
+      });
+
+      it('should return an appended document fragment', () => {
+        const appended = document.createDocumentFragment();
+        const div1 = document.createElement('div');
+        const div2 = document.createElement('div');
+        appended.appendChild(div1);
+        appended.appendChild(div2);
         const changedElem = elem.appendChild(appended);
         expect(changedElem).not.to.equal(undefined);
         expect(changedElem).to.equal(appended);

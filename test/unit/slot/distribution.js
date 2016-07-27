@@ -43,7 +43,6 @@ describe('slot/distribution', () => {
   });
 
   it('should remove child elements when distributing a document fragment', () => {
-
     const div1 = document.createElement('div');
     const div2 = document.createElement('div');
 

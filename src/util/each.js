@@ -14,28 +14,20 @@ export function eachChildNode(node, func) {
 }
 
 /**
- * Run a function on each node or childnode of a document fragment, that may optionally append the
- * children to another element.
- *
- * @param node a node or a document fragment
- * @param func a function to run on the node or each child node of the document fragment. func may
- *        or may not append the child to another parent.
+ * Execute func over all child nodes or a document fragment, or a single node
+ * @param node the node or document fragment
+ * @param func a function to execute on node or the children of node, if node is a document fragment.
+ *        func may optionally append the node elsewhere, in the case of a document fragment
  */
 export function eachNodeOrFragmentNodes(node, func) {
   if (node instanceof DocumentFragment) {
-    let a = 0;
-    let unappendedChildNodesCount = 0;
     const chs = node.childNodes;
+    const chsLen = chs.length;
 
-    while (node.childNodes.length > unappendedChildNodesCount) {
-      const originalLength = node.childNodes.length;
-      func(chs[unappendedChildNodesCount], a);
-
-      const didAppendNode = node.childNodes.length !== originalLength;
-      if (!didAppendNode) {
-        unappendedChildNodesCount++;
-      }
-      a++;
+    // We must iterate in reverse to handle the case where child nodes are moved elsewhere during execution
+    for (let a = chsLen - 1; a >= 0; a--) {
+      const thisNode = [...node.childNodes].reverse()[a];
+      func(thisNode, a);
     }
   } else {
     func(node, 0);

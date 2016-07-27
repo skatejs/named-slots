@@ -13,6 +13,15 @@ export function eachChildNode(node, func) {
   }
 }
 
+// Re-implemented to avoid Array.prototype.slice.call for performance reasons
+function reverse(arr) {
+  let reversedArray = [];
+  for (let i = arr.length - 1; i >= 0; i--) {
+    reversedArray.push(arr[i]);
+  }
+  return reversedArray;
+}
+
 /**
  * Execute func over all child nodes or a document fragment, or a single node
  * @param node the node or document fragment
@@ -26,7 +35,7 @@ export function eachNodeOrFragmentNodes(node, func) {
 
     // We must iterate in reverse to handle the case where child nodes are moved elsewhere during execution
     for (let a = chsLen - 1; a >= 0; a--) {
-      const thisNode = [...node.childNodes].reverse()[a];
+      const thisNode = reverse(node.childNodes)[a];
       func(thisNode, a);
     }
   } else {

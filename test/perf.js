@@ -59,8 +59,6 @@ describe('add / remove document fragments', () => {
     const ch = frag();
     const el = elem;
     ch.appendChild(div());
-    ch.appendChild(div());
-    ch.appendChild(div());
 
     el.appendChild(ch);
     el.removeChild(ch);

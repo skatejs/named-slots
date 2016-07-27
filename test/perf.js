@@ -1,31 +1,52 @@
 import '../src/index';
-import bench from './lib/bench';
+import benchmark from 'birdpoo';
 
 describe('add / remove', () => {
   const div = document.createElement.bind(document, 'div');
 
-  function fn() {
+  function fn(elem) {
     const ch = div();
-    const el = this.elem;
+    const el = elem;
     el.appendChild(ch);
     el.removeChild(ch);
   }
 
-  bench('native', () => {
+  function fn_native(elem) {
+    const ch = div();
+    const el = elem;
+    el.__appendChild(ch);
+    el.__removeChild(ch);
+  }
+
+
+  benchmark(() => {
     const elem = div();
-    return { elem, fn };
+    fn_native(elem);
+  }).then((opsPerSec) => {
+    console.log('native: ', opsPerSec);
   });
 
-  bench('prollyfill (no slot)', () => {
+  benchmark(() => {
+    const elem = div();
+    fn(elem);
+  }).then((opsPerSec) => {
+    console.log('polyfilled (no root): ', opsPerSec);
+  });
+
+  benchmark(() => {
     const elem = div();
     elem.attachShadow({ mode: 'closed' });
-    return { elem, fn };
+    fn(elem);
+  }).then((opsPerSec) => {
+    console.log('prolyfill (no slot): ', opsPerSec);
   });
 
-  bench('prollyfill (default slot)', () => {
+  benchmark(() => {
     const elem = div();
     const root = elem.attachShadow({ mode: 'closed' });
     root.innerHTML = '<slot></slot>';
-    return { elem, fn };
+    fn(elem);
+  }).then((opsPerSec) => {
+    console.log('prolyfill (default slot): ', opsPerSec);
   });
 });

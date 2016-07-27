@@ -50,3 +50,26 @@ describe('add / remove', () => {
     console.log('prolyfill (default slot): ', opsPerSec);
   });
 });
+
+describe('add / remove document fragments', () => {
+  const frag = document.createDocumentFragment.bind(document);
+  const div = document.createElement.bind(document, 'div');
+
+  function fn(elem) {
+    const ch = frag();
+    const el = elem;
+    ch.appendChild(div());
+
+    el.appendChild(ch);
+    el.removeChild(ch);
+  }
+
+  benchmark(() => {
+    const elem = div();
+    const root = elem.attachShadow({ mode: 'closed' });
+    root.innerHTML = '<slot></slot>';
+    fn(elem);
+  }).then((opsPerSec) => {
+    console.log('prolyfill (fragments): ', opsPerSec);
+  });
+});

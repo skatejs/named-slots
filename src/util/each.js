@@ -21,7 +21,7 @@ export function eachChildNode(node, func) {
  * @param func a function to run on the node or each child node of the document fragment. func may
  *        or may not append the child to another parent.
  */
-export function appendEachNodeOrFragmentNodes(node, func) {
+export function eachNodeOrFragmentNodes(node, func) {
   if (node instanceof DocumentFragment) {
     let a = 0;
     let unappendedChildNodesCount = 0;

@@ -1,7 +1,5 @@
 # named-slots [![Build Status](https://travis-ci.org/skatejs/named-slots.svg?branch=master)](https://travis-ci.org/skatejs/named-slots)
 
-[![Sauce Test Status](https://saucelabs.com/browser-matrix/skatejs-named-slots.svg)](https://saucelabs.com/u/skatejs-named-slots)
-
 A polygap (partial polyfill) for the Shadow DOM Named Slot API.
 
 

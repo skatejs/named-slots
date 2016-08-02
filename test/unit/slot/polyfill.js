@@ -95,8 +95,10 @@ describe('slot/polyfill', () => {
     host.appendChild(document.createTextNode(' '));
     host.appendChild(document.createTextNode('\n'));
     host.appendChild(document.createTextNode('testing'));
-    expect(slot2.assignedNodes().length).to.equal(2);
+    expect(slot2.assignedNodes().length).to.equal(4);
     expect(slot2.assignedNodes()[0].textContent).to.equal('');
-    expect(slot2.assignedNodes()[1].textContent).to.equal('testing');
+    expect(slot2.assignedNodes()[1].textContent).to.equal(' ');
+    expect(slot2.assignedNodes()[2].textContent).to.equal('\n');
+    expect(slot2.assignedNodes()[3].textContent).to.equal('testing');
   });
 });

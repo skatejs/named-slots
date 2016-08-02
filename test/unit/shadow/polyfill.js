@@ -1,4 +1,5 @@
 import '../../../src/index';
+import { shadowDomV0 } from '../../../src/util/support';
 import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
@@ -27,20 +28,20 @@ describe('shadow/polyfill', () => {
     expect(host.shadowRoot).to.equal(null);
   });
 
-  it('polyfillShadowRootTagName: [default="_shadow_root_"]', () => {
+  shadowDomV0 || it('polyfillShadowRootTagName: [default="_shadow_root_"]', () => {
     const host = create('div');
     const root = host.attachShadow({ mode: 'open' });
     expect(root.tagName).to.equal('_SHADOW_ROOT_');
   });
 
-  it('polyfillShadowRootTagName: "test-ing"', () => {
+  shadowDomV0 || it('polyfillShadowRootTagName: "test-ing"', () => {
     const host = create('div');
     const root = host.attachShadow({ mode: 'open', polyfillShadowRootTagName: 'test-ing' });
     expect(root.tagName).to.equal('TEST-ING');
   });
 
   if (canPatchNativeAccessors) {
-    it('proper node removal', () => {
+    shadowDomV0 || it('proper node removal', () => {
       const host = create('div');
       host.appendChild(create('div'));
       host.appendChild(create('div'));

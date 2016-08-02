@@ -1,4 +1,5 @@
 import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
+import { shadowDomV0, shadowDomV1 } from './util/support';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import getPropertyDescriptor from './util/get-property-descriptor';
 import debounce from 'debounce';
@@ -8,6 +9,7 @@ import findSlots from './util/find-slots';
 import isRootNode from './util/is-root-node';
 import isSlotNode from './util/is-slot-node';
 import pseudoArrayToArray from './util/pseudo-array-to-array';
+import v0 from './v0';
 import version from './version';
 import 'webcomponents.js/src/WeakMap/WeakMap.js';
 import 'custom-event-polyfill';
@@ -137,26 +139,7 @@ function getSlotNameFromNode(node) {
 }
 
 function slotNodeIntoSlot(slot, node, insertBefore) {
-  // Don't slot nodes that have content but are only whitespace. This is an
-  // anomaly that I don't think the spec deals with.
-  //
-  // The problem is:
-  //
-  // - If you insert HTML with indentation into the page, there will be
-  //   whitespace and if that's inserted it messes with fallback content
-  //   calculation where there is formatting, but no meaningful content, so in
-  //   theory it should fallback. Since you can attach a shadow root after we
-  //   mean to insert an empty text node and have it "count", we can't really
-  //   discard nodes that are considered formatting at the time of attachment.
-  // - You can insert a text node and modify its text content later.
-  //   Incremental DOM seems to do this. Every way I look at it, it seems
-  //   problematic that we should have to screen for content, but I don't seems
-  //   much of a way around it at the moment.
-  if (node.nodeType === 3 && node.textContent && node.textContent.trim().length === 0) {
-    return;
-  }
-
-  // only Text and Element nodes should be slotted
+  // Only Text and Element nodes should be slotted.
   if (slottedNodeTypes.indexOf(node.nodeType) === -1) {
     return;
   }
@@ -838,7 +821,11 @@ const members = {
   },
 };
 
-if (!('attachShadow' in document.createElement('div'))) {
+if (shadowDomV1) {
+  // then we should probably not be loading this
+} else if (shadowDomV0) {
+  v0();
+} else {
   const commProto = Comment.prototype;
   const elementProto = HTMLElement.prototype;
   const svgProto = SVGElement.prototype;

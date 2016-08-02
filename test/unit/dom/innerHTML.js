@@ -1,4 +1,3 @@
-import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 import hasAllAttributes from '../../lib/has-all-attributes';
 
 describe('dom: innerHTML', () => {
@@ -33,10 +32,10 @@ describe('dom: innerHTML', () => {
           { value: 'text before <div>text inside</div> text after', nodes: 3, assigned: 3 },
           { value: 'text before <div>text inside <div>text deep inside</div> </div> text after', nodes: 3, assigned: 3 },
           { value: '<div><!-- comment inside --></div>', nodes: 1, assigned: 1 },
-          { value: '<!-- comment outside --> <div></div>', nodes: 3, assigned: 1 }, // empty space is a text node, do not slot empty space
-          { value: '<!-- comment outside --> <div><!-- comment inside --></div>', nodes: 3, assigned: 1 }, // empty space is a text node, do not slot empty space
-          { value: '<!-- comment before --> <div><!-- comment inside --></div> <!-- comment after -->', nodes: 5, assigned: 1 }, // empty space is a text node, do not slot empty space
-          { value: '<!-- comment before --> <div><!-- comment inside --><div><!-- comment deep inside --></div> </div><!-- comment after -->', nodes: 4, assigned: 1 }, // empty space is a text node, do not slot empty space
+          { value: '<!-- comment outside --> <div></div>', nodes: 3, assigned: 2 }, // empty space is a text node, do not slot empty space
+          { value: '<!-- comment outside --> <div><!-- comment inside --></div>', nodes: 3, assigned: 2 }, // empty space is a text node, do not slot empty space
+          { value: '<!-- comment before --> <div><!-- comment inside --></div> <!-- comment after -->', nodes: 5, assigned: 3 }, // empty space is a text node, do not slot empty space
+          { value: '<!-- comment before --> <div><!-- comment inside --><div><!-- comment deep inside --></div> </div><!-- comment after -->', nodes: 4, assigned: 2 }, // empty space is a text node, do not slot empty space
           { value: '<!-- comment outside --> text outside <div>text inside</div>', nodes: 3, assigned: 2 },
           { value: 'text outside <!-- comment outside --> text outside <div>text inside <!-- comment inside --> text inside</div>', nodes: 4, assigned: 3 },
         ];
@@ -64,11 +63,7 @@ describe('dom: innerHTML', () => {
           expect(elem.innerHTML).to.equal(html.value);
           expect(elem.childNodes.length).to.equal(html.nodes);
 
-          if (type !== 'host') {
-            if (canPatchNativeAccessors) {
-              expect(elem.__innerHTML).to.equal(html.value);
-            }
-          } else {
+          if (type === 'host') {
             expect(slot.assignedNodes().length).to.equal(html.assigned);
           }
         });
@@ -96,11 +91,7 @@ describe('dom: innerHTML', () => {
         expect(elem.innerHTML).to.equal(escapedText);
         expect(elem.childNodes.length).to.equal(1);
 
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal(escapedText);
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(1);
         }
       });
@@ -114,12 +105,9 @@ describe('dom: innerHTML', () => {
         expect([processingInstruction, processingInstructionsAfterInnerHtml]).to.include(elem.innerHTML); // different browsers process this differently
         expect(elem.childNodes.length).to.equal(1);
 
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect([processingInstruction, processingInstructionsAfterInnerHtml]).to.include(elem.__innerHTML);
-          }
-        } else {
-          expect(slot.assignedNodes().length).to.equal(0);  // non text / html nodes should not be slotted
+        if (type === 'host') {
+          // non text / html nodes should not be slotted
+          expect(slot.assignedNodes().length).to.equal(0);
         }
       });
 
@@ -127,51 +115,31 @@ describe('dom: innerHTML', () => {
         elem.innerHTML = '';
         expect(elem.innerHTML).to.equal('');
         expect(elem.childNodes.length).to.equal(0);
-
-        if (type !== 'host' && canPatchNativeAccessors) {
-          expect(elem.__innerHTML).to.equal('');
-          expect(elem.__childNodes.length).to.equal(0);
-        }
       });
 
       it('should return correct value if html was appended', () => {
         elem.appendChild(document.createElement('div'));
         expect(elem.innerHTML).to.equal('<div></div>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div></div>');
-          }
-        } else {
+
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(1);
         }
 
         elem.appendChild(document.createElement('div2'));
         expect(elem.innerHTML).to.equal('<div></div><div2></div2>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div></div><div2></div2>');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
         }
 
         elem.firstChild.appendChild(document.createElement('div3'));
         expect(elem.innerHTML).to.equal('<div><div3></div3></div><div2></div2>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div><div3></div3></div><div2></div2>');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
         }
 
         elem.firstChild.appendChild(document.createElement('div4'));
         expect(elem.innerHTML).to.equal('<div><div3></div3><div4></div4></div><div2></div2>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div><div3></div3><div4></div4></div><div2></div2>');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
         }
       });
@@ -180,31 +148,19 @@ describe('dom: innerHTML', () => {
         elem.innerHTML = '<div1></div1><div2><div3></div3><div4></div4></div2><div3></div3>';
         elem.removeChild(elem.firstChild);
         expect(elem.innerHTML).to.equal('<div2><div3></div3><div4></div4></div2><div3></div3>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div2><div3></div3><div4></div4></div2><div3></div3>');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
         }
 
         elem.removeChild(elem.firstChild);
         expect(elem.innerHTML).to.equal('<div3></div3>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div3></div3>');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(1);
         }
 
         elem.removeChild(elem.firstChild);
         expect(elem.innerHTML).to.equal('');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(0);
         }
       });
@@ -213,21 +169,13 @@ describe('dom: innerHTML', () => {
         elem.innerHTML = '<div1></div1><div2><div3></div3><div4></div4></div2><div3></div3>';
         elem.insertBefore(document.createElement('div'), elem.firstChild);
         expect(elem.innerHTML).to.equal('<div></div><div1></div1><div2><div3></div3><div4></div4></div2><div3></div3>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div></div><div1></div1><div2><div3></div3><div4></div4></div2><div3></div3>');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(4);
         }
 
         elem.insertBefore(document.createElement('div5'), elem.lastChild);
         expect(elem.innerHTML).to.equal('<div></div><div1></div1><div2><div3></div3><div4></div4></div2><div5></div5><div3></div3>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div></div><div1></div1><div2><div3></div3><div4></div4></div2><div5></div5><div3></div3>');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(5);
         }
       });
@@ -236,19 +184,10 @@ describe('dom: innerHTML', () => {
         elem.innerHTML = '<div1></div1><div2><div3></div3><div4></div4></div2><div3></div3>';
         elem.replaceChild(document.createElement('div'), elem.firstChild);
         expect(elem.innerHTML).to.equal('<div></div><div2><div3></div3><div4></div4></div2><div3></div3>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div></div><div2><div3></div3><div4></div4></div2><div3></div3>');
-          }
-        }
 
         elem.replaceChild(document.createElement('div5'), elem.lastChild);
         expect(elem.innerHTML).to.equal('<div></div><div2><div3></div3><div4></div4></div2><div5></div5>');
-        if (type !== 'host') {
-          if (canPatchNativeAccessors) {
-            expect(elem.__innerHTML).to.equal('<div></div><div2><div3></div3><div4></div4></div2><div5></div5>');
-          }
-        } else {
+        if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(3);
         }
       });

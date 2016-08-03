@@ -152,8 +152,8 @@ export default () => {
         const slots = {};
         const recordSlots = node => (slots[node.getAttribute && node.getAttribute('slot') || '__default'] = true);
 
-        addedNodes.forEach(recordSlots);
-        removedNodes.forEach(recordSlots);
+        [...addedNodes].forEach(recordSlots);
+        [...removedNodes].forEach(recordSlots);
 
         Object.keys(slots).forEach(slot => {
           const node = slot === '__default' ?

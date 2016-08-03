@@ -106,6 +106,12 @@ The following describe what is polyfilled, what is not polyfilled, and why. All 
 
 
 
+### Known Issues
+
+If possible, you should try and load this polyfill before anything else. If anything copies built-in prototypes before it has a chance to patch the built-in prototypes, you could get buggy behaviour.
+
+
+
 ### Polyfilled
 
 These are members which are already polyfilled along with notes about their implementation details.

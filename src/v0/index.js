@@ -20,9 +20,8 @@ export default () => {
       return [];
     }
 
-    let chs = host.childNodes;
-    let chsLen = chs.length;
-
+    const chs = host.childNodes;
+    const chsLen = chs.length;
     const filtered = [];
 
     for (let a = 0; a < chsLen; a++) {
@@ -41,15 +40,11 @@ export default () => {
   const shadowRootInnerHTML = Object.getOwnPropertyDescriptor(ShadowRoot.prototype, 'innerHTML');
 
   // We do this so creating a <slot> actually creates a <content>.
-  const filterTagName = name => name === 'slot' ? 'content' : name;
+  const filterTagName = name => (name === 'slot' ? 'content' : name);
   const createElement = document.createElement.bind(document);
   const createElementNS = document.createElementNS.bind(document);
-  document.createElement = function(name, ...args) {
-    return createElement(filterTagName(name), ...args);
-  };
-  document.createElementNS = function(name, ...args) {
-    return createElementNS(filterTagName(name), ...args);
-  };
+  document.createElement = (name, ...args) => createElement(filterTagName(name), ...args);
+  document.createElementNS = (name, ...args) => createElementNS(filterTagName(name), ...args);
 
   // Override innerHTML to turn slot nodes into content nodes.
   function replaceSlotsWithContents(node) {
@@ -80,7 +75,7 @@ export default () => {
   Object.defineProperty(Element.prototype, 'innerHTML', {
     configurable: true,
     get: elementInnerHTML.get,
-    set (html) {
+    set(html) {
       elementInnerHTML.set.call(this, html);
       replaceSlotsWithContents(this);
     },
@@ -88,7 +83,7 @@ export default () => {
   Object.defineProperty(ShadowRoot.prototype, 'innerHTML', {
     configurable: true,
     get: shadowRootInnerHTML.get,
-    set (html) {
+    set(html) {
       shadowRootInnerHTML.set.call(this, html);
       replaceSlotsWithContents(this);
     },
@@ -124,7 +119,7 @@ export default () => {
 
   // Just proxy createShadowRoot() because there's no such thing as closed
   // shadow trees in v0.
-  HTMLElement.prototype.attachShadow = function({ mode } = {}) {
+  HTMLElement.prototype.attachShadow = function attachShadow({ mode } = {}) {
     // In v1 you must specify a mode.
     if (mode !== 'closed' && mode !== 'open') {
       throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
@@ -143,7 +138,7 @@ export default () => {
 
     // For some reason this wasn't being reported as set, but it seems to work
     // in dev tools.
-    Object.defineProperty(sr, 'parentNode', { 
+    Object.defineProperty(sr, 'parentNode', {
       get: () => this,
     });
 
@@ -155,14 +150,14 @@ export default () => {
       muts.forEach(mut => {
         const { addedNodes, removedNodes } = mut;
         const slots = {};
-        const recordSlots = node => slots[node.getAttribute && node.getAttribute('slot') || '__default'] = true;
+        const recordSlots = node => (slots[node.getAttribute && node.getAttribute('slot') || '__default'] = true);
 
         addedNodes.forEach(recordSlots);
         removedNodes.forEach(recordSlots);
 
         Object.keys(slots).forEach(slot => {
-          const node = slot === '__default' ? 
-            root.querySelector('content:not([name])') || root.querySelector('content[name=""]') : 
+          const node = slot === '__default' ?
+            root.querySelector('content:not([name])') || root.querySelector('content[name=""]') :
             root.querySelector(`content[name="${slot}"]`);
 
           if (node) {
@@ -176,7 +171,7 @@ export default () => {
     });
     mo.observe(this, { childList: true });
 
-    return this[$shadowRoot] = sr;
+    return (this[$shadowRoot] = sr);
   };
 
 
@@ -193,7 +188,7 @@ export default () => {
   // By default, getDistributedNodes() returns a flattened tree (no <slot>
   // nodes). That means we get native { deep } but we have to manually do the
   // opposite.
-  HTMLContentElement.prototype.assignedNodes = function({ deep } = {}) {
+  HTMLContentElement.prototype.assignedNodes = function assignedNodes({ deep } = {}) {
     const cnodes = [];
     const dnodes = deep ? this.getDistributedNodes() : getAssignedNodes(this);
 
@@ -209,7 +204,7 @@ export default () => {
     return cnodes;
   };
 
-  HTMLContentElement.prototype.getAttribute = function(name) {
+  HTMLContentElement.prototype.getAttribute = function overriddenGetAttribute(name) {
     if (name === 'name') {
       const select = getAttribute.call(this, 'select');
       return select ? select.match(/\[slot=['"]?(.*?)['"]?\]/)[1] : null;
@@ -217,7 +212,7 @@ export default () => {
     return getAttribute.call(this, name);
   };
 
-  HTMLContentElement.prototype.setAttribute = function(name, value) {
+  HTMLContentElement.prototype.setAttribute = function overriddenSetAttribute(name, value) {
     if (name === 'name') {
       name = 'select';
       value = `[slot='${value}']`;

@@ -554,7 +554,7 @@ const members = {
         return this.__childNodes;
       }
       let childNodes = nodeToChildNodesMap.get(this);
-      
+
       if (!childNodes) {
         nodeToChildNodesMap.set(this, childNodes = makeLikeNodeList([]));
       }
@@ -849,8 +849,14 @@ if (shadowDomV1) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
       const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
-      const shouldOverrideInTextNode = (memberName in textNode && doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1) || ~defineInTextNodes.indexOf(memberName);
-      const shouldOverrideInCommentNode = (memberName in commNode && doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1) || ~defineInCommNodes.indexOf(memberName);
+      const shouldOverrideInTextNode = (
+        memberName in textNode &&
+        doNotOverridePropertiesInTextNodes.indexOf(memberName) === -1
+      ) || ~defineInTextNodes.indexOf(memberName);
+      const shouldOverrideInCommentNode = (
+        memberName in commNode &&
+        doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1
+      ) || ~defineInCommNodes.indexOf(memberName);
       const nativeMemberName = `__${memberName}`;
 
       Object.defineProperty(elementProto, memberName, memberProperty);

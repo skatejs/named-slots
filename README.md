@@ -1,7 +1,5 @@
 # named-slots [![Build Status](https://travis-ci.org/skatejs/named-slots.svg?branch=master)](https://travis-ci.org/skatejs/named-slots)
 
-[![Sauce Test Status](https://saucelabs.com/browser-matrix/skatejs-named-slots.svg)](https://saucelabs.com/u/skatejs-named-slots)
-
 A polygap (partial polyfill) for the Shadow DOM Named Slot API.
 
 
@@ -105,6 +103,12 @@ The following describe what is polyfilled, what is not polyfilled, and why. All 
 - Finders like `document.getElementById()` and `element.querySelectorAll()` are *not* polyfilled for performance reasons.
 - All getters and setters that provide encapsulation are polyfilled.
 - CSS encapsulation and selectors are *not* polyfilled.
+
+
+
+### Known Issues
+
+If possible, you should try and load this polyfill before anything else. If anything copies built-in prototypes before it has a chance to patch the built-in prototypes, you could get buggy behaviour.
 
 
 

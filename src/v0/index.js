@@ -51,7 +51,7 @@ export default () => {
     const tree = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT);
     const repl = [];
 
-    // Walk the tree and record nods that need replacing.
+    // Walk the tree and record nodes that need replacing.
     while (tree.nextNode()) {
       const { currentNode } = tree;
       if (currentNode.tagName === 'SLOT') {

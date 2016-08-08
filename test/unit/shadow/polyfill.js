@@ -1,4 +1,5 @@
 import '../../../src/index';
+import { shadowDomV0 } from '../../../src/util/support';
 import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
@@ -27,30 +28,32 @@ describe('shadow/polyfill', () => {
     expect(host.shadowRoot).to.equal(null);
   });
 
-  it('polyfillShadowRootTagName: [default="_shadow_root_"]', () => {
-    const host = create('div');
-    const root = host.attachShadow({ mode: 'open' });
-    expect(root.tagName).to.equal('_SHADOW_ROOT_');
-  });
-
-  it('polyfillShadowRootTagName: "test-ing"', () => {
-    const host = create('div');
-    const root = host.attachShadow({ mode: 'open', polyfillShadowRootTagName: 'test-ing' });
-    expect(root.tagName).to.equal('TEST-ING');
-  });
-
-  if (canPatchNativeAccessors) {
-    it('proper node removal', () => {
+  if (!shadowDomV0) {
+    it('polyfillShadowRootTagName: [default="_shadow_root_"]', () => {
       const host = create('div');
-      host.appendChild(create('div'));
-      host.appendChild(create('div'));
-      host.appendChild(create('div'));
-      host.appendChild(create('div'));
-      host.attachShadow({ mode: 'open' });
-
-      expect(host.__childNodes.length).to.equal(1);
-      expect(host.__childNodes[0].tagName).to.equal('_SHADOW_ROOT_');
+      const root = host.attachShadow({ mode: 'open' });
+      expect(root.tagName).to.equal('_SHADOW_ROOT_');
     });
+
+    it('polyfillShadowRootTagName: "test-ing"', () => {
+      const host = create('div');
+      const root = host.attachShadow({ mode: 'open', polyfillShadowRootTagName: 'test-ing' });
+      expect(root.tagName).to.equal('TEST-ING');
+    });
+
+    if (canPatchNativeAccessors) {
+      it('proper node removal', () => {
+        const host = create('div');
+        host.appendChild(create('div'));
+        host.appendChild(create('div'));
+        host.appendChild(create('div'));
+        host.appendChild(create('div'));
+        host.attachShadow({ mode: 'open' });
+
+        expect(host.__childNodes.length).to.equal(1);
+        expect(host.__childNodes[0].tagName).to.equal('_SHADOW_ROOT_');
+      });
+    }
   }
 
   it('polyfilled properties with value should be writable', () => {

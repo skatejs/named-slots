@@ -41,7 +41,7 @@ describe('dom: insertBefore', () => {
 
       it('should return the inserted node', () => {
         const inserted = document.createElement('div');
-        const changedElem = elem.insertBefore(inserted);
+        const changedElem = elem.insertBefore(inserted, null);
         expect(changedElem).not.to.equal(undefined);
         expect(changedElem).to.equal(inserted);
       });
@@ -49,7 +49,7 @@ describe('dom: insertBefore', () => {
       it('should append node if referenceNode is null', () => {
         elem.innerHTML = '<div></div><div></div>';
         const inserted = document.createElement('test');
-        elem.insertBefore(inserted);
+        elem.insertBefore(inserted, null);
 
         expect(elem.innerHTML).to.equal('<div></div><div></div><test></test>');
         expect(elem.childNodes[2]).to.equal(inserted);
@@ -61,7 +61,7 @@ describe('dom: insertBefore', () => {
 
       it('should insert an element node to a parent with no children', () => {
         const inserted = document.createElement('test');
-        elem.insertBefore(inserted);
+        elem.insertBefore(inserted, null);
 
         expect(elem.innerHTML).to.equal('<test></test>');
         expect(elem.childNodes[0]).to.equal(inserted);
@@ -73,7 +73,7 @@ describe('dom: insertBefore', () => {
 
       it('should insert a text node to a parent with no children', () => {
         const inserted = document.createTextNode('text');
-        elem.insertBefore(inserted);
+        elem.insertBefore(inserted, null);
 
         expect(elem.innerHTML).to.equal('text');
         expect(elem.childNodes[0]).to.equal(inserted);
@@ -85,7 +85,7 @@ describe('dom: insertBefore', () => {
 
       it('should insert a comment node to a parent with no children', () => {
         const inserted = document.createComment('comment');
-        elem.insertBefore(inserted);
+        elem.insertBefore(inserted, null);
 
         expect(elem.innerHTML).to.equal('<!--comment-->');
         expect(elem.childNodes[0]).to.equal(inserted);

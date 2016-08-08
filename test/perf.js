@@ -11,7 +11,7 @@ describe('add / remove', () => {
     el.removeChild(ch);
   }
 
-  function fn_native(elem) {
+  function fnNative(elem) {
     const ch = div();
     const el = elem;
     el.__appendChild(ch);
@@ -21,7 +21,7 @@ describe('add / remove', () => {
 
   benchmark(() => {
     const elem = div();
-    fn_native(elem);
+    fnNative(elem);
   }).then((opsPerSec) => {
     console.log('native: ', opsPerSec);
   });

@@ -1,5 +1,3 @@
-import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
-
 describe('dom: childElementCount', () => {
   function runTests(type) {
     describe(`${type}: `, () => {
@@ -38,67 +36,41 @@ describe('dom: childElementCount', () => {
       it('should return correct number of child nodes', () => {
         numbers.forEach(num => {
           expect(elem.childElementCount).to.equal(num);
-          if (type !== 'host' && canPatchNativeAccessors) {
-            expect(elem.__childElementCount).to.equal(num);
-          }
           elem.appendChild(document.createElement('div'));
         });
 
         numbers.reverse().forEach(num => {
           elem.removeChild(elem.lastChild);
           expect(elem.childElementCount).to.equal(num);
-          if (canPatchNativeAccessors && type !== 'host') {
-            expect(elem.__childElementCount).to.equal(num);
-          }
         });
       });
 
       it('should not count text nodes', () => {
         elem.appendChild(document.createTextNode('text'));
         expect(elem.childElementCount).to.equal(0);
-        if (canPatchNativeAccessors && type !== 'host') {
-          expect(elem.__childElementCount).to.equal(0);
-        }
+
         elem.appendChild(document.createTextNode('text'));
         expect(elem.childElementCount).to.equal(0);
-        if (canPatchNativeAccessors && type !== 'host') {
-          expect(elem.__childElementCount).to.equal(0);
-        }
 
         elem.removeChild(elem.lastChild);
         expect(elem.childElementCount).to.equal(0);
-        if (canPatchNativeAccessors && type !== 'host') {
-          expect(elem.__childElementCount).to.equal(0);
-        }
+
         elem.removeChild(elem.lastChild);
         expect(elem.childElementCount).to.equal(0);
-        if (canPatchNativeAccessors && type !== 'host') {
-          expect(elem.__childElementCount).to.equal(0);
-        }
       });
 
       it('should not count comment nodes', () => {
         elem.appendChild(document.createComment('comment'));
         expect(elem.childElementCount).to.equal(0);
-        if (canPatchNativeAccessors && type !== 'host') {
-          expect(elem.__childElementCount).to.equal(0);
-        }
+
         elem.appendChild(document.createComment('comment'));
         expect(elem.childElementCount).to.equal(0);
-        if (canPatchNativeAccessors && type !== 'host') {
-          expect(elem.__childElementCount).to.equal(0);
-        }
 
         elem.removeChild(elem.lastChild);
         expect(elem.childElementCount).to.equal(0);
-        if (canPatchNativeAccessors && type !== 'host') {
-          expect(elem.__childElementCount).to.equal(0);
-        }
+
         elem.removeChild(elem.lastChild);
         expect(elem.childElementCount).to.equal(0);
-        if (canPatchNativeAccessors && type !== 'host') {
-          expect(elem.__childElementCount).to.equal(0);
-        }
       });
     });
   }

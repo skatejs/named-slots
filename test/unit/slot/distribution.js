@@ -56,22 +56,23 @@ describe('slot/distribution', () => {
 
   describe('distributes to the slot that is owned by the current shadow root, not slots of descendant shadow roots', () => {
     it('for default slots', () => {
-      const host1 = document.createElement('host1');
-      const host2 = document.createElement('host2');
+      const host1 = document.createElement('host-1');
+      const host2 = document.createElement('host-2');
       const slot1 = document.createElement('slot');
       const slot2 = document.createElement('slot');
       const test = document.createTextNode('test');
 
       // Host2 must be set up and then added to host1's shadow root so that
       // host1 tries to slot the test content into host2's slot2 instead of
-      // host1's slot1.
-      host2.appendChild(slot1);
-      host2.attachShadow({ mode: 'open' });
-      host2.shadowRoot.appendChild(slot2);
+      // host1's slot1. Order of setup doesn't matter here.
 
       host1.appendChild(test);
       host1.attachShadow({ mode: 'open' });
       host1.shadowRoot.appendChild(host2);
+
+      host2.appendChild(slot1);
+      host2.attachShadow({ mode: 'open' });
+      host2.shadowRoot.appendChild(slot2);
 
       expect(slot1.assignedNodes().length).to.equal(1);
       expect(slot1.assignedNodes()[0]).to.equal(test);

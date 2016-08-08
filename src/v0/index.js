@@ -196,6 +196,17 @@ export default () => {
     },
   });
 
+
+  // Make like the element slot property.
+  Object.defineProperty(HTMLElement.prototype, 'slot', {
+    get() {
+      return this.getAttribute('slot');
+    },
+    set(name) {
+      return this.setAttribute('slot', name);
+    },
+  });
+
   // By default, getDistributedNodes() returns a flattened tree (no <slot>
   // nodes). That means we get native { deep } but we have to manually do the
   // opposite.

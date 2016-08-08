@@ -73,15 +73,21 @@ describe('slot/distribution', () => {
   });
 
   describe.only('changing element slot causes re-slotting', () => {
-    const light = document.createElement('light');
+    let light;
 
     beforeEach(() => {
+      light = document.createElement('light');
       host.appendChild(light);
-      expect(slot.assignedNodes().length).to.equal(1, 'starts with no assigned nodes');
+      expect(slot.assignedNodes().length).to.equal(1, 'starts with one assigned nodes');
     });
 
     it('with a property', () => {
       light.slot = 'foo';
+      expect(slot.assignedNodes().length).to.equal(0);
+    });
+
+    it('with an attribute', () => {
+      light.setAttribute('slot', 'foo');
       expect(slot.assignedNodes().length).to.equal(0);
     });
   });

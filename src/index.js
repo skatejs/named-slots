@@ -827,17 +827,17 @@ const members = {
     },
     set(name) {
       const ret = this.__setAttribute('slot', name);
-      removeNodeFromHost()
 
-      //
-      //const root = slotToRootMap.get(this);
-      //const slotHasRoot = root;
-      //
-      //if (slotHasRoot) {
-      //  removeSlotFromRoot(root, this);
-      //  addSlotToRoot(root, this);
-      //}
-      //return ret;
+      const slot = nodeToSlotMap.get(this);
+      const root = slotToRootMap.get(slot);
+      const host = rootToHostMap.get(root);
+      const nodeHasHost = host;
+
+      if (nodeHasHost) {
+        removeNodeFromHost(host, this);
+        addNodeToHost(host, this);
+      }
+      return ret;
     },
   },
   textContent: {

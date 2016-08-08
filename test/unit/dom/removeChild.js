@@ -1,5 +1,3 @@
-import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
-
 describe('dom: removeChild', () => {
   function runTests(type) {
     describe(`${type}: `, () => {
@@ -61,11 +59,7 @@ describe('dom: removeChild', () => {
         const removed = document.createElement('div');
         elem.appendChild(removed);
         elem.removeChild(removed);
-
         expect(removed.parentNode).to.be.equal(null);
-        if (canPatchNativeAccessors) {
-          expect(removed.__parentNode).to.be.equal(null);
-        }
       });
 
       it('should remove a single element node', () => {

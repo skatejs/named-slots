@@ -1,6 +1,6 @@
 # named-slots [![Build Status](https://travis-ci.org/skatejs/named-slots.svg?branch=master)](https://travis-ci.org/skatejs/named-slots)
 
-A polygap (partial polyfill) for the Shadow DOM Named Slot API.
+A polygap (partial polyfill) for the Shadow DOM Named Slot API. Also polyfills native v0 to behave like v1 with minimal overrides. 
 
 
 
@@ -9,6 +9,7 @@ A polygap (partial polyfill) for the Shadow DOM Named Slot API.
 - You want to expose a named-slot style public API to your web component consumers
 - You don't want to resort to massive, or outdated polyfills
 - You don't want to wait for browser adoption
+- Uses native v0 where it can
 - You don't need allthethings in the [Shadow DOM spec](http://w3c.github.io/webcomponents/spec/shadow/)
 - You want interopaberability with React, jQuery and other libraries that don't care about your implementation details
 - You want something that is performant
@@ -215,6 +216,21 @@ These are members which are not polyfilled because it's likely not necessary.
 - `Node.lookupPrefix()`
 - `Node.normalize()`
 - `Node.removeEventListener()`
+
+
+
+### V0 overrides
+
+There are minimal overrides for the native Shadow DOM implementations so that they behave like v1.
+
+- `Element.innerHTML`
+- `HTMLContentElement.name`
+- `HTMLContentElement.assignedNodes()`
+- `HTMLContentElement.getAttribute()`
+- `HTMLContentElement.setAttribute()`
+- `HTMLElement.attachShadow()`
+- `Node.assignedSlot`
+- `ShadowRoot.innerHTML`
 
 
 

@@ -1,3 +1,4 @@
+import { shadowDomV0 } from '../../../src/util/support';
 import create from '../../lib/create';
 
 describe('fallback-content', () => {
@@ -5,6 +6,11 @@ describe('fallback-content', () => {
   let root;
   let slot;
   let fallback;
+
+  // We don't need to run these tests at all against v0.
+  if (shadowDomV0) {
+    return;
+  }
 
   beforeEach(() => {
     host = create('div');

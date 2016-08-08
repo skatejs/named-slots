@@ -47,8 +47,8 @@ describe('dom: appendChild', () => {
 
       it('should return an appended document fragment', () => {
         const appended = document.createDocumentFragment();
-        const div = document.createElement('div');
-        appended.appendChild(div);
+        const div2 = document.createElement('div');
+        appended.appendChild(div2);
         const changedElem = elem.appendChild(appended);
         expect(changedElem).not.to.equal(undefined);
         expect(changedElem).to.equal(appended);

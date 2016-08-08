@@ -54,6 +54,31 @@ describe('slot/distribution', () => {
     expect(frag.childNodes.length).to.equal(0);
   });
 
+  describe('changing slot name with three children', () => {
+    it('does not re-order slotted elements', () => {
+      const child1 = document.createElement('child1');
+      const child2 = document.createElement('child2');
+      const child3 = document.createElement('child3');
+      const childWithSlotAttribute = document.createElement('child4');
+      childWithSlotAttribute.setAttribute('slot', 'foo');
+
+      host.appendChild(child1);
+      host.appendChild(child2);
+      host.appendChild(child3);
+      host.appendChild(childWithSlotAttribute);
+
+      expect(slot.assignedNodes().length).to.equal(3, 'the three children are slotted, and the child with a name remains unslotted');
+
+      slot.name = 'foo';
+
+      expect(slot.assignedNodes().length).to.equal(1, 'the unslotted node becomes the only slotted element');
+
+      expect(host.childNodes[0]).to.equal(child1, 'the dom order of child 1 remains the same');
+      expect(host.childNodes[1]).to.equal(child2, 'the dom order of child 2 remains the same');
+      expect(host.childNodes[2]).to.equal(child3, 'the dom order of child 3 remains the same');
+    })
+  });
+
   describe('changing slot name causes re-slotting', () => {
     beforeEach(() => {
       const light = document.createElement('light');
@@ -72,7 +97,7 @@ describe('slot/distribution', () => {
     });
   });
 
-  describe.only('changing element slot causes re-slotting', () => {
+  describe('changing element slot causes re-slotting', () => {
     let light;
 
     beforeEach(() => {

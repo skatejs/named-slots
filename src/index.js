@@ -336,7 +336,8 @@ function removeNodeFromHost(host, node) {
 }
 
 function removeSlotFromRoot(root, node) {
-  node.assignedNodes().forEach(slotNodeFromSlot);
+  const assignedNodes = Array.prototype.slice.call(node.assignedNodes());
+  assignedNodes.forEach(slotNodeFromSlot);
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
   slotToRootMap.delete(node);
 }

@@ -807,12 +807,15 @@ const members = {
   },
   setAttribute: {
     value(attrName, attrValue) {
-      if(isSlotNode(this)) {
-        if(attrName === 'name') {
-          this.name = attrValue;
-        }
+      if(attrName === 'slot') {
+        this[attrName] = attrValue;
       }
 
+      if(isSlotNode(this)) {
+        if(attrName === 'name') {
+          this[attrName] = attrValue;
+        }
+      }
       return this.__setAttribute(attrName, attrValue);
     },
   },

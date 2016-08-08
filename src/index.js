@@ -821,6 +821,25 @@ const members = {
       return hostToModeMap.get(this) === 'open' ? hostToRootMap.get(this) : null;
     },
   },
+  slot: {
+    get() {
+      return this.getAttribute('slot');
+    },
+    set(name) {
+      const ret = this.__setAttribute('slot', name);
+      removeNodeFromHost()
+
+      //
+      //const root = slotToRootMap.get(this);
+      //const slotHasRoot = root;
+      //
+      //if (slotHasRoot) {
+      //  removeSlotFromRoot(root, this);
+      //  addSlotToRoot(root, this);
+      //}
+      //return ret;
+    },
+  },
   textContent: {
     get() {
       let textContent = '';

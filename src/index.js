@@ -185,7 +185,7 @@ function slotNodeIntoSlot(slot, node, insertBefore) {
 }
 
 function slotNodeFromSlot(node) {
-  const slot = node.assignedSlot;
+  const slot = nodeToSlotMap.get(node);
 
   if (slot) {
     const assignedNodes = slot.assignedNodes();
@@ -687,7 +687,16 @@ const members = {
       return this.getAttribute('name');
     },
     set(name) {
-      return this.setAttribute('name', name);
+      const ret = this.setAttribute('name', name);
+      if (!isSlotNode(this)) {
+        return ret;
+      }
+      const root = slotToRootMap.get(this);
+
+      removeSlotFromRoot(root, this);
+      addSlotToRoot(root, this);
+
+      return ret;
     },
   },
   nextSibling: {

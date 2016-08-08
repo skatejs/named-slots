@@ -59,7 +59,7 @@ describe('slot/distribution', () => {
     host.appendChild(light);
     expect(slot.assignedNodes().length).to.equal(1);
 
-    slot.setAttribute('name', 'foo');
+    slot.name = 'foo';
     expect(slot.assignedNodes().length).to.equal(0);
   });
 

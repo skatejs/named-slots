@@ -670,15 +670,17 @@ const members = {
       return this.getAttribute('name');
     },
     set(name) {
-      const ret = this.setAttribute('name', name);
+      const ret = this.__setAttribute('name', name);
       if (!isSlotNode(this)) {
         return ret;
       }
       const root = slotToRootMap.get(this);
+      const slotHasRoot = root;
 
-      removeSlotFromRoot(root, this);
-      addSlotToRoot(root, this);
-
+      if (slotHasRoot) {
+        removeSlotFromRoot(root, this);
+        addSlotToRoot(root, this);
+      }
       return ret;
     },
   },
@@ -801,6 +803,17 @@ const members = {
     value(newNode, refNode) {
       this.insertBefore(newNode, refNode);
       return this.removeChild(refNode);
+    },
+  },
+  setAttribute: {
+    value(attrName, attrValue) {
+      if(isSlotNode(this)) {
+        if(attrName === 'name') {
+          this.name = attrValue;
+        }
+      }
+
+      return this.__setAttribute(attrName, attrValue);
     },
   },
   shadowRoot: {

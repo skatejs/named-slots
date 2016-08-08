@@ -54,13 +54,22 @@ describe('slot/distribution', () => {
     expect(frag.childNodes.length).to.equal(0);
   });
 
-  it.only('adding a slot name attribute after insertion makes re-slotting occur', () => {
-    const light = document.createElement('light');
-    host.appendChild(light);
-    expect(slot.assignedNodes().length).to.equal(1);
+  describe('changing slot name causes re-slotting', () => {
+    beforeEach(() => {
+      const light = document.createElement('light');
+      host.appendChild(light);
+      expect(slot.assignedNodes().length).to.equal(1, 'starts with one assigned node');
+    });
 
-    slot.name = 'foo';
-    expect(slot.assignedNodes().length).to.equal(0);
+    it('with a property', () => {
+      slot.name = 'foo';
+      expect(slot.assignedNodes().length).to.equal(0);
+    });
+
+    it('with an attribute', () => {
+      slot.setAttribute('name', 'foo');
+      expect(slot.assignedNodes().length).to.equal(0);
+    });
   });
 
   describe('distributes to the slot that is owned by the current shadow root, not slots of descendant shadow roots', () => {

@@ -54,7 +54,7 @@ describe('slot/distribution', () => {
     expect(frag.childNodes.length).to.equal(0);
   });
 
-  describe('changing slot name with three children', () => {
+  describe('changing slot name with more than two', () => {
     it('does not re-order slotted elements', () => {
       const child1 = document.createElement('child1');
       const child2 = document.createElement('child2');
@@ -71,11 +71,12 @@ describe('slot/distribution', () => {
 
       slot.name = 'foo';
 
-      expect(slot.assignedNodes().length).to.equal(1, 'the unslotted node becomes the only slotted element');
+      expect(slot.assignedNodes().length).to.equal(1, 'the child with the slot attribute becomes the only slotted element');
 
       expect(host.childNodes[0]).to.equal(child1, 'the dom order of child 1 remains the same');
       expect(host.childNodes[1]).to.equal(child2, 'the dom order of child 2 remains the same');
       expect(host.childNodes[2]).to.equal(child3, 'the dom order of child 3 remains the same');
+      expect(slot.assignedNodes()[0]).to.equal(childWithSlotAttribute, 'the fourth child becomes slotted');
     })
   });
 

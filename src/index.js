@@ -671,14 +671,18 @@ const members = {
       return this.getAttribute('name');
     },
     set(name) {
+      const oldName = this.name;
       const ret = this.__setAttribute('name', name);
+
+      if (name === oldName) {
+        return ret;
+      }
+
       if (!isSlotNode(this)) {
         return ret;
       }
       const root = slotToRootMap.get(this);
-      const slotHasRoot = root;
-
-      if (slotHasRoot) {
+      if (root) {
         removeSlotFromRoot(root, this);
         addSlotToRoot(root, this);
       }
@@ -830,14 +834,18 @@ const members = {
       return this.getAttribute('slot');
     },
     set(name) {
+      const oldName = this.name;
       const ret = this.__setAttribute('slot', name);
+
+      if (oldName === name) {
+        return ret;
+      }
 
       const slot = nodeToSlotMap.get(this);
       const root = slotToRootMap.get(slot);
       const host = rootToHostMap.get(root);
-      const nodeHasHost = host;
 
-      if (nodeHasHost) {
+      if (host) {
         removeNodeFromHost(host, this);
         addNodeToHost(host, this);
       }

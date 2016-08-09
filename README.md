@@ -128,6 +128,7 @@ These are members which are already polyfilled along with notes about their impl
 - `Element.nextElementSibling`
 - `Element.outerHTML`
 - `Element.previousElementSibling`
+- `Element.slot`
 - `Node.childNodes` - Returns an array instead of a `NodeList`, however, it applies an `item()` function so things expecting it to behave like a `NodeList` don't break.
 - `Node.firstChild`
 - `Node.lastChild`
@@ -167,6 +168,7 @@ These are members which are not yet polyfilled for a few reasons:
 - `Element.getElementsByClassName()`
 - `Element.getElementsByTagName()`
 - `Element.getElementsByTagNameNS()`
+- `Element.setAttribute()`
 - `Element.querySelector()`
 - `Element.querySelectorAll()`
 - `Node.compareDocumentPosition()`
@@ -204,7 +206,6 @@ These are members which are not polyfilled because it's likely not necessary.
 - `Element.releasePointerCapture()`
 - `Element.removeAttribute()`
 - `Element.removeAttributeNS()`
-- `Element.setAttribute()`
 - `Element.setAttributeNS()`
 - `Element.setPointerCapture()`
 - `Node.addEventListener()`
@@ -229,6 +230,7 @@ There are minimal overrides for the native Shadow DOM implementations so that th
 - `HTMLContentElement.getAttribute()`
 - `HTMLContentElement.setAttribute()`
 - `HTMLElement.attachShadow()`
+- `HTMLElement.slot`
 - `Node.assignedSlot`
 - `ShadowRoot.innerHTML`
 

@@ -1,8 +1,10 @@
+import debounce from 'debounce';
+import 'custom-event-polyfill';
+import 'webcomponents.js/src/WeakMap/WeakMap.js';
 import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
 import { shadowDomV0, shadowDomV1 } from './util/support';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import getPropertyDescriptor from './util/get-property-descriptor';
-import debounce from 'debounce';
 import getEscapedTextContent from './util/get-escaped-text-content';
 import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import findSlots from './util/find-slots';
@@ -11,8 +13,6 @@ import isSlotNode from './util/is-slot-node';
 import pseudoArrayToArray from './util/pseudo-array-to-array';
 import v0 from './v0';
 import version from './version';
-import 'webcomponents.js/src/WeakMap/WeakMap.js';
-import 'custom-event-polyfill';
 
 const arrProto = Array.prototype;
 const { forEach } = arrProto;
@@ -131,11 +131,11 @@ function findClosest(node, func) {
 }
 
 function getSlotNameFromSlot(node) {
-  return node.getAttribute && node.getAttribute('name') || 'default';
+  return (node.getAttribute && node.getAttribute('name')) || 'default';
 }
 
 function getSlotNameFromNode(node) {
-  return node.getAttribute && node.getAttribute('slot') || 'default';
+  return (node.getAttribute && node.getAttribute('slot')) || 'default';
 }
 
 function slotNodeIntoSlot(slot, node, insertBefore) {
@@ -168,7 +168,7 @@ function slotNodeIntoSlot(slot, node, insertBefore) {
 }
 
 function slotNodeFromSlot(node) {
-  const slot = node.assignedSlot;
+  const slot = nodeToSlotMap.get(node);
 
   if (slot) {
     const assignedNodes = slot.assignedNodes();
@@ -336,7 +336,8 @@ function removeNodeFromHost(host, node) {
 }
 
 function removeSlotFromRoot(root, node) {
-  node.assignedNodes().forEach(slotNodeFromSlot);
+  const assignedNodes = Array.prototype.slice.call(node.assignedNodes());
+  assignedNodes.forEach(slotNodeFromSlot);
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
   slotToRootMap.delete(node);
 }
@@ -670,7 +671,22 @@ const members = {
       return this.getAttribute('name');
     },
     set(name) {
-      return this.setAttribute('name', name);
+      const oldName = this.name;
+      const ret = this.__setAttribute('name', name);
+
+      if (name === oldName) {
+        return ret;
+      }
+
+      if (!isSlotNode(this)) {
+        return ret;
+      }
+      const root = slotToRootMap.get(this);
+      if (root) {
+        removeSlotFromRoot(root, this);
+        addSlotToRoot(root, this);
+      }
+      return ret;
     },
   },
   nextSibling: {
@@ -710,12 +726,10 @@ const members = {
       if (this.parentNode) {
         const parsed = parse(outerHTML);
         this.parentNode.replaceChild(parsed.firstChild, this);
+      } else if (canPatchNativeAccessors) {
+        this.__outerHTML = outerHTML;  // this will throw a native error;
       } else {
-        if (canPatchNativeAccessors) {
-          this.__outerHTML = outerHTML;  // this will throw a native error;
-        } else {
-          throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.');
-        }
+        throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.');
       }
     },
   },
@@ -794,9 +808,45 @@ const members = {
       return this.removeChild(refNode);
     },
   },
+  setAttribute: {
+    value(attrName, attrValue) {
+      if (attrName === 'slot') {
+        this[attrName] = attrValue;
+      }
+      if (isSlotNode(this)) {
+        if (attrName === 'name') {
+          this[attrName] = attrValue;
+        }
+      }
+      return this.__setAttribute(attrName, attrValue);
+    },
+  },
   shadowRoot: {
     get() {
       return hostToModeMap.get(this) === 'open' ? hostToRootMap.get(this) : null;
+    },
+  },
+  slot: {
+    get() {
+      return this.getAttribute('slot');
+    },
+    set(name) {
+      const oldName = this.name;
+      const ret = this.__setAttribute('slot', name);
+
+      if (oldName === name) {
+        return ret;
+      }
+
+      const slot = nodeToSlotMap.get(this);
+      const root = slot && slotToRootMap.get(slot);
+      const host = root && rootToHostMap.get(root);
+
+      if (host) {
+        removeNodeFromHost(host, this);
+        addNodeToHost(host, this);
+      }
+      return ret;
     },
   },
   textContent: {
@@ -840,7 +890,7 @@ if (shadowDomV1) {
     memberProperty.configurable = true;
 
     // Applying to the data properties only since we can't have writable accessor properties.
-    if (memberProperty.hasOwnProperty('value')) {
+    if (memberProperty.hasOwnProperty('value')) { // eslint-disable-line no-prototype-builtins
       memberProperty.writable = true;
     }
 

@@ -33,8 +33,8 @@
   },
   "homepage": "https://github.com/skatejs/named-slots#readme",
   "devDependencies": {
-    "eslint": "^2.11.0",
-    "eslint-plugin-react": "^3.16.1",
+    "eslint": "^3.2.2",
+    "eslint-plugin-react": "^6.0.0",
     "skatejs-build": "^7.1.0",
     "birdpoo": "0.0.2"
   },

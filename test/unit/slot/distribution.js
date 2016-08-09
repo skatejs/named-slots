@@ -54,6 +54,70 @@ describe('slot/distribution', () => {
     expect(frag.childNodes.length).to.equal(0);
   });
 
+  describe('changing slot name with more than two children', () => {
+    it('does not re-order slotted elements', () => {
+      const child1 = document.createElement('child1');
+      const child2 = document.createElement('child2');
+      const child3 = document.createElement('child3');
+      const childWithSlotAttribute = document.createElement('child4');
+      childWithSlotAttribute.setAttribute('slot', 'foo');
+
+      host.appendChild(child1);
+      host.appendChild(child2);
+      host.appendChild(child3);
+      host.appendChild(childWithSlotAttribute);
+
+      expect(slot.assignedNodes().length).to.equal(3, 'the three children are slotted, and the child with a name remains unslotted');
+
+      slot.name = 'foo';
+
+      expect(slot.assignedNodes().length).to.equal(1, 'the child with the slot attribute becomes the only slotted element');
+
+      expect(host.childNodes[0]).to.equal(child1, 'the dom order of child 1 remains the same');
+      expect(host.childNodes[1]).to.equal(child2, 'the dom order of child 2 remains the same');
+      expect(host.childNodes[2]).to.equal(child3, 'the dom order of child 3 remains the same');
+      expect(slot.assignedNodes()[0]).to.equal(childWithSlotAttribute, 'the fourth child becomes slotted');
+    })
+  });
+
+  describe('changing slot name causes re-slotting', () => {
+    beforeEach(() => {
+      const light = document.createElement('light');
+      host.appendChild(light);
+      expect(slot.assignedNodes().length).to.equal(1, 'starts with one assigned node');
+    });
+
+    it('with a property', () => {
+      slot.name = 'foo';
+      expect(slot.assignedNodes().length).to.equal(0);
+    });
+
+    it('with an attribute', () => {
+      slot.setAttribute('name', 'foo');
+      expect(slot.assignedNodes().length).to.equal(0);
+    });
+  });
+
+  describe('changing element slot causes re-slotting', () => {
+    let light;
+
+    beforeEach(() => {
+      light = document.createElement('light');
+      host.appendChild(light);
+      expect(slot.assignedNodes().length).to.equal(1, 'starts with one assigned nodes');
+    });
+
+    it('with a property', () => {
+      light.slot = 'foo';
+      expect(slot.assignedNodes().length).to.equal(0);
+    });
+
+    it('with an attribute', () => {
+      light.setAttribute('slot', 'foo');
+      expect(slot.assignedNodes().length).to.equal(0);
+    });
+  });
+
   describe('distributes to the slot that is owned by the current shadow root, not slots of descendant shadow roots', () => {
     it('for default slots', () => {
       const host1 = document.createElement('host-1');

@@ -150,7 +150,7 @@ export default () => {
       muts.forEach(mut => {
         const { addedNodes, removedNodes } = mut;
         const slots = {};
-        const recordSlots = node => (slots[node.getAttribute && node.getAttribute('slot') || '__default'] = true);
+        const recordSlots = node => (slots[(node.getAttribute && node.getAttribute('slot')) || '__default'] = true);
 
         if (addedNodes) {
           const addedNodesLen = addedNodes.length;

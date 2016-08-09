@@ -15,7 +15,7 @@ export function eachChildNode(node, func) {
 
 // Re-implemented to avoid Array.prototype.slice.call for performance reasons
 function reverse(arr) {
-  let reversedArray = [];
+  const reversedArray = [];
   for (let i = arr.length - 1; i >= 0; i--) {
     reversedArray.push(arr[i]);
   }

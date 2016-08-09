@@ -54,7 +54,7 @@ describe('slot/distribution', () => {
     expect(frag.childNodes.length).to.equal(0);
   });
 
-  describe('changing slot name with more than two', () => {
+  describe('changing slot name with more than two children', () => {
     it('does not re-order slotted elements', () => {
       const child1 = document.createElement('child1');
       const child2 = document.createElement('child2');

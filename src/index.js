@@ -842,8 +842,8 @@ const members = {
       }
 
       const slot = nodeToSlotMap.get(this);
-      const root = slotToRootMap.get(slot);
-      const host = rootToHostMap.get(root);
+      const root = slot && slotToRootMap.get(slot);
+      const host = root && rootToHostMap.get(root);
 
       if (host) {
         removeNodeFromHost(host, this);

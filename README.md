@@ -18,6 +18,50 @@ A polygap (partial polyfill) for the Shadow DOM Named Slot API. Also polyfills n
 
 ## How
 
+
+
+### Installing
+
+You can install via NPM:
+
+```sh
+npm install skatejs-named-slots
+```
+
+Or you can download it from NPMCDN:
+
+```
+https://npmcdn.com/skatejs-named-slots@1.0.1/dist/index-with-deps.min.js
+```
+
+
+
+### Importing
+
+You can import it using any module format:
+
+```js
+// ES2015
+import 'skatejs-web-components';
+
+// CommonJS
+require('skatejs-web-components');
+
+// AMD
+require(['skatejs-web-components']);
+```
+
+Or you can use a `<script>` tag:
+
+```html
+<script src="https://npmcdn.com/skatejs-named-slots@1.0.1/dist/index-with-deps.min.js"></script>
+```
+
+
+
+
+### Usage
+
 Instead of polyfilling everything, we polyfill only the bare minimum that is required to supply the consumers of your custom elements with an API where they can distribute content to / from your element.
 
 Your consumers may use it like so:
@@ -49,10 +93,6 @@ Which would result in:
   </div>
 </my-component>
 ```
-
-
-
-## Usage
 
 This polyfill is used in the same way as specified in [the spec](http://w3c.github.io/webcomponents/spec/shadow/).
 

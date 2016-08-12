@@ -31,7 +31,7 @@ npm install skatejs-named-slots
 Or you can download it from NPMCDN:
 
 ```
-https://npmcdn.com/skatejs-named-slots@1.0.1/dist/index-with-deps.min.js
+https://npmcdn.com/skatejs-named-slots/dist/index-with-deps.min.js
 ```
 
 
@@ -42,19 +42,19 @@ You can import it using any module format:
 
 ```js
 // ES2015
-import 'skatejs-web-components';
+import 'skatejs-named-slots';
 
 // CommonJS
-require('skatejs-web-components');
+require('skatejs-named-slots');
 
 // AMD
-require(['skatejs-web-components']);
+require(['skatejs-named-slots']);
 ```
 
 Or you can use a `<script>` tag:
 
 ```html
-<script src="https://npmcdn.com/skatejs-named-slots@1.0.1/dist/index-with-deps.min.js"></script>
+<script src="https://npmcdn.com/skatejs-named-slots/dist/index-with-deps.min.js"></script>
 ```
 
 

@@ -18,7 +18,7 @@ describe('dom: innerHTML', () => {
         root.appendChild(slot);
 
         div = document.createElement('div');
-
+        /* eslint-disable max-len */
         innerHTMLs = [
           { value: '', nodes: 0, assigned: 0 },
           { value: '<div1></div1>', nodes: 1, assigned: 1 },
@@ -39,7 +39,7 @@ describe('dom: innerHTML', () => {
           { value: '<!-- comment outside --> text outside <div>text inside</div>', nodes: 3, assigned: 2 },
           { value: 'text outside <!-- comment outside --> text outside <div>text inside <!-- comment inside --> text inside</div>', nodes: 4, assigned: 3 },
         ];
-
+        /* eslint-enable max-len */
         switch (type) {
         case 'div':
           elem = div;
@@ -102,7 +102,8 @@ describe('dom: innerHTML', () => {
         const processingInstructionsAfterInnerHtml = '<!--?xml-stylesheet href="mycss.css" type="text/css"?-->';
 
         elem.innerHTML = processingInstruction;
-        expect([processingInstruction, processingInstructionsAfterInnerHtml]).to.include(elem.innerHTML); // different browsers process this differently
+        // different browsers process this differently
+        expect([processingInstruction, processingInstructionsAfterInnerHtml]).to.include(elem.innerHTML); // eslint-disable-line max-len
         expect(elem.childNodes.length).to.equal(1);
 
         if (type === 'host') {

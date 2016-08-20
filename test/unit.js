@@ -1,12 +1,6 @@
 import version from '../src/version';
 import '../src/index';
 
-describe('skatejs-named-slots', () => {
-  it('version', () => {
-    expect(version).to.be.a('string');
-  });
-});
-
 // import './unit/dom/dom';
 import './unit/dom/appendChild';
 import './unit/dom/childElementCount';
@@ -35,3 +29,9 @@ import './unit/slot/fallback-content';
 import './unit/slot/polyfill';
 import './unit/util/find-slots';
 import './unit/webcomponents/initialisation';
+
+describe('skatejs-named-slots', () => {
+  it('version', () => {
+    expect(version).to.be.a('string');
+  });
+});

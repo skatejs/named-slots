@@ -8,8 +8,9 @@
     "test": "sk-tests",
     "test/watch": "sk-tests-watch",
     "test/perf": "karma start --single-run --perf",
-    "lint": "eslint -c node_modules/skatejs-build/.eslintrc src",
-    "prepublish": "sk-bundle"
+    "lint": "eslint -c node_modules/skatejs-build/.eslintrc src, test --ext .js,.jsx --format 'node_modules/eslint-friendly-formatter'",
+    "prepublish": "sk-bundle",
+    "commit": "npm run lint && git cz"
   },
   "repository": {
     "type": "git",
@@ -33,10 +34,12 @@
   },
   "homepage": "https://github.com/skatejs/named-slots#readme",
   "devDependencies": {
+    "birdpoo": "0.0.2",
     "eslint": "^3.2.2",
+    "eslint-friendly-formatter": "^2.0.6",
     "eslint-plugin-react": "^6.0.0",
-    "skatejs-build": "^7.1.0",
-    "birdpoo": "0.0.2"
+    "precommit-hook": "^3.0.0",
+    "skatejs-build": "^7.1.0"
   },
   "dependencies": {
     "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",
@@ -48,5 +51,8 @@
       "path": "cz-conventional-changelog"
     }
   },
+  "pre-commit": [
+    "lint"
+  ],
   "version": "0.2.0"
 }

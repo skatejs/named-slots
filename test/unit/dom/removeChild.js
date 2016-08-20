@@ -140,7 +140,7 @@ describe('dom: removeChild', () => {
       });
 
       it('should be able to remove child after child', () => {
-        elem.innerHTML = '<!--comment--><test2><test3><test5>some text</test5></test3><test4></test4></test2><test></test>another text<test6></test6>';
+        elem.innerHTML = '<!--comment--><test2><test3><test5>some text</test5></test3><test4></test4></test2><test></test>another text<test6></test6>'; // eslint-disable-line max-len
         elem.removeChild(elem.firstChild);
         elem.removeChild(elem.childNodes[1]);
         elem.removeChild(elem.firstChild);

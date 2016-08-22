@@ -1,5 +1,5 @@
+import benchmark from 'birdpoo'; // eslint-disable-line import/no-extraneous-dependencies
 import '../src/index';
-import benchmark from 'birdpoo';
 
 describe('add / remove', () => {
   const div = document.createElement.bind(document, 'div');
@@ -23,14 +23,14 @@ describe('add / remove', () => {
     const elem = div();
     fnNative(elem);
   }).then((opsPerSec) => {
-    console.log('native: ', opsPerSec);
+    console.log('native: ', opsPerSec); // eslint-disable-line no-console
   });
 
   benchmark(() => {
     const elem = div();
     fn(elem);
   }).then((opsPerSec) => {
-    console.log('polyfilled (no root): ', opsPerSec);
+    console.log('polyfilled (no root): ', opsPerSec); // eslint-disable-line no-console
   });
 
   benchmark(() => {
@@ -38,7 +38,7 @@ describe('add / remove', () => {
     elem.attachShadow({ mode: 'closed' });
     fn(elem);
   }).then((opsPerSec) => {
-    console.log('prolyfill (no slot): ', opsPerSec);
+    console.log('prolyfill (no slot): ', opsPerSec); // eslint-disable-line no-console
   });
 
   benchmark(() => {
@@ -47,7 +47,7 @@ describe('add / remove', () => {
     root.innerHTML = '<slot></slot>';
     fn(elem);
   }).then((opsPerSec) => {
-    console.log('prolyfill (default slot): ', opsPerSec);
+    console.log('prolyfill (default slot): ', opsPerSec); // eslint-disable-line no-console
   });
 });
 
@@ -70,6 +70,6 @@ describe('add / remove document fragments', () => {
     root.innerHTML = '<slot></slot>';
     fn(elem);
   }).then((opsPerSec) => {
-    console.log('prolyfill (fragments): ', opsPerSec);
+    console.log('prolyfill (fragments): ', opsPerSec); // eslint-disable-line no-console
   });
 });

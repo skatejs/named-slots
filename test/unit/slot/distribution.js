@@ -77,7 +77,7 @@ describe('slot/distribution', () => {
       expect(host.childNodes[1]).to.equal(child2, 'the dom order of child 2 remains the same');
       expect(host.childNodes[2]).to.equal(child3, 'the dom order of child 3 remains the same');
       expect(slot.assignedNodes()[0]).to.equal(childWithSlotAttribute, 'the fourth child becomes slotted');
-    })
+    });
   });
 
   describe('changing slot name causes re-slotting', () => {

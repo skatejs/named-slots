@@ -233,8 +233,8 @@ describe('light/polyfill', () => {
 
     it('should NOT polyfill textContent of textNode', () => {
       expect(textLocal.textContent).to.equal('text');
-      expect(Object.getPrototypeOf(textLocal).hasOwnProperty('textContent')).to.equal(false);
-      expect(Object.getPrototypeOf(textLocal).hasOwnProperty('__textContent')).to.equal(false);
+      expect(Object.getPrototypeOf(textLocal).hasOwnProperty('textContent')).to.equal(false); // eslint-disable-line no-prototype-builtins
+      expect(Object.getPrototypeOf(textLocal).hasOwnProperty('__textContent')).to.equal(false); // eslint-disable-line no-prototype-builtins
     });
   });
 });

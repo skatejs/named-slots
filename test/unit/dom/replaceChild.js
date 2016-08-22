@@ -180,13 +180,13 @@ describe('dom: replaceChild', () => {
 
       it('should replace a node in a parent with two or more children', () => {
         const node = document.createElement('newnode');
-        elem.innerHTML = '<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>';
+        elem.innerHTML = '<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>'; // eslint-disable-line max-len
         const toreplace = elem.childNodes[2];
         const replaced = elem.replaceChild(node, elem.childNodes[2]);
 
         expect(replaced).to.be.equal(toreplace);
         expect(replaced.parentNode).to.be.equal(null);
-        expect(elem.innerHTML).to.be.equal('<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><newnode></newnode><div9></div9>');
+        expect(elem.innerHTML).to.be.equal('<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><newnode></newnode><div9></div9>'); // eslint-disable-line max-len
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(4);
@@ -195,14 +195,14 @@ describe('dom: replaceChild', () => {
 
       it('should replace a node with children', () => {
         const node = document.createElement('newnode');
-        elem.innerHTML = '<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>';
+        elem.innerHTML = '<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>'; // eslint-disable-line max-len
         const toreplace = elem.childNodes[1];
         const replaced = elem.replaceChild(node, elem.childNodes[1]);
 
         expect(replaced).to.be.equal(toreplace);
         expect(replaced.parentNode).to.be.equal(null);
-        expect(replaced.innerHTML).to.be.equal('<div3><div4><div5></div5></div4><div6></div6></div3><div7></div7>');
-        expect(elem.innerHTML).to.be.equal('<div1></div1><newnode></newnode><div8></div8><div9></div9>');
+        expect(replaced.innerHTML).to.be.equal('<div3><div4><div5></div5></div4><div6></div6></div3><div7></div7>'); // eslint-disable-line max-len
+        expect(elem.innerHTML).to.be.equal('<div1></div1><newnode></newnode><div8></div8><div9></div9>'); // eslint-disable-line max-len
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(4);
@@ -212,14 +212,14 @@ describe('dom: replaceChild', () => {
       it('should replace a node with children with another node with children', () => {
         const node = document.createElement('newnode');
         node.innerHTML = '<newdiv1></newdiv1><newdiv2><newdiv4></newdiv4></newdiv2><newdiv3></newdiv3>';
-        elem.innerHTML = '<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>';
+        elem.innerHTML = '<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>'; // eslint-disable-line max-len
         const toreplace = elem.childNodes[1];
         const replaced = elem.replaceChild(node, elem.childNodes[1]);
 
         expect(replaced).to.be.equal(toreplace);
         expect(replaced.parentNode).to.be.equal(null);
-        expect(replaced.innerHTML).to.be.equal('<div3><div4><div5></div5></div4><div6></div6></div3><div7></div7>');
-        expect(elem.innerHTML).to.be.equal('<div1></div1><newnode><newdiv1></newdiv1><newdiv2><newdiv4></newdiv4></newdiv2><newdiv3></newdiv3></newnode><div8></div8><div9></div9>');
+        expect(replaced.innerHTML).to.be.equal('<div3><div4><div5></div5></div4><div6></div6></div3><div7></div7>'); // eslint-disable-line max-len
+        expect(elem.innerHTML).to.be.equal('<div1></div1><newnode><newdiv1></newdiv1><newdiv2><newdiv4></newdiv4></newdiv2><newdiv3></newdiv3></newnode><div8></div8><div9></div9>'); // eslint-disable-line max-len
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(4);
@@ -228,10 +228,10 @@ describe('dom: replaceChild', () => {
 
       it('should be able to replace in sequence', () => {
         const node = document.createElement('newnode');
-        elem.innerHTML = '<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>';
+        elem.innerHTML = '<div1></div1><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>'; // eslint-disable-line max-len
 
         elem.replaceChild(node, elem.firstChild);
-        expect(elem.innerHTML).to.be.equal('<newnode></newnode><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>');
+        expect(elem.innerHTML).to.be.equal('<newnode></newnode><div2><div3><div4><div5></div5></div4><div6></div6></div3><div7></div7></div2><div8></div8><div9></div9>'); // eslint-disable-line max-len
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(4);
         }

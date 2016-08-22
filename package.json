@@ -8,7 +8,7 @@
     "test": "sk-tests",
     "test/watch": "sk-tests-watch",
     "test/perf": "karma start --single-run --perf",
-    "lint": "eslint src, test --ext .js,.jsx --format 'node_modules/eslint-friendly-formatter'",
+    "lint": "eslint . --ext .js,.jsx --format 'node_modules/eslint-friendly-formatter'",
     "prepublish": "sk-bundle",
     "commit": "npm run lint && git cz"
   },

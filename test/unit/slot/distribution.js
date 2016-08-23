@@ -173,5 +173,42 @@ describe('slot/distribution', () => {
       expect(slot2.assignedNodes().length).to.equal(1);
       expect(slot2.assignedNodes()[0]).to.equal(slot1);
     });
+
+    it.only('for named slots before and after the default slot', () => {
+      const host1 = document.createElement('host1');
+      document.body.appendChild(host);
+      host.appendChild(host1);
+      const defaultSlot = document.createElement('slot');
+      const slot1 = document.createElement('slot');
+      const slot2 = document.createElement('slot');
+      const slot3 = document.createElement('slot');
+      const slot4 = document.createElement('slot');
+
+      slot1.setAttribute('name', 'slot1');
+      slot2.setAttribute('name', 'slot2');
+      slot3.setAttribute('name', 'slot3');
+      slot4.setAttribute('name', 'slot4');
+
+      host1.attachShadow({ mode: 'open' });
+      host1.shadowRoot.appendChild(slot1);
+      host1.shadowRoot.appendChild(slot2);
+      host1.shadowRoot.appendChild(defaultSlot);
+      host1.shadowRoot.appendChild(slot3);
+      host1.shadowRoot.appendChild(slot4);
+
+      host1.innerHTML = `<span slot="slot1">slot1 content</span><span slot="slot2">slot2 content</span><span slot="slot3">slot3 content</span><span slot="slot4">slot4 content</span><p>This content should be in the default slot</p><span>More default content</span>`;
+
+      expect(slot1.assignedNodes().length).to.equal(1);
+      expect(slot1.assignedNodes()[0].innerHTML).to.match(/slot1 content/);
+      expect(slot2.assignedNodes().length).to.equal(1);
+      expect(slot2.assignedNodes()[0].innerHTML).to.match(/slot2 content/);
+      expect(slot3.assignedNodes().length).to.equal(1);
+      expect(slot3.assignedNodes()[0].innerHTML).to.match(/slot3 content/);
+      expect(slot4.assignedNodes().length).to.equal(1);
+      expect(slot4.assignedNodes()[0].innerHTML).to.match(/slot4 content/);
+      expect(defaultSlot.assignedNodes().length).to.equal(2);
+      expect(defaultSlot.assignedNodes()[0].innerHTML).to.match(/This content should be in the default slot/);
+      expect(defaultSlot.assignedNodes()[1].innerHTML).to.match(/More default content/);
+    });
   });
 });

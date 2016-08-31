@@ -42,7 +42,7 @@
     "skatejs-build": "^7.1.0"
   },
   "dependencies": {
-    "custom-event-polyfill": "joscha/custom-event-polyfill#de24bd9",
+    "custom-event-polyfill": "^0.3.0",
     "debounce": "^1.0.0",
     "webcomponents.js": "webcomponents/webcomponentsjs#b77ca74"
   },

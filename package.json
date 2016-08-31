@@ -7,10 +7,10 @@
   "scripts": {
     "test": "sk-tests",
     "test/watch": "sk-tests-watch",
-    "test/perf": "karma start --single-run --perf",
-    "lint": "eslint . --ext .js,.jsx --format 'node_modules/eslint-friendly-formatter'",
+    "test/perf": "sk-tests -- --perf",
+    "lint": "sk-lint",
     "prepublish": "sk-bundle",
-    "commit": "npm run lint && git cz"
+    "commit": "sk-commit"
   },
   "repository": {
     "type": "git",
@@ -36,10 +36,9 @@
   "devDependencies": {
     "birdpoo": "0.0.2",
     "eslint": "^3.2.2",
-    "eslint-friendly-formatter": "^2.0.6",
     "eslint-plugin-react": "^6.0.0",
     "precommit-hook": "^3.0.0",
-    "skatejs-build": "^7.1.0"
+    "skatejs-build": "^7.3.0"
   },
   "dependencies": {
     "custom-event-polyfill": "^0.3.0",

@@ -44,7 +44,7 @@ export default () => {
   const createElement = document.createElement.bind(document);
   const createElementNS = document.createElementNS.bind(document);
   document.createElement = (name, ...args) => createElement(filterTagName(name), ...args);
-  document.createElementNS = (name, ...args) => createElementNS(filterTagName(name), ...args);
+  document.createElementNS = (uri, name, ...args) => createElementNS(uri, filterTagName(name), ...args);
 
   // Override innerHTML to turn slot nodes into content nodes.
   function replaceSlotsWithContents(node) {

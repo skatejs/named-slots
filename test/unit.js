@@ -19,6 +19,7 @@ import './unit/dom/textContent';
 import './unit/dom/removeChild';
 import './unit/dom/replaceChild';
 import './unit/dom/SVGElement';
+import './unit/dom/createElement';
 
 
 import './unit/light/polyfill';

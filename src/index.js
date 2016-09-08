@@ -6,6 +6,7 @@ import { shadowDomV0, shadowDomV1 } from './util/support';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import getPropertyDescriptor from './util/get-property-descriptor';
 import getEscapedTextContent from './util/get-escaped-text-content';
+import getRawTextContent from './util/get-raw-text-content';
 import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import findSlots from './util/find-slots';
 import isRootNode from './util/is-root-node';
@@ -609,12 +610,39 @@ const members = {
       const getHtmlNodeOuterHtml = (node) => node.outerHTML;
       const getOuterHtmlByNodeType = {
         1: getHtmlNodeOuterHtml,
-        3: getEscapedTextContent,
         8: getCommentNodeOuterHtml,
       };
+      // Text nodes with these ancestors should be treated as raw text
+      // See section 8.4 of
+      // https://www.w3.org/TR/2008/WD-html5-20080610/serializing.html#html-fragment
+      const rawTextNodeAncestors = new Set([
+        'style',
+        'script',
+        'xmp',
+        'iframe',
+        'noembed',
+        'noframes',
+        'noscript',
+        'plaintext',
+      ]);
 
       eachChildNode(this, node => {
-        const getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
+        let getOuterHtml;
+        if (node.nodeType === 3) {
+          let parentElement = node.parentElement;
+          while (parentElement) {
+            if (rawTextNodeAncestors.has(parentElement.nodeName.toLowerCase())) {
+              getOuterHtml = getRawTextContent;
+              break;
+            }
+            parentElement = parentElement.parentElement;
+          }
+          if (!getOuterHtml) {
+            getOuterHtml = getEscapedTextContent;
+          }
+        } else {
+          getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
+        }
         innerHTML += getOuterHtml(node);
       });
       return innerHTML;

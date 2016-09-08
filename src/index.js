@@ -615,27 +615,28 @@ const members = {
       // Text nodes with these ancestors should be treated as raw text
       // See section 8.4 of
       // https://www.w3.org/TR/2008/WD-html5-20080610/serializing.html#html-fragment
-      const rawTextNodeAncestors = new Set([
-        'style',
-        'script',
-        'xmp',
-        'iframe',
-        'noembed',
-        'noframes',
-        'noscript',
-        'plaintext',
-      ]);
+      const rawTextNodeAncestors = {
+        style: true,
+        script: true,
+        xmp: true,
+        iframe: true,
+        noembed: true,
+        noframes: true,
+        noscript: true,
+        plaintext: true,
+      };
 
       eachChildNode(this, node => {
         let getOuterHtml;
         if (node.nodeType === 3) {
-          let parentElement = node.parentElement;
-          while (parentElement) {
-            if (rawTextNodeAncestors.has(parentElement.nodeName.toLowerCase())) {
+          let parentNode = node.parentNode;
+          while (parentNode) {
+            if (parentNode.nodeType === 1 && // only for elements
+                parentNode.nodeName.toLowerCase() in rawTextNodeAncestors) {
               getOuterHtml = getRawTextContent;
               break;
             }
-            parentElement = parentElement.parentElement;
+            parentNode = parentNode.parentNode;
           }
           if (!getOuterHtml) {
             getOuterHtml = getEscapedTextContent;

@@ -1,12 +1,11 @@
 import findSlots from '../../../src/util/find-slots';
-
+/* eslint-disable no-unused-expressions */
 describe('util/find-slots called from', () => {
   it('node: slot in node', () => {
     const host = document.createElement('div');
     const slot = document.createElement('slot');
 
     host.appendChild(slot);
-
     expect(findSlots(host).length).to.equal(1);
     expect(findSlots(host)[0]).to.equal(slot);
   });
@@ -41,12 +40,12 @@ describe('util/find-slots called from', () => {
     root1.innerHTML = '<div></div><slot></slot><div></div>';
     expect(findSlots(host).length).to.equal(0);
     expect(findSlots(root1).length).to.equal(1);
-    expect(findSlots(root1)[0].name).to.equal(null);
+    expect(findSlots(root1)[0].name).to.be.empty;
 
     root1.innerHTML = '<div></div><slot></slot><div></div><div><slot name="name1"></slot></div><slot name="name2"></slot>';
     expect(findSlots(host).length).to.equal(0);
     expect(findSlots(root1).length).to.equal(3);
-    expect(findSlots(root1)[0].name).to.equal(null);
+    expect(findSlots(root1)[0].name).to.be.empty;
     expect(findSlots(root1)[1].name).to.equal('name1');
     expect(findSlots(root1)[2].name).to.equal('name2');
 
@@ -55,12 +54,12 @@ describe('util/find-slots called from', () => {
 
     expect(findSlots(host).length).to.equal(0);
     expect(findSlots(root1).length).to.equal(3);
-    expect(findSlots(root1)[0].name).to.equal(null);
+    expect(findSlots(root1)[0].name).to.be.empty;
     expect(findSlots(root1)[1].name).to.equal('name1');
     expect(findSlots(root1)[2].name).to.equal('name2');
 
     expect(findSlots(root2).length).to.equal(3);
-    expect(findSlots(root2)[0].name).to.equal(null);
+    expect(findSlots(root2)[0].name).to.be.empty;
     expect(findSlots(root2)[1].name).to.equal('name3');
     expect(findSlots(root2)[2].name).to.equal('name4');
   });

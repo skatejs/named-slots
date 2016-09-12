@@ -4,16 +4,14 @@ import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
 describe('shadow/polyfill', () => {
-  const invalidModeMessage = 'You must specify { mode } as "open" or "closed" to attachShadow().';
-
   it('mode: [not specified]', () => {
     const host = create('div');
-    expect(host.attachShadow.bind(host)).to.throw(invalidModeMessage);
+    expect(host.attachShadow.bind(host)).to.throw(Error);
   });
 
   it('mode: [invalid value (not "open" or "closed")]', () => {
     const host = create('div');
-    expect(host.attachShadow.bind(host, { mode: 'invalid' })).to.throw(invalidModeMessage);
+    expect(host.attachShadow.bind(host, { mode: 'invalid' })).to.throw(Error);
   });
 
   it('mode: "open"', () => {

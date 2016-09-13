@@ -608,10 +608,10 @@ const members = {
       let innerHTML = '';
 
       const getHtmlNodeOuterHtml = (node) => node.outerHTML;
-      const getOuterHtmlByNodeType = {
-        1: getHtmlNodeOuterHtml,
-        8: getCommentNodeOuterHtml,
-      };
+      const getOuterHtmlByNodeType = {};
+      getOuterHtmlByNodeType[Node.ELEMENT_NODE] = getHtmlNodeOuterHtml;
+      getOuterHtmlByNodeType[Node.COMMENT_NODE] = getCommentNodeOuterHtml;
+
       // Text nodes with these ancestors should be treated as raw text
       // See section 8.4 of
       // https://www.w3.org/TR/2008/WD-html5-20080610/serializing.html#html-fragment
@@ -628,10 +628,10 @@ const members = {
 
       eachChildNode(this, node => {
         let getOuterHtml;
-        if (node.nodeType === 3) {
+        if (node.nodeType === Node.TEXT_NODE) {
           let parentNode = node.parentNode;
           while (parentNode) {
-            if (parentNode.nodeType === 1 && // only for elements
+            if (parentNode.nodeType === Node.ELEMENT_NODE &&
                 parentNode.nodeName.toLowerCase() in rawTextNodeAncestors) {
               getOuterHtml = getRawTextContent;
               break;

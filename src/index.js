@@ -632,12 +632,12 @@ const members = {
           node.nodeName.toLowerCase() in rawTextNodeNames;
       }
 
-      const isCommonNodeRawText = isRawTextNode(this);
+      const isParentNodeRawText = isRawTextNode(this);
 
       eachChildNode(this, node => {
         let getOuterHtml;
         if (node.nodeType === Node.TEXT_NODE) {
-          if (isCommonNodeRawText || isRawTextNode(node)) {
+          if (isParentNodeRawText) {
             getOuterHtml = getRawTextContent;
           } else {
             getOuterHtml = getEscapedTextContent;

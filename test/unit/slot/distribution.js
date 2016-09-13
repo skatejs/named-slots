@@ -145,8 +145,8 @@ describe('slot/distribution', () => {
     });
 
     it('for named slots', () => {
-      const host1 = document.createElement('host1');
-      const host2 = document.createElement('host2');
+      const host1 = document.createElement('host-1');
+      const host2 = document.createElement('host-2');
       const slot1 = document.createElement('slot');
       const slot2 = document.createElement('slot');
       const test = document.createElement('test');

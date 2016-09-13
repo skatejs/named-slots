@@ -1,5 +1,5 @@
 import findSlots from '../../../src/util/find-slots';
-/* eslint-disable no-unused-expressions */
+
 describe('util/find-slots called from', () => {
   it('node: slot in node', () => {
     const host = document.createElement('div');

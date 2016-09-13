@@ -45,20 +45,6 @@ const defineInCommNodes = [];
 // Nodes that should be slotted
 const slottedNodeTypes = [Node.ELEMENT_NODE, Node.TEXT_NODE];
 
-// Text nodes with these ancestors should be treated as raw text
-// See section 8.4 of
-// https://www.w3.org/TR/2008/WD-html5-20080610/serializing.html#html-fragment
-const rawTextNodeAncestors = {
-  style: true,
-  script: true,
-  xmp: true,
-  iframe: true,
-  noembed: true,
-  noframes: true,
-  noscript: true,
-  plaintext: true,
-};
-
 // Private data stores.
 const assignedToSlotMap = new WeakMap();
 const hostToModeMap = new WeakMap();
@@ -445,22 +431,6 @@ function syncSlotChildNodes(node) {
   }
 }
 
-// Checks if a nodes with certain ancestors should be treated as raw text
-// when serializing.
-// See section 8.4 of
-// https://www.w3.org/TR/2008/WD-html5-20080610/serializing.html#html-fragment
-function isRawTextAncestor(node, stopAtNode) {
-  let parentNode = node;
-  while (parentNode && parentNode !== stopAtNode) {
-    if (parentNode.nodeType === Node.ELEMENT_NODE &&
-        parentNode.nodeName.toLowerCase() in rawTextNodeAncestors) {
-      return true;
-    }
-    parentNode = parentNode.parentNode;
-  }
-  return false;
-}
-
 const members = {
   // For testing purposes.
   ____assignedNodes: {
@@ -642,13 +612,32 @@ const members = {
       getOuterHtmlByNodeType[Node.ELEMENT_NODE] = getHtmlNodeOuterHtml;
       getOuterHtmlByNodeType[Node.COMMENT_NODE] = getCommentNodeOuterHtml;
 
-      const isCommonNodeRawTextAncestor = isRawTextAncestor(this);
-      const commonNode = this;
+      // Text nodes with these ancestors should be treated as raw text
+      // See section 8.4 of
+      // https://www.w3.org/TR/2008/WD-html5-20080610/serializing.html#html-fragment
+      // Though Chrome does not adhere to spec for <noscript/>
+      const rawTextNodeNames = {
+        style: true,
+        script: true,
+        xmp: true,
+        iframe: true,
+        noembed: true,
+        noframes: true,
+        noscript: true,
+        plaintext: true,
+      };
+
+      function isRawTextNode(node) {
+        return node.nodeType === Node.ELEMENT_NODE &&
+          node.nodeName.toLowerCase() in rawTextNodeNames;
+      }
+
+      const isCommonNodeRawText = isRawTextNode(this);
 
       eachChildNode(this, node => {
         let getOuterHtml;
         if (node.nodeType === Node.TEXT_NODE) {
-          if (isCommonNodeRawTextAncestor || isRawTextAncestor(node, commonNode)) {
+          if (isCommonNodeRawText || isRawTextNode(node)) {
             getOuterHtml = getRawTextContent;
           } else {
             getOuterHtml = getEscapedTextContent;

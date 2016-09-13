@@ -111,21 +111,6 @@ describe('dom: innerHTML', () => {
         }
       });
 
-      it('created text nodes in noscript do not get escaped when being appended', () => {
-        const script = document.createElement('noscript');
-        const text = document.createTextNode('foo & <b>bar</b>');
-        const expectedInnerHtml = '<noscript>foo & <b>bar</b></noscript>';
-
-        script.appendChild(text);
-        elem.appendChild(script);
-        expect(elem.innerHTML).to.equal(expectedInnerHtml);
-        expect(elem.childNodes.length).to.equal(1);
-
-        if (type === 'host') {
-          expect(slot.assignedNodes().length).to.equal(1);
-        }
-      });
-
       it('innerHTML handles non text / html / comment nodes', () => {
         expect(elem.innerHTML).to.equal('');
         const processingInstruction = '<?xml-stylesheet href="mycss.css" type="text/css"?>';

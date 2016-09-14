@@ -6,6 +6,7 @@ import { shadowDomV0, shadowDomV1 } from './util/support';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';
 import getPropertyDescriptor from './util/get-property-descriptor';
 import getEscapedTextContent from './util/get-escaped-text-content';
+import getRawTextContent from './util/get-raw-text-content';
 import getCommentNodeOuterHtml from './util/get-comment-node-outer-html';
 import findSlots from './util/find-slots';
 import isRootNode from './util/is-root-node';
@@ -607,14 +608,43 @@ const members = {
       let innerHTML = '';
 
       const getHtmlNodeOuterHtml = (node) => node.outerHTML;
-      const getOuterHtmlByNodeType = {
-        1: getHtmlNodeOuterHtml,
-        3: getEscapedTextContent,
-        8: getCommentNodeOuterHtml,
+      const getOuterHtmlByNodeType = {};
+      getOuterHtmlByNodeType[Node.ELEMENT_NODE] = getHtmlNodeOuterHtml;
+      getOuterHtmlByNodeType[Node.COMMENT_NODE] = getCommentNodeOuterHtml;
+
+      // Text nodes with these ancestors should be treated as raw text
+      // See section 8.4 of
+      // https://www.w3.org/TR/2008/WD-html5-20080610/serializing.html#html-fragment
+      // Though Chrome does not adhere to spec for <noscript/>
+      const rawTextNodeNames = {
+        style: true,
+        script: true,
+        xmp: true,
+        iframe: true,
+        noembed: true,
+        noframes: true,
+        noscript: true,
+        plaintext: true,
       };
 
+      function isRawTextNode(node) {
+        return node.nodeType === Node.ELEMENT_NODE &&
+          node.nodeName.toLowerCase() in rawTextNodeNames;
+      }
+
+      const isParentNodeRawText = isRawTextNode(this);
+
       eachChildNode(this, node => {
-        const getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
+        let getOuterHtml;
+        if (node.nodeType === Node.TEXT_NODE) {
+          if (isParentNodeRawText) {
+            getOuterHtml = getRawTextContent;
+          } else {
+            getOuterHtml = getEscapedTextContent;
+          }
+        } else {
+          getOuterHtml = getOuterHtmlByNodeType[node.nodeType] || getHtmlNodeOuterHtml;
+        }
         innerHTML += getOuterHtml(node);
       });
       return innerHTML;

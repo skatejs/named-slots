@@ -916,8 +916,9 @@ if (shadowDomV1) {
   Object.keys(members).forEach(memberName => {
     const memberProperty = members[memberName];
 
-    // All properties should be configurable.
+    // All properties should be configurable and enumerable.
     memberProperty.configurable = true;
+    memberProperty.enumerable = true;
 
     // Applying to the data properties only since we can't have writable accessor properties.
     if (memberProperty.hasOwnProperty('value')) { // eslint-disable-line no-prototype-builtins

@@ -31,7 +31,7 @@ npm install skatejs-named-slots
 Or you can download it from NPMCDN:
 
 ```
-https://npmcdn.com/skatejs-named-slots/dist/index-with-deps.min.js
+https://unpkg.com/skatejs-named-slots/dist/index-with-deps.min.js
 ```
 
 
@@ -54,7 +54,7 @@ require(['skatejs-named-slots']);
 Or you can use a `<script>` tag:
 
 ```html
-<script src="https://npmcdn.com/skatejs-named-slots/dist/index-with-deps.min.js"></script>
+<script src="https://unpkg.com/skatejs-named-slots/dist/index-with-deps.min.js"></script>
 ```
 
 

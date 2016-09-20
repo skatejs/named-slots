@@ -7,6 +7,7 @@ import './unit/dom/childElementCount';
 import './unit/dom/childNodes';
 import './unit/dom/children';
 import './unit/dom/DocumentFragment';
+import './unit/dom/enumerable';
 import './unit/dom/firstChild';
 import './unit/dom/firstElementChild';
 import './unit/dom/hasChildNodes';

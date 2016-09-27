@@ -1,8 +1,9 @@
 // TODO move into the skatejs-web-components package.
 import 'custom-event-polyfill';
-import 'weakmap';
 
 import debounce from 'debounce';
+import WeakMap from 'weakmap';
+
 import { eachChildNode, eachNodeOrFragmentNodes } from './util/each';
 import { shadowDomV0, shadowDomV1 } from './util/support';
 import canPatchNativeAccessors from './util/can-patch-native-accessors';

@@ -14,3 +14,4 @@ if (shadowDomV1) {
 }
 
 export default version;
+export { v0, v1 };

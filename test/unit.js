@@ -1,5 +1,4 @@
-import version from '../src/version';
-import '../src/index';
+import { v0, v1 } from '../src/index';
 
 // import './unit/dom/dom';
 import './unit/dom/appendChild';
@@ -33,7 +32,11 @@ import './unit/util/find-slots';
 import './unit/webcomponents/initialisation';
 
 describe('skatejs-named-slots', () => {
-  it('version', () => {
-    expect(version).to.be.a('string');
+  it('v0', () => {
+    expect(v1).to.be.a('function');
+  });
+
+  it('v1', () => {
+    expect(v1).to.be.a('function');
   });
 });

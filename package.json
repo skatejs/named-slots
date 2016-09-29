@@ -10,7 +10,8 @@
     "test/perf": "sk-tests -- --perf",
     "lint": "sk-lint",
     "prepublish": "sk-bundle",
-    "commit": "sk-commit"
+    "commit": "sk-commit",
+    "validate": "npm ls"
   },
   "repository": {
     "type": "git",
@@ -43,7 +44,7 @@
   "dependencies": {
     "custom-event-polyfill": "^0.3.0",
     "debounce": "^1.0.0",
-    "webcomponents.js": "webcomponents/webcomponentsjs#b77ca74"
+    "weakmap": "0.0.6"
   },
   "config": {
     "commitizen": {

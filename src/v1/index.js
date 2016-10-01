@@ -266,7 +266,16 @@ function addSlotToRoot(root, slot) {
     staticProp(slot, 'childNodes', pseudoArrayToArray(slot.childNodes));
   }
 
+  const previousSlot = rootToSlotMap.get(root)[slotName];
+  let previouslyAssignedNodes;
+  if (previousSlot) {
+    previouslyAssignedNodes = previousSlot.assignedNodes();
+  }
   rootToSlotMap.get(root)[slotName] = slot;
+
+  if (previouslyAssignedNodes) {
+    previouslyAssignedNodes.forEach(slotNodeFromSlot);
+  }
 
   if (!slotToRootMap.has(slot)) {
     slotToRootMap.set(slot, root);

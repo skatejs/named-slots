@@ -173,5 +173,33 @@ describe('slot/distribution', () => {
       expect(slot2.assignedNodes().length).to.equal(1);
       expect(slot2.assignedNodes()[0]).to.equal(slot1);
     });
+
+    it('remove and re-append slot with the same name', () => {
+      const host1 = document.createElement('div');
+      const root1 = host1.attachShadow({ mode: 'open' });
+      const slot1 = create('slot', { name: 'name1' });
+      const slot2 = create('slot');
+      const slot3 = create('slot');
+      const slot4 = create('slot', { name: 'name1' });
+
+      root1.innerHTML = '<div></div><div></div>';
+      root1.childNodes[0].appendChild(slot1);
+      root1.childNodes[1].appendChild(slot2);
+      document.body.appendChild(host1);
+
+      host1.innerHTML = '<div slot="name1">test slot1</div><div>test slot2</div>';
+
+      root1.childNodes[1].removeChild(root1.childNodes[1].firstChild);
+      root1.childNodes[1].appendChild(slot3);
+      expect(slot3.assignedNodes().length).to.equal(1);
+      expect(slot3.assignedNodes()[0]).to.equal(host1.childNodes[1]);
+
+      root1.childNodes[0].removeChild(root1.childNodes[0].firstChild);
+      root1.childNodes[0].appendChild(slot4);
+      expect(slot4.assignedNodes().length).to.equal(1);
+      expect(slot4.assignedNodes()[0]).to.equal(host1.childNodes[0]);
+
+      document.body.removeChild(host1);
+    });
   });
 });

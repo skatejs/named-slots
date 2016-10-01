@@ -33,7 +33,7 @@ import './unit/webcomponents/initialisation';
 
 describe('skatejs-named-slots', () => {
   it('v0', () => {
-    expect(v1).to.be.a('function');
+    expect(v0).to.be.a('function');
   });
 
   it('v1', () => {

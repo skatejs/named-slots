@@ -1,3 +1,2 @@
 const div = document.createElement('div');
-export const shadowDomV0 = !!div.createShadowRoot;
-export const shadowDomV1 = !!div.attachShadow;
+export const shadowDomV1 = !!div.attachShadow; // eslint-disable-line import/prefer-default-export

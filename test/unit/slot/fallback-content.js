@@ -1,4 +1,4 @@
-import { shadowDomV0 } from '../../../src/util/support';
+import { shadowDomV1 } from '../../../src/util/support';
 import create from '../../lib/create';
 
 describe('fallback-content', () => {
@@ -7,8 +7,8 @@ describe('fallback-content', () => {
   let slot;
   let fallback;
 
-  // We don't need to run these tests at all against v0.
-  if (shadowDomV0) {
+  // We don't need to run these tests at all against native implementation.
+  if (shadowDomV1) {
     return;
   }
 

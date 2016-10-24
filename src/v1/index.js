@@ -395,6 +395,11 @@ function appendChildOrInsertBefore(host, newNode, refNode) {
     }
   }
 
+  // safari doesn't update its children properly for some reason, so it needs a little push
+  if (!canPatchNativeAccessors && parentNode) {
+    parentNode.removeChild(newNode);
+  }
+
   if (nodeType === 'node') {
     if (canPatchNativeAccessors) {
       nodeToParentNodeMap.set(newNode, host);

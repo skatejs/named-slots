@@ -200,6 +200,18 @@ describe('dom: appendChild', () => {
           expect(slot.assignedNodes().length).to.equal(3);
         }
       });
+
+      it('should remove appended node from the previous parent', () => {
+        const parent = document.createElement('div');
+        parent.appendChild(document.createElement('span'));
+        elem.appendChild(parent.firstChild);
+        expect(elem.childNodes.length).to.equal(1);
+        expect(parent.childNodes.length).to.equal(0);
+
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(1);
+        }
+      });
     });
   }
 

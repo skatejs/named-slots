@@ -38,8 +38,7 @@
     "birdpoo": "0.0.2",
     "eslint": "^3.2.2",
     "eslint-plugin-react": "^6.0.0",
-    "precommit-hook": "^3.0.0",
-    "skatejs-build": "^7.3.0"
+    "skatejs-build": "9.x"
   },
   "dependencies": {
     "custom-event-polyfill": "^0.3.0",
@@ -51,8 +50,5 @@
       "path": "cz-conventional-changelog"
     }
   },
-  "pre-commit": [
-    "lint"
-  ],
   "version": "0.2.0"
 }

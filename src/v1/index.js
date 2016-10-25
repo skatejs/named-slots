@@ -905,7 +905,7 @@ const members = {
 export default () => {
   const commProto = Comment.prototype;
   const elementProto = HTMLElement.prototype;
-  const svgProto = SVGElement.prototype;
+  const svgProto = typeof SVGElement === 'function' && SVGElement.prototype;
   const textProto = Text.prototype;
   const textNode = document.createTextNode('');
   const commNode = document.createComment('');
@@ -938,11 +938,11 @@ export default () => {
       const nativeMemberName = `__${memberName}`;
 
       Object.defineProperty(elementProto, memberName, memberProperty);
-      Object.defineProperty(svgProto, memberName, memberProperty);
+      svgProto && Object.defineProperty(svgProto, memberName, memberProperty);
 
       if (nativeDescriptor) {
         Object.defineProperty(elementProto, nativeMemberName, nativeDescriptor);
-        Object.defineProperty(svgProto, nativeMemberName, nativeDescriptor);
+        svgProto && Object.defineProperty(svgProto, nativeMemberName, nativeDescriptor);
       }
 
       if (shouldOverrideInTextNode) {

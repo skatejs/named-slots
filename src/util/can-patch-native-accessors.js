@@ -3,6 +3,7 @@
 
 import getPropertyDescriptor from './get-property-descriptor';
 
+const { Element } = window;
 const nativeParentNode = getPropertyDescriptor(Element.prototype, 'innerHTML');
 
 export default !!nativeParentNode;

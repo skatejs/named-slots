@@ -1,3 +1,4 @@
+const { Node } = window;
 const div = document.createElement('div');
 
 function getPrototype (obj, key) {

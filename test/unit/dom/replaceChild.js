@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 describe('dom: replaceChild', () => {
   function runTests (type) {
     describe(`${type}: `, () => {

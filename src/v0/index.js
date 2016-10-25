@@ -1,5 +1,15 @@
 import 'custom-event-polyfill';
 
+const {
+  CustomEvent,
+  Element,
+  HTMLContentElement,
+  HTMLElement,
+  MutationObserver,
+  Node,
+  NodeFilter,
+  ShadowRoot
+} = window;
 const $shadowRoot = '__shadowRoot';
 
 export default () => {
@@ -165,9 +175,9 @@ export default () => {
         }
 
         Object.keys(slots).forEach(slot => {
-          const node = slot === '__default' ?
-            root.querySelector('content:not([name])') || root.querySelector('content[name=""]') :
-            root.querySelector(`content[name="${slot}"]`);
+          const node = slot === '__default'
+            ? root.querySelector('content:not([name])') || root.querySelector('content[name=""]')
+            : root.querySelector(`content[name="${slot}"]`);
 
           if (node) {
             node.dispatchEvent(new CustomEvent('slotchange', {

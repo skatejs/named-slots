@@ -1,3 +1,5 @@
+const { DocumentFragment } = window;
+
 export function eachChildNode (node, func) {
   if (!node) {
     return;

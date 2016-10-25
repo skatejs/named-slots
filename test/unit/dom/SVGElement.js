@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 describe('dom: SVGElement', () => {
   function expectToBeLikeNodeList (val) {
     expect(val).not.to.equal(undefined, 'like NodeList: undefined');

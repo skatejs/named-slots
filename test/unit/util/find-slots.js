@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import findSlots from '../../../src/util/find-slots';
 
 describe('util/find-slots called from', () => {

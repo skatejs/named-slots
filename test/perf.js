@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import benchmark from 'birdpoo'; // eslint-disable-line import/no-extraneous-dependencies
 import '../src/index';
 

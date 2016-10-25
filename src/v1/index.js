@@ -11,6 +11,15 @@ import isRootNode from '../util/is-root-node';
 import isSlotNode from '../util/is-slot-node';
 import pseudoArrayToArray from '../util/pseudo-array-to-array';
 
+const {
+  Comment,
+  CustomEvent,
+  DOMParser,
+  HTMLElement,
+  Node,
+  SVGElement,
+  Text
+} = window;
 const arrProto = Array.prototype;
 const { forEach } = arrProto;
 

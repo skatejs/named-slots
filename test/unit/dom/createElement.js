@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import { shadowDomV0, shadowDomV1 } from '../../../src/util/support';
 
 describe('dom: createElement', () => {

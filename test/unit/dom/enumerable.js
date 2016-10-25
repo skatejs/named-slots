@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 describe('Enumeration', () => {
   it('should enumerate over properties belonging to the prototype', () => {
     const properties = [

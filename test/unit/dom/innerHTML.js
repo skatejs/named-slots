@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import hasAllAttributes from '../../lib/has-all-attributes';
 
 describe('dom: innerHTML', () => {

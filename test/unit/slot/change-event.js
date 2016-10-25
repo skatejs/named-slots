@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import create from '../../lib/create';
 
 describe('slotchange-event', () => {

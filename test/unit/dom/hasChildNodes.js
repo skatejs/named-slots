@@ -1,5 +1,5 @@
 describe('dom: hasChildNodes', () => {
-  function runTests(type) {
+  function runTests (type) {
     describe(`${type}: `, () => {
       let host;
       let root;
@@ -17,18 +17,18 @@ describe('dom: hasChildNodes', () => {
         div = document.createElement('div');
 
         switch (type) {
-        case 'div':
-          elem = div;
-          break;
-        case 'slot':
-          elem = slot;
-          break;
-        case 'root':
-          root.innerHTML = '';
-          elem = root;
-          break;
-        default:
-          elem = host;
+          case 'div':
+            elem = div;
+            break;
+          case 'slot':
+            elem = slot;
+            break;
+          case 'root':
+            root.innerHTML = '';
+            elem = root;
+            break;
+          default:
+            elem = host;
         }
       });
 

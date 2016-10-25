@@ -47,7 +47,7 @@ export default () => {
   document.createElementNS = (uri, name, ...args) => createElementNS(uri, filterTagName(name), ...args);
 
   // Override innerHTML to turn slot nodes into content nodes.
-  function replaceSlotsWithContents(node) {
+  function replaceSlotsWithContents (node) {
     const tree = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT);
     const repl = [];
 
@@ -75,26 +75,25 @@ export default () => {
   Object.defineProperty(Element.prototype, 'innerHTML', {
     configurable: true,
     get: elementInnerHTML.get,
-    set(html) {
+    set (html) {
       elementInnerHTML.set.call(this, html);
       replaceSlotsWithContents(this);
-    },
+    }
   });
   Object.defineProperty(ShadowRoot.prototype, 'innerHTML', {
     configurable: true,
     get: shadowRootInnerHTML.get,
-    set(html) {
+    set (html) {
       shadowRootInnerHTML.set.call(this, html);
       replaceSlotsWithContents(this);
-    },
+    }
   });
-
 
   // Node
   // ----
 
   Object.defineProperty(Node.prototype, 'assignedSlot', {
-    get() {
+    get () {
       const { parentNode } = this;
       if (parentNode) {
         const { shadowRoot } = parentNode;
@@ -113,13 +112,12 @@ export default () => {
         }
       }
       return null;
-    },
+    }
   });
-
 
   // Just proxy createShadowRoot() because there's no such thing as closed
   // shadow trees in v0.
-  HTMLElement.prototype.attachShadow = function attachShadow({ mode } = {}) {
+  HTMLElement.prototype.attachShadow = function attachShadow ({ mode } = {}) {
     // In v1 you must specify a mode.
     if (mode !== 'closed' && mode !== 'open') {
       throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
@@ -132,14 +130,14 @@ export default () => {
     if (mode === 'closed') {
       Object.defineProperty(this, 'shadowRoot', {
         configurable: true,
-        get: () => null,
+        get: () => null
       });
     }
 
     // For some reason this wasn't being reported as set, but it seems to work
     // in dev tools.
     Object.defineProperty(sr, 'parentNode', {
-      get: () => this,
+      get: () => this
     });
 
     // Add a MutationObserver to trigger slot change events when the element
@@ -174,7 +172,7 @@ export default () => {
           if (node) {
             node.dispatchEvent(new CustomEvent('slotchange', {
               bubbles: false,
-              cancelable: false,
+              cancelable: false
             }));
           }
         });
@@ -185,32 +183,30 @@ export default () => {
     return (this[$shadowRoot] = sr);
   };
 
-
   // Make like the <slot> name property.
   Object.defineProperty(HTMLContentElement.prototype, 'name', {
-    get() {
+    get () {
       return this.getAttribute('name');
     },
-    set(name) {
+    set (name) {
       return this.setAttribute('name', name);
-    },
+    }
   });
-
 
   // Make like the element slot property.
   Object.defineProperty(HTMLElement.prototype, 'slot', {
-    get() {
+    get () {
       return this.getAttribute('slot');
     },
-    set(name) {
+    set (name) {
       return this.setAttribute('slot', name);
-    },
+    }
   });
 
   // By default, getDistributedNodes() returns a flattened tree (no <slot>
   // nodes). That means we get native { deep } but we have to manually do the
   // opposite.
-  HTMLContentElement.prototype.assignedNodes = function assignedNodes({ deep } = {}) {
+  HTMLContentElement.prototype.assignedNodes = function assignedNodes ({ deep } = {}) {
     const cnodes = [];
     const dnodes = deep ? this.getDistributedNodes() : getAssignedNodes(this);
 
@@ -226,7 +222,7 @@ export default () => {
     return cnodes;
   };
 
-  HTMLContentElement.prototype.getAttribute = function overriddenGetAttribute(name) {
+  HTMLContentElement.prototype.getAttribute = function overriddenGetAttribute (name) {
     if (name === 'name') {
       const select = getAttribute.call(this, 'select');
       return select ? select.match(/\[slot=['"]?(.*?)['"]?\]/)[1] : null;
@@ -234,7 +230,7 @@ export default () => {
     return getAttribute.call(this, name);
   };
 
-  HTMLContentElement.prototype.setAttribute = function overriddenSetAttribute(name, value) {
+  HTMLContentElement.prototype.setAttribute = function overriddenSetAttribute (name, value) {
     if (name === 'name') {
       name = 'select';
       value = `[slot='${value}']`;

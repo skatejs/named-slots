@@ -4,7 +4,7 @@
  * @param {string[]} attrs an array of attributes to check the exclusive presence of
  * @returns {boolean} whether all attributes are present, but no others are.
  */
-export default function hasAllAttributes(el, attrs) {
+export default function hasAllAttributes (el, attrs) {
   const exactNumber = el.attributes.length === attrs.length;
   let hasAttrs = true;
   attrs.forEach((attr) => {

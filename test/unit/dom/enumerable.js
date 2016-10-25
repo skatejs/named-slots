@@ -15,7 +15,7 @@ describe('Enumeration', () => {
       'outerHTML',
       'removeChild',
       'replaceChild',
-      'textContent',
+      'textContent'
     ];
     const found = [];
     const div = document.createElement('div');

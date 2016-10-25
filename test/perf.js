@@ -4,20 +4,19 @@ import '../src/index';
 describe('add / remove', () => {
   const div = document.createElement.bind(document, 'div');
 
-  function fn(elem) {
+  function fn (elem) {
     const ch = div();
     const el = elem;
     el.appendChild(ch);
     el.removeChild(ch);
   }
 
-  function fnNative(elem) {
+  function fnNative (elem) {
     const ch = div();
     const el = elem;
     el.__appendChild(ch);
     el.__removeChild(ch);
   }
-
 
   benchmark(() => {
     const elem = div();
@@ -55,7 +54,7 @@ describe('add / remove document fragments', () => {
   const frag = document.createDocumentFragment.bind(document);
   const div = document.createElement.bind(document, 'div');
 
-  function fn(elem) {
+  function fn (elem) {
     const ch = frag();
     const el = elem;
     ch.appendChild(div());

@@ -1,4 +1,4 @@
-export function eachChildNode(node, func) {
+export function eachChildNode (node, func) {
   if (!node) {
     return;
   }
@@ -14,7 +14,7 @@ export function eachChildNode(node, func) {
 }
 
 // Re-implemented to avoid Array.prototype.slice.call for performance reasons
-function reverse(arr) {
+function reverse (arr) {
   const reversedArray = [];
   for (let i = arr.length - 1; i >= 0; i--) {
     reversedArray.push(arr[i]);
@@ -28,7 +28,7 @@ function reverse(arr) {
  * @param func a function to execute on node or the children of node, if node is a document fragment.
  *        func may optionally append the node elsewhere, in the case of a document fragment
  */
-export function eachNodeOrFragmentNodes(node, func) {
+export function eachNodeOrFragmentNodes (node, func) {
   if (node instanceof DocumentFragment) {
     const chs = node.childNodes;
     const chsLen = chs.length;

@@ -19,7 +19,7 @@ describe('fallback-content', () => {
     root.appendChild(slot);
   });
 
-  function testFallbackContent() {
+  function testFallbackContent () {
     it('should have fallback nodes', () => {
       expect(slot.childNodes.length).to.equal(1);
       expect(slot.childNodes[0]).to.equal(fallback);

@@ -21,7 +21,6 @@ import './unit/dom/replaceChild';
 import './unit/dom/SVGElement';
 import './unit/dom/createElement';
 
-
 import './unit/light/polyfill';
 import './unit/shadow/polyfill';
 import './unit/slot/change-event.js';

@@ -6,10 +6,10 @@ describe('webcomponents/initialisation', () => {
       document.registerElement('x-wc', {
         prototype: {
           hasPrototype: true,
-          createdCallback() {
+          createdCallback () {
             this.created = true;
-          },
-        },
+          }
+        }
       });
 
       const div = document.createElement('div');

@@ -1,7 +1,7 @@
 import { shadowDomV0, shadowDomV1 } from './support';
 import isSlotNode from './is-slot-node';
 
-export default function findSlots(root, slots = []) {
+export default function findSlots (root, slots = []) {
   const { childNodes } = root;
 
   if (shadowDomV0 && !shadowDomV1) {

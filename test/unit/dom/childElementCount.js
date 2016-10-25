@@ -1,5 +1,5 @@
 describe('dom: childElementCount', () => {
-  function runTests(type) {
+  function runTests (type) {
     describe(`${type}: `, () => {
       let host;
       let root;
@@ -18,18 +18,18 @@ describe('dom: childElementCount', () => {
         div = document.createElement('div');
 
         switch (type) {
-        case 'div':
-          elem = div;
-          break;
-        case 'slot':
-          elem = slot;
-          break;
-        case 'root':
-          root.innerHTML = '';
-          elem = root;
-          break;
-        default:
-          elem = host;
+          case 'div':
+            elem = div;
+            break;
+          case 'slot':
+            elem = slot;
+            break;
+          case 'root':
+            root.innerHTML = '';
+            elem = root;
+            break;
+          default:
+            elem = host;
         }
       });
 

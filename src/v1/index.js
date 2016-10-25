@@ -52,10 +52,9 @@ const rootToHostMap = new WeakMap();
 const rootToSlotMap = new WeakMap();
 const slotToRootMap = new WeakMap();
 
-
 // Unfortunately manual DOM parsing is because of WebKit.
 const parser = new DOMParser();
-function parse(html) {
+function parse (html) {
   const tree = document.createElement('div');
 
   // Everything not WebKit can do this easily.
@@ -76,30 +75,29 @@ function parse(html) {
   return document.importNode(tree, true);
 }
 
-function staticProp(obj, name, value) {
+function staticProp (obj, name, value) {
   Object.defineProperty(obj, name, {
     configurable: true,
-    get() { return value; },
+    get () { return value; }
   });
 }
 
-
 // Slotting helpers.
 
-function arrayItem(idx) {
+function arrayItem (idx) {
   return this[idx];
 }
 
-function makeLikeNodeList(arr) {
+function makeLikeNodeList (arr) {
   arr.item = arrayItem;
   return arr;
 }
 
-function isHostNode(node) {
+function isHostNode (node) {
   return !!hostToRootMap.get(node);
 }
 
-function getNodeType(node) {
+function getNodeType (node) {
   if (isHostNode(node)) {
     return 'host';
   }
@@ -115,7 +113,7 @@ function getNodeType(node) {
   return 'node';
 }
 
-function findClosest(node, func) {
+function findClosest (node, func) {
   while (node) {
     if (node === document) {
       break;
@@ -127,15 +125,15 @@ function findClosest(node, func) {
   }
 }
 
-function getSlotNameFromSlot(node) {
+function getSlotNameFromSlot (node) {
   return (node.getAttribute && node.getAttribute('name')) || 'default';
 }
 
-function getSlotNameFromNode(node) {
+function getSlotNameFromNode (node) {
   return (node.getAttribute && node.getAttribute('slot')) || 'default';
 }
 
-function slotNodeIntoSlot(slot, node, insertBefore) {
+function slotNodeIntoSlot (slot, node, insertBefore) {
   // Only Text and Element nodes should be slotted.
   if (slottedNodeTypes.indexOf(node.nodeType) === -1) {
     return;
@@ -164,7 +162,7 @@ function slotNodeIntoSlot(slot, node, insertBefore) {
   slot.____triggerSlotChangeEvent();
 }
 
-function slotNodeFromSlot(node) {
+function slotNodeFromSlot (node) {
   const slot = nodeToSlotMap.get(node);
 
   if (slot) {
@@ -191,7 +189,7 @@ function slotNodeFromSlot(node) {
 }
 
 // Returns the index of the node in the host's childNodes.
-function indexOfNode(host, node) {
+function indexOfNode (host, node) {
   const chs = host.childNodes;
   const chsLen = chs.length;
   for (let a = 0; a < chsLen; a++) {
@@ -204,7 +202,7 @@ function indexOfNode(host, node) {
 
 // Adds the node to the list of childNodes on the host and fakes any necessary
 // information such as parentNode.
-function registerNode(host, node, insertBefore, func) {
+function registerNode (host, node, insertBefore, func) {
   const index = indexOfNode(host, insertBefore);
   eachNodeOrFragmentNodes(node, (eachNode, eachIndex) => {
     func(eachNode, eachIndex);
@@ -224,7 +222,7 @@ function registerNode(host, node, insertBefore, func) {
 }
 
 // Cleans up registerNode().
-function unregisterNode(host, node, func) {
+function unregisterNode (host, node, func) {
   const index = indexOfNode(host, node);
 
   if (index > -1) {
@@ -240,13 +238,13 @@ function unregisterNode(host, node, func) {
   }
 }
 
-function addNodeToNode(host, node, insertBefore) {
+function addNodeToNode (host, node, insertBefore) {
   registerNode(host, node, insertBefore, eachNode => {
     host.__insertBefore(eachNode, insertBefore !== undefined ? insertBefore : null);
   });
 }
 
-function addNodeToHost(host, node, insertBefore) {
+function addNodeToHost (host, node, insertBefore) {
   registerNode(host, node, insertBefore, eachNode => {
     const rootNode = hostToRootMap.get(host);
     const slotNodes = rootToSlotMap.get(rootNode);
@@ -257,7 +255,7 @@ function addNodeToHost(host, node, insertBefore) {
   });
 }
 
-function addSlotToRoot(root, slot) {
+function addSlotToRoot (root, slot) {
   const slotName = getSlotNameFromSlot(slot);
 
   // Ensure a slot node's childNodes are overridden at the earliest point
@@ -279,7 +277,7 @@ function addSlotToRoot(root, slot) {
   });
 }
 
-function addNodeToRoot(root, node, insertBefore) {
+function addNodeToRoot (root, node, insertBefore) {
   eachNodeOrFragmentNodes(node, child => {
     if (isSlotNode(child)) {
       addSlotToRoot(root, child);
@@ -299,7 +297,7 @@ function addNodeToRoot(root, node, insertBefore) {
 // Adds a node to a slot. In other words, adds default content to a slot. It
 // ensures that if the slot doesn't have any assigned nodes yet, that the node
 // is actually displayed, otherwise it's just registered as child content.
-function addNodeToSlot(slot, node, insertBefore) {
+function addNodeToSlot (slot, node, insertBefore) {
   const isInDefaultMode = slot.assignedNodes().length === 0;
   registerNode(slot, node, insertBefore, eachNode => {
     if (isInDefaultMode) {
@@ -311,7 +309,7 @@ function addNodeToSlot(slot, node, insertBefore) {
 // Removes a node from a slot (default content). It ensures that if the slot
 // doesn't have any assigned nodes yet, that the node is actually removed,
 // otherwise it's just unregistered.
-function removeNodeFromSlot(slot, node) {
+function removeNodeFromSlot (slot, node) {
   const isInDefaultMode = slot.assignedNodes().length === 0;
   unregisterNode(slot, node, () => {
     if (isInDefaultMode) {
@@ -320,26 +318,26 @@ function removeNodeFromSlot(slot, node) {
   });
 }
 
-function removeNodeFromNode(host, node) {
+function removeNodeFromNode (host, node) {
   unregisterNode(host, node, () => {
     host.__removeChild(node);
   });
 }
 
-function removeNodeFromHost(host, node) {
+function removeNodeFromHost (host, node) {
   unregisterNode(host, node, () => {
     slotNodeFromSlot(node);
   });
 }
 
-function removeSlotFromRoot(root, node) {
+function removeSlotFromRoot (root, node) {
   const assignedNodes = Array.prototype.slice.call(node.assignedNodes());
   assignedNodes.forEach(slotNodeFromSlot);
   delete rootToSlotMap.get(root)[getSlotNameFromSlot(node)];
   slotToRootMap.delete(node);
 }
 
-function removeNodeFromRoot(root, node) {
+function removeNodeFromRoot (root, node) {
   unregisterNode(root, node, () => {
     if (isSlotNode(node)) {
       removeSlotFromRoot(root, node);
@@ -356,7 +354,7 @@ function removeNodeFromRoot(root, node) {
 }
 
 // TODO terribly inefficient
-function getRootNode(host) {
+function getRootNode (host) {
   if (isRootNode(host)) {
     return host;
   }
@@ -368,7 +366,7 @@ function getRootNode(host) {
   return getRootNode(host.parentNode);
 }
 
-function appendChildOrInsertBefore(host, newNode, refNode) {
+function appendChildOrInsertBefore (host, newNode, refNode) {
   const nodeType = getNodeType(host);
   const parentNode = newNode.parentNode;
   const rootNode = getRootNode(host);
@@ -422,7 +420,7 @@ function appendChildOrInsertBefore(host, newNode, refNode) {
   }
 }
 
-function syncSlotChildNodes(node) {
+function syncSlotChildNodes (node) {
   if (canPatchNativeAccessors && getNodeType(node) === 'slot' && (node.__childNodes.length !== node.childNodes.length)) {
     while (node.hasChildNodes()) {
       node.removeChild(node.firstChild);
@@ -435,55 +433,55 @@ function syncSlotChildNodes(node) {
 const members = {
   // For testing purposes.
   ____assignedNodes: {
-    get() {
+    get () {
       return this.______assignedNodes || (this.______assignedNodes = []);
-    },
+    }
   },
 
   // For testing purposes.
   ____isInFallbackMode: {
-    get() {
+    get () {
       return this.assignedNodes().length === 0;
-    },
+    }
   },
 
   ____slotChangeListeners: {
-    get() {
+    get () {
       if (typeof this.______slotChangeListeners === 'undefined') {
         this.______slotChangeListeners = 0;
       }
       return this.______slotChangeListeners;
     },
-    set(value) {
+    set (value) {
       this.______slotChangeListeners = value;
-    },
+    }
   },
   ____triggerSlotChangeEvent: {
-    value: debounce(function callback() {
+    value: debounce(function callback () {
       if (this.____slotChangeListeners) {
         this.dispatchEvent(new CustomEvent('slotchange', {
           bubbles: false,
-          cancelable: false,
+          cancelable: false
         }));
       }
-    }),
+    })
   },
   addEventListener: {
-    value(name, func, opts) {
+    value (name, func, opts) {
       if (name === 'slotchange' && isSlotNode(this)) {
         this.____slotChangeListeners++;
       }
       return this.__addEventListener(name, func, opts);
-    },
+    }
   },
   appendChild: {
-    value(newNode) {
+    value (newNode) {
       appendChildOrInsertBefore(this, newNode);
       return newNode;
-    },
+    }
   },
   assignedSlot: {
-    get() {
+    get () {
       const slot = nodeToSlotMap.get(this);
 
       if (!slot) {
@@ -495,10 +493,10 @@ const members = {
       const mode = hostToModeMap.get(host);
 
       return mode === 'open' ? slot : null;
-    },
+    }
   },
   attachShadow: {
-    value(opts) {
+    value (opts) {
       const mode = opts && opts.mode;
       if (mode !== 'closed' && mode !== 'open') {
         throw new Error('You must specify { mode } as "open" or "closed" to attachShadow().');
@@ -544,15 +542,15 @@ const members = {
 
       // The shadow root is actually the only child of the host.
       return this.__appendChild(shadowRoot);
-    },
+    }
   },
   childElementCount: {
-    get() {
+    get () {
       return this.children.length;
-    },
+    }
   },
   childNodes: {
-    get() {
+    get () {
       if (canPatchNativeAccessors && getNodeType(this) === 'node') {
         return this.__childNodes;
       }
@@ -563,10 +561,10 @@ const members = {
       }
 
       return childNodes;
-    },
+    }
   },
   children: {
-    get() {
+    get () {
       const chs = [];
       eachChildNode(this, node => {
         if (node.nodeType === 1) {
@@ -574,20 +572,20 @@ const members = {
         }
       });
       return makeLikeNodeList(chs);
-    },
+    }
   },
   firstChild: {
-    get() {
+    get () {
       return this.childNodes[0] || null;
-    },
+    }
   },
   firstElementChild: {
-    get() {
+    get () {
       return this.children[0] || null;
-    },
+    }
   },
   assignedNodes: {
-    value() {
+    value () {
       if (isSlotNode(this)) {
         let assigned = assignedToSlotMap.get(this);
 
@@ -597,15 +595,15 @@ const members = {
 
         return assigned;
       }
-    },
+    }
   },
   hasChildNodes: {
-    value() {
+    value () {
       return this.childNodes.length > 0;
-    },
+    }
   },
   innerHTML: {
-    get() {
+    get () {
       let innerHTML = '';
 
       const getHtmlNodeOuterHtml = (node) => node.outerHTML;
@@ -625,10 +623,10 @@ const members = {
         noembed: true,
         noframes: true,
         noscript: true,
-        plaintext: true,
+        plaintext: true
       };
 
-      function isRawTextNode(node) {
+      function isRawTextNode (node) {
         return node.nodeType === Node.ELEMENT_NODE &&
           node.nodeName.toLowerCase() in rawTextNodeNames;
       }
@@ -650,7 +648,7 @@ const members = {
       });
       return innerHTML;
     },
-    set(innerHTML) {
+    set (innerHTML) {
       const parsed = parse(innerHTML);
 
       while (this.hasChildNodes()) {
@@ -676,32 +674,32 @@ const members = {
 
         this.appendChild(firstChild);
       }
-    },
+    }
   },
   insertBefore: {
-    value(newNode, refNode) {
+    value (newNode, refNode) {
       appendChildOrInsertBefore(this, newNode, refNode);
 
       return newNode;
-    },
+    }
   },
   lastChild: {
-    get() {
+    get () {
       const ch = this.childNodes;
       return ch[ch.length - 1] || null;
-    },
+    }
   },
   lastElementChild: {
-    get() {
+    get () {
       const ch = this.children;
       return ch[ch.length - 1] || null;
-    },
+    }
   },
   name: {
-    get() {
+    get () {
       return this.getAttribute('name');
     },
-    set(name) {
+    set (name) {
       const oldName = this.name;
       const ret = this.__setAttribute('name', name);
 
@@ -718,20 +716,20 @@ const members = {
         addSlotToRoot(root, this);
       }
       return ret;
-    },
+    }
   },
   nextSibling: {
-    get() {
+    get () {
       const host = this;
       return eachChildNode(this.parentNode, (child, index, nodes) => {
         if (host === child) {
           return nodes[index + 1] || null;
         }
       });
-    },
+    }
   },
   nextElementSibling: {
-    get() {
+    get () {
       const host = this;
       let found;
       return eachChildNode(this.parentNode, child => {
@@ -742,10 +740,10 @@ const members = {
           found = true;
         }
       });
-    },
+    }
   },
   outerHTML: {
-    get() {
+    get () {
       const name = this.tagName.toLowerCase();
       const attributes = Array.prototype.slice.call(this.attributes).map((attr) =>
         (` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`)
@@ -753,7 +751,7 @@ const members = {
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
     },
 
-    set(outerHTML) {
+    set (outerHTML) {
       if (this.parentNode) {
         const parsed = parse(outerHTML);
         this.parentNode.replaceChild(parsed.firstChild, this);
@@ -762,30 +760,30 @@ const members = {
       } else {
         throw new Error('Failed to set the \'outerHTML\' property on \'Element\': This element has no parent node.');
       }
-    },
+    }
   },
   parentElement: {
-    get() {
+    get () {
       return findClosest(this.parentNode, (node) => node.nodeType === 1);
-    },
+    }
   },
   parentNode: {
-    get() {
+    get () {
       return nodeToParentNodeMap.get(this) || this.__parentNode || null;
-    },
+    }
   },
   previousSibling: {
-    get() {
+    get () {
       const host = this;
       return eachChildNode(this.parentNode, (child, index, nodes) => {
         if (host === child) {
           return nodes[index - 1] || null;
         }
       });
-    },
+    }
   },
   previousElementSibling: {
-    get() {
+    get () {
       const host = this;
       let found;
       return eachChildNode(this.parentNode, child => {
@@ -796,51 +794,51 @@ const members = {
           found = child;
         }
       });
-    },
+    }
   },
   removeChild: {
-    value(refNode) {
+    value (refNode) {
       const nodeType = getNodeType(this);
 
       switch (nodeType) {
-      case 'node':
-        if (canPatchNativeAccessors) {
-          nodeToParentNodeMap.set(refNode, null);
-          return this.__removeChild(refNode);
-        }
-        removeNodeFromNode(this, refNode);
-        break;
-      case 'slot':
-        removeNodeFromSlot(this, refNode);
-        break;
-      case 'host':
-        removeNodeFromHost(this, refNode);
-        break;
-      case 'root':
-        removeNodeFromRoot(this, refNode);
-        break;
-      default:
-        break;
+        case 'node':
+          if (canPatchNativeAccessors) {
+            nodeToParentNodeMap.set(refNode, null);
+            return this.__removeChild(refNode);
+          }
+          removeNodeFromNode(this, refNode);
+          break;
+        case 'slot':
+          removeNodeFromSlot(this, refNode);
+          break;
+        case 'host':
+          removeNodeFromHost(this, refNode);
+          break;
+        case 'root':
+          removeNodeFromRoot(this, refNode);
+          break;
+        default:
+          break;
       }
       return refNode;
-    },
+    }
   },
   removeEventListener: {
-    value(name, func, opts) {
+    value (name, func, opts) {
       if (name === 'slotchange' && this.____slotChangeListeners && isSlotNode(this)) {
         this.____slotChangeListeners--;
       }
       return this.__removeEventListener(name, func, opts);
-    },
+    }
   },
   replaceChild: {
-    value(newNode, refNode) {
+    value (newNode, refNode) {
       this.insertBefore(newNode, refNode);
       return this.removeChild(refNode);
-    },
+    }
   },
   setAttribute: {
-    value(attrName, attrValue) {
+    value (attrName, attrValue) {
       if (attrName === 'slot') {
         this[attrName] = attrValue;
       }
@@ -850,18 +848,18 @@ const members = {
         }
       }
       return this.__setAttribute(attrName, attrValue);
-    },
+    }
   },
   shadowRoot: {
-    get() {
+    get () {
       return hostToModeMap.get(this) === 'open' ? hostToRootMap.get(this) : null;
-    },
+    }
   },
   slot: {
-    get() {
+    get () {
       return this.getAttribute('slot');
     },
-    set(name) {
+    set (name) {
       const oldName = this.name;
       const ret = this.__setAttribute('slot', name);
 
@@ -878,10 +876,10 @@ const members = {
         addNodeToHost(host, this);
       }
       return ret;
-    },
+    }
   },
   textContent: {
-    get() {
+    get () {
       let textContent = '';
       eachChildNode(this, node => {
         if (node.nodeType !== Node.COMMENT_NODE) {
@@ -890,7 +888,7 @@ const members = {
       });
       return textContent;
     },
-    set(textContent) {
+    set (textContent) {
       while (this.hasChildNodes()) {
         this.removeChild(this.firstChild);
       }
@@ -898,8 +896,8 @@ const members = {
         return;
       }
       this.appendChild(document.createTextNode(textContent));
-    },
-  },
+    }
+  }
 };
 
 export default () => {

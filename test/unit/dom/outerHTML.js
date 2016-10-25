@@ -3,17 +3,17 @@ import { shadowDomV0 } from '../../../src/util/support';
 describe('dom: outerHTML', () => {
   // This is so that it goes through any possible innerHTML massaging. For
   // example, this is necessary when upgrading native v0 to behave like v1.
-  function html(str) {
+  function html (str) {
     const div = document.createElement('div');
     div.innerHTML = str;
     return div.innerHTML;
   }
 
-  function compare(src, dst) {
+  function compare (src, dst) {
     expect(src.outerHTML).to.equal(shadowDomV0 ? html(dst) : dst);
   }
 
-  function runTests(type) {
+  function runTests (type) {
     describe(`${type}: `, () => {
       let host;
       let root;
@@ -31,14 +31,14 @@ describe('dom: outerHTML', () => {
         div = document.createElement('div');
 
         switch (type) {
-        case 'div':
-          elem = div;
-          break;
-        case 'slot':
-          elem = slot;
-          break;
-        default:
-          elem = host;
+          case 'div':
+            elem = div;
+            break;
+          case 'slot':
+            elem = slot;
+            break;
+          default:
+            elem = host;
         }
       });
 

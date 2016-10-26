@@ -1,7 +1,7 @@
 /* eslint-env jasmine, mocha */
 
 describe('dom: outerHTML', () => {
-  function compare(src, dst) {
+  function compare (src, dst) {
     expect(src.outerHTML).to.equal(dst);
   }
 

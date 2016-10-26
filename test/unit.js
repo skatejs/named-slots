@@ -2,7 +2,6 @@
 
 import { v1 } from '../src/index';
 
-// import './unit/dom/dom';
 import './unit/dom/appendChild';
 import './unit/dom/childElementCount';
 import './unit/dom/childNodes';

@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import '../../../src/index';
 import { shadowDomV1 } from '../../../src/util/support';
 import create from '../../lib/create';

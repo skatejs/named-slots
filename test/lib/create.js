@@ -6,4 +6,4 @@ export default (name, attrs = {}, chren = []) => {
   Object.keys(attrs).forEach(key => elem.setAttribute(key, attrs[key]));
   chren.forEach(ch => elem.appendChild(typeof ch === 'string' ? document.createTextNode(ch) : ch));
   return elem;
-}
+};

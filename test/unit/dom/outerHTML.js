@@ -1,9 +1,11 @@
+/* eslint-env jasmine, mocha */
+
 describe('dom: outerHTML', () => {
-  function compare(src, dst) {
+  function compare (src, dst) {
     expect(src.outerHTML).to.equal(dst);
   }
 
-  function runTests(type) {
+  function runTests (type) {
     describe(`${type}: `, () => {
       let host;
       let root;
@@ -21,14 +23,14 @@ describe('dom: outerHTML', () => {
         div = document.createElement('div');
 
         switch (type) {
-        case 'div':
-          elem = div;
-          break;
-        case 'slot':
-          elem = slot;
-          break;
-        default:
-          elem = host;
+          case 'div':
+            elem = div;
+            break;
+          case 'slot':
+            elem = slot;
+            break;
+          default:
+            elem = host;
         }
       });
 

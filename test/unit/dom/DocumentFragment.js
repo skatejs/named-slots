@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 describe('DocumentFragment', () => {
   it('should report the correct parent node for nested nodes', () => {
     const frag = document.createDocumentFragment();

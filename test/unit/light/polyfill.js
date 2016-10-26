@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import '../../../src/index';
 import create from '../../lib/create';
 

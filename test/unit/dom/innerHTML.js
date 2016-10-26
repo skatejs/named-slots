@@ -1,7 +1,9 @@
+/* eslint-env jasmine, mocha */
+
 import hasAllAttributes from '../../lib/has-all-attributes';
 
 describe('dom: innerHTML', () => {
-  function runTests(type) {
+  function runTests (type) {
     describe(`${type}: `, () => {
       let host;
       let root;
@@ -37,22 +39,22 @@ describe('dom: innerHTML', () => {
           { value: '<!-- comment before --> <div><!-- comment inside --></div> <!-- comment after -->', nodes: 5, assigned: 3 }, // empty space is a text node, do not slot empty space
           { value: '<!-- comment before --> <div><!-- comment inside --><div><!-- comment deep inside --></div> </div><!-- comment after -->', nodes: 4, assigned: 2 }, // empty space is a text node, do not slot empty space
           { value: '<!-- comment outside --> text outside <div>text inside</div>', nodes: 3, assigned: 2 },
-          { value: 'text outside <!-- comment outside --> text outside <div>text inside <!-- comment inside --> text inside</div>', nodes: 4, assigned: 3 },
+          { value: 'text outside <!-- comment outside --> text outside <div>text inside <!-- comment inside --> text inside</div>', nodes: 4, assigned: 3 }
         ];
         /* eslint-enable max-len */
         switch (type) {
-        case 'div':
-          elem = div;
-          break;
-        case 'slot':
-          elem = slot;
-          break;
-        case 'root':
-          root.innerHTML = '';
-          elem = root;
-          break;
-        default:
-          elem = host;
+          case 'div':
+            elem = div;
+            break;
+          case 'slot':
+            elem = slot;
+            break;
+          case 'root':
+            root.innerHTML = '';
+            elem = root;
+            break;
+          default:
+            elem = host;
         }
       });
 

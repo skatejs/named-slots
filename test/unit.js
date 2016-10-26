@@ -1,6 +1,7 @@
+/* eslint-env jasmine, mocha */
+
 import { v1 } from '../src/index';
 
-// import './unit/dom/dom';
 import './unit/dom/appendChild';
 import './unit/dom/childElementCount';
 import './unit/dom/childNodes';
@@ -19,7 +20,6 @@ import './unit/dom/textContent';
 import './unit/dom/removeChild';
 import './unit/dom/replaceChild';
 import './unit/dom/SVGElement';
-
 import './unit/light/polyfill';
 import './unit/shadow/polyfill';
 import './unit/slot/change-event.js';

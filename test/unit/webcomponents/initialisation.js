@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import '../../../src/index';
 
 describe('webcomponents/initialisation', () => {
@@ -6,10 +8,10 @@ describe('webcomponents/initialisation', () => {
       document.registerElement('x-wc', {
         prototype: {
           hasPrototype: true,
-          createdCallback() {
+          createdCallback () {
             this.created = true;
-          },
-        },
+          }
+        }
       });
 
       const div = document.createElement('div');

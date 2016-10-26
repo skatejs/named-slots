@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 import { shadowDomV1 } from '../../../src/util/support';
 import create from '../../lib/create';
 
@@ -19,7 +21,7 @@ describe('fallback-content', () => {
     root.appendChild(slot);
   });
 
-  function testFallbackContent() {
+  function testFallbackContent () {
     it('should have fallback nodes', () => {
       expect(slot.childNodes.length).to.equal(1);
       expect(slot.childNodes[0]).to.equal(fallback);

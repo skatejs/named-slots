@@ -1,3 +1,5 @@
+/* eslint-env jasmine, mocha */
+
 describe('Enumeration', () => {
   it('should enumerate over properties belonging to the prototype', () => {
     const properties = [
@@ -15,7 +17,7 @@ describe('Enumeration', () => {
       'outerHTML',
       'removeChild',
       'replaceChild',
-      'textContent',
+      'textContent'
     ];
     const found = [];
     const div = document.createElement('div');

@@ -1,5 +1,7 @@
+/* eslint-env jasmine, mocha */
+
 describe('dom: removeChild', () => {
-  function runTests(type) {
+  function runTests (type) {
     describe(`${type}: `, () => {
       let host;
       let root;
@@ -17,18 +19,18 @@ describe('dom: removeChild', () => {
         div = document.createElement('div');
 
         switch (type) {
-        case 'div':
-          elem = div;
-          break;
-        case 'slot':
-          elem = slot;
-          break;
-        case 'root':
-          root.innerHTML = '';
-          elem = root;
-          break;
-        default:
-          elem = host;
+          case 'div':
+            elem = div;
+            break;
+          case 'slot':
+            elem = slot;
+            break;
+          case 'root':
+            root.innerHTML = '';
+            elem = root;
+            break;
+          default:
+            elem = host;
         }
       });
 
@@ -46,14 +48,12 @@ describe('dom: removeChild', () => {
         expect(res).to.be.equal(removed);
       });
 
-
       it('should return removed comment node', () => {
         const removed = document.createComment('comment');
         elem.appendChild(removed);
         const res = elem.removeChild(removed);
         expect(res).to.be.equal(removed);
       });
-
 
       it('removedChild should not have parent', () => {
         const removed = document.createElement('div');

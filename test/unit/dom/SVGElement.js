@@ -1,11 +1,13 @@
+/* eslint-env jasmine, mocha */
+
 describe('dom: SVGElement', () => {
-  function expectToBeLikeNodeList(val) {
+  function expectToBeLikeNodeList (val) {
     expect(val).not.to.equal(undefined, 'like NodeList: undefined');
     expect(val.length).to.be.a('number', 'like NodeList: length not a number');
     expect(val.item).to.be.a('function', 'like NodeList: item not a function');
   }
 
-  function runTests(type) {
+  function runTests (type) {
     describe(`${type}: `, () => {
       let host;
       let root;
@@ -23,18 +25,18 @@ describe('dom: SVGElement', () => {
         div = document.createElement('div');
 
         switch (type) {
-        case 'div':
-          elem = div;
-          break;
-        case 'slot':
-          elem = slot;
-          break;
-        case 'root':
-          root.innerHTML = '';
-          elem = root;
-          break;
-        default:
-          elem = host;
+          case 'div':
+            elem = div;
+            break;
+          case 'slot':
+            elem = slot;
+            break;
+          case 'root':
+            root.innerHTML = '';
+            elem = root;
+            break;
+          default:
+            elem = host;
         }
       });
 

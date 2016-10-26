@@ -1,5 +1,5 @@
 import '../../../src/index';
-import { shadowDomV0 } from '../../../src/util/support';
+import { shadowDomV1 } from '../../../src/util/support';
 import create from '../../lib/create';
 import canPatchNativeAccessors from '../../../src/util/can-patch-native-accessors';
 
@@ -26,7 +26,7 @@ describe('shadow/polyfill', () => {
     expect(host.shadowRoot).to.equal(null);
   });
 
-  if (!shadowDomV0) {
+  if (!shadowDomV1) {
     it('polyfillShadowRootTagName: [default="_shadow_root_"]', () => {
       const host = create('div');
       const root = host.attachShadow({ mode: 'open' });

@@ -1,15 +1,12 @@
 // TODO move into the skatejs-web-components package.
 import 'custom-event-polyfill';
-import { shadowDomV0, shadowDomV1 } from './util/support';
-import v0 from './v0';
+import { shadowDomV1 } from './util/support';
 import v1 from './v1';
 
 if (shadowDomV1) {
   // then we should probably not be loading this
-} else if (shadowDomV0) {
-  v0();
 } else {
   v1();
 }
 
-export { v0, v1 };
+export { v1 }; // eslint-disable-line import/prefer-default-export

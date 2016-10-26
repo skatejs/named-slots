@@ -912,7 +912,7 @@ const members = {
 export default () => {
   const commProto = Comment.prototype;
   const elementProto = HTMLElement.prototype;
-  const svgProto = typeof SVGElement === 'function' && SVGElement.prototype;
+  const svgProto = SVGElement && SVGElement.prototype;
   const textProto = Text.prototype;
   const textNode = document.createTextNode('');
   const commNode = document.createComment('');

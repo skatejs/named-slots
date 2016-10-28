@@ -44,6 +44,9 @@ const defineInTextNodes = ['assignedSlot'];
 // Some properties that should not be overridden in the Comment prototype.
 const doNotOverridePropertiesInCommNodes = ['textContent'];
 
+// Some properties that should not be overridden in the DocumentFragment prototype.
+const doNotOverridePropertiesInFragments = [];
+
 // Some new properties that should be defined in the Comment prototype.
 const defineInCommNodes = [];
 
@@ -912,10 +915,12 @@ const members = {
 export default () => {
   const commProto = Comment.prototype;
   const elementProto = HTMLElement.prototype;
+  const fragmentProto = DocumentFragment.prototype;
   const svgProto = SVGElement && SVGElement.prototype;
   const textProto = Text.prototype;
   const textNode = document.createTextNode('');
   const commNode = document.createComment('');
+  const fragment = document.createDocumentFragment();
 
   Object.keys(members).forEach(memberName => {
     const memberProperty = members[memberName];
@@ -932,6 +937,7 @@ export default () => {
     // Polyfill as much as we can and work around WebKit in other areas.
     if (canPatchNativeAccessors || polyfillAtRuntime.indexOf(memberName) === -1) {
       const nativeDescriptor = getPropertyDescriptor(elementProto, memberName);
+      const nativeFragDescriptor = getPropertyDescriptor(fragmentProto, memberName);
       const nativeTextDescriptor = getPropertyDescriptor(textProto, memberName);
       const nativeCommDescriptor = getPropertyDescriptor(commProto, memberName);
       const shouldOverrideInTextNode = (
@@ -942,6 +948,10 @@ export default () => {
         memberName in commNode &&
         doNotOverridePropertiesInCommNodes.indexOf(memberName) === -1
       ) || ~defineInCommNodes.indexOf(memberName);
+      const shouldOverrideInFragment = (
+        memberName in fragment &&
+        doNotOverridePropertiesInFragments.indexOf(memberName) === -1
+      );
       const nativeMemberName = `__${memberName}`;
 
       Object.defineProperty(elementProto, memberName, memberProperty);
@@ -950,6 +960,14 @@ export default () => {
       if (nativeDescriptor) {
         Object.defineProperty(elementProto, nativeMemberName, nativeDescriptor);
         svgProto && Object.defineProperty(svgProto, nativeMemberName, nativeDescriptor);
+      }
+
+      if (shouldOverrideInFragment) {
+        Object.defineProperty(fragmentProto, memberName, memberProperty);
+      }
+
+      if (shouldOverrideInFragment && nativeFragDescriptor) {
+        Object.defineProperty(fragmentProto, nativeMemberName, nativeFragDescriptor);
       }
 
       if (shouldOverrideInTextNode) {

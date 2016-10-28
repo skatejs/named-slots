@@ -221,4 +221,31 @@ describe('dom: appendChild', () => {
   runTests('slot');
   runTests('host');
   runTests('root');
+
+  describe('fragment:', () => {
+    let fragment;
+
+    beforeEach(() => {
+      fragment = document.createDocumentFragment();
+    });
+
+    it('should remove appended node from the previous parent', () => {
+      const surrogate = document.createElement('div');
+      surrogate.appendChild(document.createElement('span'));
+      fragment.appendChild(surrogate.firstChild);
+
+      expect(fragment.childNodes.length).to.equal(1);
+      expect(surrogate.childNodes.length).to.equal(0);
+    });
+
+    it('should update parentNode for a node from a previous parent', () => {
+      const surrogate = document.createElement('div');
+      const child = document.createElement('span');
+      surrogate.appendChild(child);
+
+      fragment.appendChild(surrogate.firstChild);
+
+      expect(child.parentNode).to.equal(fragment);
+    });
+  });
 });

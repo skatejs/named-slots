@@ -1,5 +1,5 @@
 import debounce from 'debounce';
-import WeakMap from 'weakmap';
+import WeakMap from 'weak-map';
 import { eachChildNode, eachNodeOrFragmentNodes } from '../util/each';
 import canPatchNativeAccessors from '../util/can-patch-native-accessors';
 import getPropertyDescriptor from '../util/get-property-descriptor';

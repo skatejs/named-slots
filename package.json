@@ -43,7 +43,7 @@
   "dependencies": {
     "custom-event-polyfill": "^0.3.0",
     "debounce": "^1.0.0",
-    "weakmap": "0.0.6"
+    "weak-map": "^1.0.5"
   },
   "config": {
     "commitizen": {

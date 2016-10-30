@@ -3,35 +3,47 @@
 describe('dom: childElementCount', () => {
   function runTests (type) {
     describe(`${type}: `, () => {
-      let host;
-      let root;
-      let slot;
       let div;
       let elem;
+      let fragment;
+      let host;
       const numbers = [0, 1, 2, 3];
+      let root;
+      let slot;
 
-      beforeEach(() => {
+      beforeEach(function () {
+        div = document.createElement('div');
+        fragment = document.createDocumentFragment();
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = document.createElement('slot');
 
         root.appendChild(slot);
 
-        div = document.createElement('div');
-
         switch (type) {
           case 'div':
             elem = div;
             break;
-          case 'slot':
-            elem = slot;
+          case 'fragment':
+            if ('childElementCount' in fragment) {
+              elem = fragment;
+            } else {
+              // named-slots doesn't offer a polyfill for DocumentFragment.childElementCount,
+              // so if it doesn't exist present it means that there isn't native support, and
+              // thus nothing for us to verify.
+              this.skip();
+            }
+            break;
+          case 'host':
+            elem = host;
             break;
           case 'root':
             root.innerHTML = '';
             elem = root;
             break;
-          default:
-            elem = host;
+          case 'slot':
+            elem = slot;
+            break;
         }
       });
 
@@ -78,7 +90,8 @@ describe('dom: childElementCount', () => {
   }
 
   runTests('div');
-  runTests('slot');
+  runTests('fragment');
   runTests('host');
   runTests('root');
+  runTests('slot');
 });

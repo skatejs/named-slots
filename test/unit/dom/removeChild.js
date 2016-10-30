@@ -1,36 +1,42 @@
 /* eslint-env jasmine, mocha */
+import htmlContent from '../../lib/html-content';
 
 describe('dom: removeChild', () => {
   function runTests (type) {
     describe(`${type}: `, () => {
+      let div;
+      let elem;
+      let fragment;
       let host;
       let root;
       let slot;
-      let div;
-      let elem;
 
       beforeEach(() => {
+        div = document.createElement('div');
+        fragment = document.createDocumentFragment();
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = document.createElement('slot');
 
         root.appendChild(slot);
 
-        div = document.createElement('div');
-
         switch (type) {
           case 'div':
             elem = div;
             break;
-          case 'slot':
-            elem = slot;
+          case 'fragment':
+            elem = fragment;
+            break;
+          case 'host':
+            elem = host;
             break;
           case 'root':
             root.innerHTML = '';
             elem = root;
             break;
-          default:
-            elem = host;
+          case 'slot':
+            elem = slot;
+            break;
         }
       });
 
@@ -63,10 +69,10 @@ describe('dom: removeChild', () => {
       });
 
       it('should remove a single element node', () => {
-        elem.innerHTML = '<test></test>';
+        htmlContent(elem, '<test></test>');
         elem.removeChild(elem.childNodes[0]);
 
-        expect(elem.innerHTML).to.be.equal('');
+        expect(htmlContent(elem)).to.be.equal('');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(0);
@@ -74,10 +80,10 @@ describe('dom: removeChild', () => {
       });
 
       it('should remove a single text node', () => {
-        elem.innerHTML = 'text';
+        htmlContent(elem, 'text');
         elem.removeChild(elem.childNodes[0]);
 
-        expect(elem.innerHTML).to.be.equal('');
+        expect(htmlContent(elem)).to.be.equal('');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(0);
@@ -85,10 +91,10 @@ describe('dom: removeChild', () => {
       });
 
       it('should remove a single comment node', () => {
-        elem.innerHTML = '<!--comment-->';
+        htmlContent(elem, '<!--comment-->');
         elem.removeChild(elem.childNodes[0]);
 
-        expect(elem.innerHTML).to.be.equal('');
+        expect(htmlContent(elem)).to.be.equal('');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(0);
@@ -96,10 +102,10 @@ describe('dom: removeChild', () => {
       });
 
       it('should remove a single element node from a parent with children', () => {
-        elem.innerHTML = '<test></test><test2></test2><test3></test3>';
+        htmlContent(elem, '<test></test><test2></test2><test3></test3>');
         elem.removeChild(elem.childNodes[1]);
 
-        expect(elem.innerHTML).to.be.equal('<test></test><test3></test3>');
+        expect(htmlContent(elem)).to.be.equal('<test></test><test3></test3>');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
@@ -107,10 +113,10 @@ describe('dom: removeChild', () => {
       });
 
       it('should remove a single text node from a parent with children', () => {
-        elem.innerHTML = 'text<test2></test2>another text';
+        htmlContent(elem, 'text<test2></test2>another text');
         elem.removeChild(elem.firstChild);
 
-        expect(elem.innerHTML).to.be.equal('<test2></test2>another text');
+        expect(htmlContent(elem)).to.be.equal('<test2></test2>another text');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
@@ -118,10 +124,10 @@ describe('dom: removeChild', () => {
       });
 
       it('should remove a single comment node from a parent with children', () => {
-        elem.innerHTML = '<!--comment--><test2></test2>another text';
+        htmlContent(elem, '<!--comment--><test2></test2>another text');
         elem.removeChild(elem.firstChild);
 
-        expect(elem.innerHTML).to.be.equal('<test2></test2>another text');
+        expect(htmlContent(elem)).to.be.equal('<test2></test2>another text');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
@@ -129,10 +135,10 @@ describe('dom: removeChild', () => {
       });
 
       it('should remove an element node with children', () => {
-        elem.innerHTML = '<!--comment--><test2><test3><test5>some text</test5></test3><test4></test4></test2><test></test>another text';
+        htmlContent(elem, '<!--comment--><test2><test3><test5>some text</test5></test3><test4></test4></test2><test></test>another text');
         elem.removeChild(elem.childNodes[1]);
 
-        expect(elem.innerHTML).to.be.equal('<!--comment--><test></test>another text');
+        expect(htmlContent(elem)).to.be.equal('<!--comment--><test></test>another text');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
@@ -140,13 +146,13 @@ describe('dom: removeChild', () => {
       });
 
       it('should be able to remove child after child', () => {
-        elem.innerHTML = '<!--comment--><test2><test3><test5>some text</test5></test3><test4></test4></test2><test></test>another text<test6></test6>'; // eslint-disable-line max-len
+        htmlContent(elem, '<!--comment--><test2><test3><test5>some text</test5></test3><test4></test4></test2><test></test>another text<test6></test6>'); // eslint-disable-line max-len
         elem.removeChild(elem.firstChild);
         elem.removeChild(elem.childNodes[1]);
         elem.removeChild(elem.firstChild);
         elem.removeChild(elem.firstChild);
 
-        expect(elem.innerHTML).to.be.equal('<test6></test6>');
+        expect(htmlContent(elem)).to.be.equal('<test6></test6>');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(1);
@@ -156,7 +162,8 @@ describe('dom: removeChild', () => {
   }
 
   runTests('div');
-  runTests('slot');
+  runTests('fragment');
   runTests('host');
   runTests('root');
+  runTests('slot');
 });

@@ -1,37 +1,43 @@
 /* eslint-env jasmine, mocha */
+import htmlContent from '../../lib/html-content';
 
 describe('dom: childNodes', () => {
   function runTests (type) {
     describe(`${type}: `, () => {
+      let div;
+      let elem;
+      let fragment;
       let host;
       let root;
       let slot;
-      let div;
-      let elem;
       const numbers = [0, 1, 2, 3];
 
       beforeEach(() => {
+        div = document.createElement('div');
+        fragment = document.createDocumentFragment();
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = document.createElement('slot');
 
         root.appendChild(slot);
 
-        div = document.createElement('div');
-
         switch (type) {
           case 'div':
             elem = div;
             break;
-          case 'slot':
-            elem = slot;
+          case 'fragment':
+            elem = fragment;
+            break;
+          case 'host':
+            elem = host;
             break;
           case 'root':
             root.innerHTML = '';
             elem = root;
             break;
-          default:
-            elem = host;
+          case 'slot':
+            elem = slot;
+            break;
         }
       });
 
@@ -85,27 +91,27 @@ describe('dom: childNodes', () => {
 
         elem.appendChild(node1);
         expect(elem.childNodes[0]).to.equal(node1);
-        expect(elem.innerHTML).to.equal('<node1></node1>');
+        expect(htmlContent(elem)).to.equal('<node1></node1>');
 
         elem.appendChild(node2);
         expect(elem.childNodes[1]).to.equal(node2);
-        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>');
+        expect(htmlContent(elem)).to.equal('<node1></node1><node2></node2>');
 
         elem.appendChild(node3);
         expect(elem.childNodes[2]).to.equal(node3);
-        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>text1');
+        expect(htmlContent(elem)).to.equal('<node1></node1><node2></node2>text1');
 
         elem.insertBefore(node4, null);
         expect(elem.childNodes[3]).to.equal(node4);
-        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>text1text2');
+        expect(htmlContent(elem)).to.equal('<node1></node1><node2></node2>text1text2');
 
         elem.insertBefore(node5, null);
         expect(elem.childNodes[4]).to.equal(node5);
-        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>text1text2<!--comment1-->');
+        expect(htmlContent(elem)).to.equal('<node1></node1><node2></node2>text1text2<!--comment1-->');
 
         elem.insertBefore(node6, null);
         expect(elem.childNodes[5]).to.equal(node6);
-        expect(elem.innerHTML).to.equal('<node1></node1><node2></node2>text1text2<!--comment1--><!--comment2-->');
+        expect(htmlContent(elem)).to.equal('<node1></node1><node2></node2>text1text2<!--comment1--><!--comment2-->');
       });
 
       it('should return correct nodes if children were removed', () => {
@@ -119,18 +125,19 @@ describe('dom: childNodes', () => {
         elem.removeChild(elem.firstChild);
         expect(elem.childNodes.length).to.equal(2);
         expect(elem.childNodes[0]).to.equal(node3);
-        expect(elem.innerHTML).to.equal('text1<!--comment1-->');
+        expect(htmlContent(elem)).to.equal('text1<!--comment1-->');
 
         elem.removeChild(elem.firstChild);
         expect(elem.childNodes.length).to.equal(1);
         expect(elem.childNodes[0]).to.equal(node5);
-        expect(elem.innerHTML).to.equal('<!--comment1-->');
+        expect(htmlContent(elem)).to.equal('<!--comment1-->');
       });
     });
   }
 
   runTests('div');
-  runTests('slot');
+  runTests('fragment');
   runTests('host');
   runTests('root');
+  runTests('slot');
 });

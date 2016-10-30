@@ -1,41 +1,54 @@
 /* eslint-env jasmine, mocha */
+import htmlContent from '../../lib/html-content';
 
 describe('dom: lastElementChild', () => {
   function runTests (type) {
     describe(`${type}: `, () => {
+      let div;
+      let elem;
+      let fragment;
       let host;
       let root;
       let slot;
-      let div;
-      let elem;
 
-      beforeEach(() => {
+      beforeEach(function () {
+        div = document.createElement('div');
+        fragment = document.createDocumentFragment();
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = document.createElement('slot');
 
         root.appendChild(slot);
 
-        div = document.createElement('div');
-
         switch (type) {
           case 'div':
             elem = div;
             break;
-          case 'slot':
-            elem = slot;
+          case 'fragment':
+            if ('lastElementChild' in fragment) {
+              elem = fragment;
+            } else {
+              // named-slots doesn't offer a polyfill for DocumentFragment.lastElementChild,
+              // so if it doesn't exist present it means that there isn't native support, and
+              // thus nothing for us to verify.
+              this.skip();
+            }
+            break;
+          case 'host':
+            elem = host;
             break;
           case 'root':
             root.innerHTML = '';
             elem = root;
             break;
-          default:
-            elem = host;
+          case 'slot':
+            elem = slot;
+            break;
         }
       });
 
       it('should return null if there are no children', () => {
-        elem.innerHTML = '';
+        htmlContent(elem, '');
         expect(elem.lastElementChild).to.equal(null);
       });
 
@@ -86,7 +99,7 @@ describe('dom: lastElementChild', () => {
       it('should return lastElementChild in a complex tree', () => {
         const child1 = document.createElement('test1');
         const child2 = document.createElement('test2');
-        elem.innerHTML = '<div1></div1><div2><div3></div3></div2><div4></div4>';
+        htmlContent(elem, '<div1></div1><div2><div3></div3></div2><div4></div4>');
         elem.childNodes[2].appendChild(child1);
         elem.childNodes[1].childNodes[0].appendChild(child2);
         expect(elem.lastElementChild.lastElementChild).to.equal(child1);
@@ -96,7 +109,8 @@ describe('dom: lastElementChild', () => {
   }
 
   runTests('div');
-  runTests('slot');
+  runTests('fragment');
   runTests('host');
   runTests('root');
+  runTests('slot');
 });

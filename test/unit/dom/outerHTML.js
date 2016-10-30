@@ -26,11 +26,12 @@ describe('dom: outerHTML', () => {
           case 'div':
             elem = div;
             break;
+          case 'host':
+            elem = host;
+            break;
           case 'slot':
             elem = slot;
             break;
-          default:
-            elem = host;
         }
       });
 

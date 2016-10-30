@@ -11,7 +11,7 @@ describe('dom: firstElementChild', () => {
       let root;
       let slot;
 
-      beforeEach(() => {
+      beforeEach(function () {
         div = document.createElement('div');
         fragment = document.createDocumentFragment();
         host = document.createElement('div');
@@ -25,7 +25,14 @@ describe('dom: firstElementChild', () => {
             elem = div;
             break;
           case 'fragment':
-            elem = fragment;
+            if ('firstElementChild' in fragment) {
+              elem = fragment;
+            } else {
+              // named-slots doesn't offer a polyfill for DocumentFragment.firstElementChild,
+              // so if it doesn't exist present it means that there isn't native support, and
+              // thus nothing for us to verify.
+              this.skip();
+            }
             break;
           case 'host':
             elem = host;

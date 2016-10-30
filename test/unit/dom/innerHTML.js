@@ -5,21 +5,21 @@ import hasAllAttributes from '../../lib/has-all-attributes';
 describe('dom: innerHTML', () => {
   function runTests (type) {
     describe(`${type}: `, () => {
-      let host;
-      let root;
-      let slot;
       let div;
       let elem;
+      let host;
       let innerHTMLs;
+      let root;
+      let slot;
 
       beforeEach(() => {
+        div = document.createElement('div');
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = document.createElement('slot');
 
         root.appendChild(slot);
 
-        div = document.createElement('div');
         /* eslint-disable max-len */
         innerHTMLs = [
           { value: '', nodes: 0, assigned: 0 },
@@ -46,15 +46,16 @@ describe('dom: innerHTML', () => {
           case 'div':
             elem = div;
             break;
-          case 'slot':
-            elem = slot;
+          case 'host':
+            elem = host;
             break;
           case 'root':
             root.innerHTML = '';
             elem = root;
             break;
-          default:
-            elem = host;
+          case 'slot':
+            elem = slot;
+            break;
         }
       });
 
@@ -213,7 +214,7 @@ describe('dom: innerHTML', () => {
   }
 
   runTests('div');
-  runTests('slot');
   runTests('host');
   runTests('root');
+  runTests('slot');
 });

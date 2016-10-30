@@ -7,6 +7,7 @@ import getEscapedTextContent from '../util/get-escaped-text-content';
 import getRawTextContent from '../util/get-raw-text-content';
 import getCommentNodeOuterHtml from '../util/get-comment-node-outer-html';
 import findSlots from '../util/find-slots';
+import isFragmentNode from '../util/is-fragment-node';
 import isRootNode from '../util/is-root-node';
 import isSlotNode from '../util/is-slot-node';
 import pseudoArrayToArray from '../util/pseudo-array-to-array';
@@ -44,8 +45,8 @@ const defineInTextNodes = ['assignedSlot'];
 // Some properties that should not be overridden in the Comment prototype.
 const doNotOverridePropertiesInCommNodes = ['textContent'];
 
-// Some properties that should not be overridden in the DocumentFragment prototype.
-const doNotOverridePropertiesInFragments = [];
+// Some properties that should be overridden in the DocumentFragment prototype.
+const overridePropertiesInFragNodes = ['appendChild', 'insertBefore', 'removeChild'];
 
 // Some new properties that should be defined in the Comment prototype.
 const defineInCommNodes = [];
@@ -120,6 +121,10 @@ function getNodeType (node) {
 
   if (isRootNode(node)) {
     return 'root';
+  }
+
+  if (isFragmentNode(node)) {
+    return 'fragment';
   }
 
   return 'node';
@@ -225,10 +230,13 @@ function registerNode (host, node, insertBefore, func) {
       staticProp(eachNode, 'parentNode', host);
     }
 
-    if (index > -1) {
-      arrProto.splice.call(host.childNodes, index + eachIndex, 0, eachNode);
-    } else {
-      arrProto.push.call(host.childNodes, eachNode);
+    // When childNodes is artificial, do manual house keeping.
+    if (Array.isArray(host.childNodes)) {
+      if (index > -1) {
+        arrProto.splice.call(host.childNodes, index + eachIndex, 0, eachNode);
+      } else {
+        arrProto.push.call(host.childNodes, eachNode);
+      }
     }
   });
 }
@@ -384,7 +392,8 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
   const rootNode = getRootNode(host);
 
   // Ensure childNodes is patched so we can manually update it for WebKit.
-  if (!canPatchNativeAccessors && !Array.isArray(host.childNodes)) {
+  // Fragment has minimal patching and expects .childNodes to remain native.
+  if (!canPatchNativeAccessors && !Array.isArray(host.childNodes) && nodeType !== 'fragment') {
     staticProp(host, 'childNodes', pseudoArrayToArray(host.childNodes));
   }
 
@@ -410,25 +419,20 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
     parentNode.removeChild(newNode);
   }
 
-  if (nodeType === 'node') {
-    if (canPatchNativeAccessors) {
-      nodeToParentNodeMap.set(newNode, host);
-      return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
-    }
-
-    return addNodeToNode(host, newNode, refNode);
-  }
-
-  if (nodeType === 'slot') {
-    return addNodeToSlot(host, newNode, refNode);
-  }
-
-  if (nodeType === 'host') {
-    return addNodeToHost(host, newNode, refNode);
-  }
-
-  if (nodeType === 'root') {
-    return addNodeToRoot(host, newNode, refNode);
+  switch (nodeType) {
+    case 'fragment':
+    case 'node':
+      if (canPatchNativeAccessors) {
+        nodeToParentNodeMap.set(newNode, host);
+        return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
+      }
+      return addNodeToNode(host, newNode, refNode);
+    case 'slot':
+      return addNodeToSlot(host, newNode, refNode);
+    case 'host':
+      return addNodeToHost(host, newNode, refNode);
+    case 'root':
+      return addNodeToRoot(host, newNode, refNode);
   }
 }
 
@@ -813,6 +817,7 @@ const members = {
       const nodeType = getNodeType(this);
 
       switch (nodeType) {
+        case 'fragment':
         case 'node':
           if (canPatchNativeAccessors) {
             nodeToParentNodeMap.set(refNode, null);
@@ -950,7 +955,7 @@ export default () => {
       ) || ~defineInCommNodes.indexOf(memberName);
       const shouldOverrideInFragment = (
         memberName in fragment &&
-        doNotOverridePropertiesInFragments.indexOf(memberName) === -1
+        ~overridePropertiesInFragNodes.indexOf(memberName)
       );
       const nativeMemberName = `__${memberName}`;
 

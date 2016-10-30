@@ -3,35 +3,40 @@
 describe('dom: children', () => {
   function runTests (type) {
     describe(`${type}: `, () => {
+      let div;
+      let elem;
+      let fragment;
       let host;
       let root;
       let slot;
-      let div;
-      let elem;
       const numbers = [0, 1, 2, 3];
 
       beforeEach(() => {
+        div = document.createElement('div');
+        fragment = document.createDocumentFragment();
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = document.createElement('slot');
 
         root.appendChild(slot);
 
-        div = document.createElement('div');
-
         switch (type) {
           case 'div':
             elem = div;
             break;
-          case 'slot':
-            elem = slot;
+          case 'fragment':
+            elem = fragment;
+            break;
+          case 'host':
+            elem = host;
             break;
           case 'root':
             root.innerHTML = '';
             elem = root;
             break;
-          default:
-            elem = host;
+          case 'slot':
+            elem = slot;
+            break;
         }
       });
 
@@ -78,7 +83,8 @@ describe('dom: children', () => {
   }
 
   runTests('div');
-  runTests('slot');
+  runTests('fragment');
   runTests('host');
   runTests('root');
+  runTests('slot');
 });

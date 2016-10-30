@@ -1,36 +1,42 @@
 /* eslint-env jasmine, mocha */
+import htmlContent from '../../lib/html-content';
 
 describe('dom: appendChild', () => {
   function runTests (type) {
     describe(`${type}: `, () => {
+      let div;
+      let elem;
+      let fragment;
       let host;
       let root;
       let slot;
-      let div;
-      let elem;
 
       beforeEach(() => {
+        div = document.createElement('div');
+        fragment = document.createDocumentFragment();
         host = document.createElement('div');
         root = host.attachShadow({ mode: 'open' });
         slot = document.createElement('slot');
 
         root.appendChild(slot);
 
-        div = document.createElement('div');
-
         switch (type) {
           case 'div':
             elem = div;
             break;
-          case 'slot':
-            elem = slot;
+          case 'fragment':
+            elem = fragment;
+            break;
+          case 'host':
+            elem = host;
             break;
           case 'root':
             root.innerHTML = '';
             elem = root;
             break;
-          default:
-            elem = host;
+          case 'slot':
+            elem = slot;
+            break;
         }
       });
 
@@ -59,7 +65,7 @@ describe('dom: appendChild', () => {
       it('should append one element node to an empty parent', () => {
         elem.appendChild(document.createElement('div'));
         expect(elem.childNodes.length).to.equal(1);
-        expect(elem.innerHTML).to.equal('<div></div>');
+        expect(htmlContent(elem)).to.equal('<div></div>');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(1);
@@ -67,10 +73,10 @@ describe('dom: appendChild', () => {
       });
 
       it('should append one element node to a parent with one child', () => {
-        elem.innerHTML = '<test></test>';
+        elem.appendChild(document.createElement('test'));
         elem.appendChild(document.createElement('div'));
         expect(elem.childNodes.length).to.equal(2);
-        expect(elem.innerHTML).to.equal('<test></test><div></div>');
+        expect(htmlContent(elem)).to.equal('<test></test><div></div>');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
@@ -79,10 +85,10 @@ describe('dom: appendChild', () => {
 
       it('should append one element node to a parent with two or more children', () => {
         const html = '<test1></test1><test2><test3></test3></test2>';
-        elem.innerHTML = html;
+        htmlContent(elem, html);
         elem.appendChild(document.createElement('div'));
         expect(elem.childNodes.length).to.equal(3);
-        expect(elem.innerHTML).to.equal(`${html}<div></div>`);
+        expect(htmlContent(elem)).to.equal(`${html}<div></div>`);
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(3);
@@ -92,10 +98,10 @@ describe('dom: appendChild', () => {
       it('should append an element node with children to a parent without any children', () => {
         const child = document.createElement('div');
         const html = '<test1></test1><test2><test3></test3></test2>';
-        child.innerHTML = html;
+        htmlContent(child, html);
         elem.appendChild(child);
         expect(elem.childNodes.length).to.equal(1);
-        expect(elem.innerHTML).to.equal(`<div>${html}</div>`);
+        expect(htmlContent(elem)).to.equal(`<div>${html}</div>`);
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(1);
@@ -106,10 +112,10 @@ describe('dom: appendChild', () => {
         const child = document.createElement('div');
         const html = '<test1></test1><test2><test3></test3></test2>';
         child.innerHTML = html;
-        elem.innerHTML = html;
+        htmlContent(elem, html);
         elem.appendChild(child);
         expect(elem.childNodes.length).to.equal(3);
-        expect(elem.innerHTML).to.equal(`${html}<div>${html}</div>`);
+        expect(htmlContent(elem)).to.equal(`${html}<div>${html}</div>`);
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(3);
@@ -119,7 +125,7 @@ describe('dom: appendChild', () => {
       it('should append one text node to an empty parent', () => {
         elem.appendChild(document.createTextNode('text'));
         expect(elem.childNodes.length).to.equal(1);
-        expect(elem.innerHTML).to.equal('text');
+        expect(htmlContent(elem)).to.equal('text');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(1);
@@ -127,10 +133,10 @@ describe('dom: appendChild', () => {
       });
 
       it('should append one text node to a parent with one child', () => {
-        elem.innerHTML = '<test></test>';
+        htmlContent(elem, '<test></test>');
         elem.appendChild(document.createTextNode('text'));
         expect(elem.childNodes.length).to.equal(2);
-        expect(elem.innerHTML).to.equal('<test></test>text');
+        expect(htmlContent(elem)).to.equal('<test></test>text');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
@@ -140,10 +146,10 @@ describe('dom: appendChild', () => {
       it('should append one text node to a parent with two or more children', () => {
         const child = document.createTextNode('text');
         const html = '<test1></test1><test2><test3></test3></test2>';
-        elem.innerHTML = html;
+        htmlContent(elem, html);
         elem.appendChild(child);
         expect(elem.childNodes.length).to.equal(3);
-        expect(elem.innerHTML).to.equal(`${html}text`);
+        expect(htmlContent(elem)).to.equal(`${html}text`);
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(3);
@@ -153,7 +159,7 @@ describe('dom: appendChild', () => {
       it('should append one comment node to an empty parent', () => {
         elem.appendChild(document.createComment('comment'));
         expect(elem.childNodes.length).to.equal(1);
-        expect(elem.innerHTML).to.equal('<!--comment-->');
+        expect(htmlContent(elem)).to.equal('<!--comment-->');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(0);
@@ -161,10 +167,10 @@ describe('dom: appendChild', () => {
       });
 
       it('should append one comment node to a parent with one child', () => {
-        elem.innerHTML = '<test></test>';
+        htmlContent(elem, '<test></test>');
         elem.appendChild(document.createComment('comment'));
         expect(elem.childNodes.length).to.equal(2);
-        expect(elem.innerHTML).to.equal('<test></test><!--comment-->');
+        expect(htmlContent(elem)).to.equal('<test></test><!--comment-->');
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(1);
@@ -174,10 +180,14 @@ describe('dom: appendChild', () => {
       it('should append one comment node to a parent with two or more children', () => {
         const child = document.createComment('comment');
         const html = '<test1></test1><test2><test3></test3></test2>';
-        elem.innerHTML = html;
+        const test1 = document.createElement('test1');
+        const test2 = document.createElement('test2');
+        test2.appendChild(document.createElement('test3'));
+        elem.appendChild(test1);
+        elem.appendChild(test2);
         elem.appendChild(child);
         expect(elem.childNodes.length).to.equal(3);
-        expect(elem.innerHTML).to.equal(`${html}<!--comment-->`);
+        expect(htmlContent(elem)).to.equal(`${html}<!--comment-->`);
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(2);
@@ -196,14 +206,14 @@ describe('dom: appendChild', () => {
         expect(elem.childNodes.length).to.equal(3);
         expect(elem.childNodes[0].childNodes.length).to.equal(1);
         expect(elem.childNodes[0].childNodes[0].childNodes.length).to.equal(2);
-        expect(elem.innerHTML).to.equal(resultHTML);
+        expect(htmlContent(elem)).to.equal(resultHTML);
 
         if (type === 'host') {
           expect(slot.assignedNodes().length).to.equal(3);
         }
       });
 
-      it('should remove appended node from the previous parent', () => {
+      it('should remove appended node from a previous parent element', () => {
         const parent = document.createElement('div');
         parent.appendChild(document.createElement('span'));
         elem.appendChild(parent.firstChild);
@@ -214,38 +224,32 @@ describe('dom: appendChild', () => {
           expect(slot.assignedNodes().length).to.equal(1);
         }
       });
+
+      it('should remove appended node from a previous parent fragment', () => {
+        const parent = document.createDocumentFragment();
+        parent.appendChild(document.createElement('span'));
+        elem.appendChild(parent.firstChild);
+        expect(elem.childNodes.length).to.equal(1);
+        expect(parent.childNodes.length).to.equal(0);
+
+        if (type === 'host') {
+          expect(slot.assignedNodes().length).to.equal(1);
+        }
+      });
+
+      it('should update parentNode for a node moved from a previous parent element', () => {
+        const parent = document.createElement('div');
+        const child = document.createElement('span');
+        parent.appendChild(child);
+        elem.appendChild(child);
+        expect(child.parentNode).to.equal(elem);
+      });
     });
   }
 
   runTests('div');
-  runTests('slot');
+  runTests('fragment');
   runTests('host');
   runTests('root');
-
-  describe('fragment:', () => {
-    let fragment;
-
-    beforeEach(() => {
-      fragment = document.createDocumentFragment();
-    });
-
-    it('should remove appended node from the previous parent', () => {
-      const surrogate = document.createElement('div');
-      surrogate.appendChild(document.createElement('span'));
-      fragment.appendChild(surrogate.firstChild);
-
-      expect(fragment.childNodes.length).to.equal(1);
-      expect(surrogate.childNodes.length).to.equal(0);
-    });
-
-    it('should update parentNode for a node from a previous parent', () => {
-      const surrogate = document.createElement('div');
-      const child = document.createElement('span');
-      surrogate.appendChild(child);
-
-      fragment.appendChild(surrogate.firstChild);
-
-      expect(child.parentNode).to.equal(fragment);
-    });
-  });
+  runTests('slot');
 });

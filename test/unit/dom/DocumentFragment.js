@@ -37,8 +37,8 @@ describe('DocumentFragment', () => {
     target.appendChild(frag);
 
     // Make sure that lengths are in sync between the source and target.
-    expect(frag.children.length).to.equal(0);
-    expect(target.children.length).to.equal(3);
+    expect(frag.childNodes.length).to.equal(0);
+    expect(target.childNodes.length).to.equal(3);
 
     // We ensure we're reporting the correct parent.
     expect(ch1.parentNode).to.equal(target);

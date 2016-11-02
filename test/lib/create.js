@@ -1,4 +1,4 @@
-export default (name, attrs = {}, chren = []) => {
+export default (name = 'div', attrs = {}, chren = []) => {
   const elem = document.createElement(name);
   const attrsIsChren = Array.isArray(attrs);
   chren = attrsIsChren ? attrs : chren;

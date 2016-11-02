@@ -422,10 +422,10 @@ function appendChildOrInsertBefore (host, newNode, refNode) {
   switch (nodeType) {
     case 'fragment':
     case 'node':
-      if (canPatchNativeAccessors) {
-        nodeToParentNodeMap.set(newNode, host);
-        return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
-      }
+      // if (canPatchNativeAccessors) {
+      //   nodeToParentNodeMap.set(newNode, host);
+      //   return host.__insertBefore(newNode, refNode !== undefined ? refNode : null);
+      // }
       return addNodeToNode(host, newNode, refNode);
     case 'slot':
       return addNodeToSlot(host, newNode, refNode);
@@ -695,7 +695,6 @@ const members = {
   insertBefore: {
     value (newNode, refNode) {
       appendChildOrInsertBefore(this, newNode, refNode);
-
       return newNode;
     }
   },

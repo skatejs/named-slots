@@ -1,4 +1,8 @@
-# named-slots [![Build Status](https://travis-ci.org/skatejs/named-slots.svg?branch=master)](https://travis-ci.org/skatejs/named-slots)
+# named-slots [DEPRECATED]
+
+**This polyfill is now deprecated in favour of [the WebComponentsJS ShadyDOM polyfill](https://github.com/webcomponents/shadydom). Thank you to [nadiam84](https://github.com/nadiam84) and [jpnelson](https://github.com/jpnelson) for all of their hard work in maintaing this.**
+
+[![Build Status](https://travis-ci.org/skatejs/named-slots.svg?branch=master)](https://travis-ci.org/skatejs/named-slots)
 
 A polygap (partial polyfill) for the Shadow DOM Named Slot API.
 

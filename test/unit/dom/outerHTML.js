@@ -80,6 +80,21 @@ describe('dom: outerHTML', () => {
         elem.childNodes[0].outerHTML = '<div4></div4>';
         expect(elem.innerHTML).to.equal('<div4></div4>');
       });
+
+      function testSpecialChars(elem) {
+        expect(elem.firstChild.getAttribute('test')).to.equal('‘ ’ ‚ “ ” „ < > " &');
+        expect(elem.firstChild.textContent).to.equal('‘ ’ ‚ “ ” „ < > " &');
+        expect(elem.innerHTML).to.equal('<div test="‘ ’ ‚ “ ” „ < > &quot; &amp;">‘ ’ ‚ “ ” „ &lt; &gt; " &amp;</div>');
+        expect(elem.outerHTML).to.equal(`<${elem.localName}><div test="‘ ’ ‚ “ ” „ < > &quot; &amp;">‘ ’ ‚ “ ” „ &lt; &gt; " &amp;</div></${elem.localName}>`);
+      }
+
+      it('should work correctly with special characters', () => {
+        elem.innerHTML = `<div test='&lsquo; &rsquo; &sbquo; &ldquo; &rdquo; &bdquo; &lt; &gt; &quot; &amp;'>&lsquo; &rsquo; &sbquo; &ldquo; &rdquo; &bdquo; &lt; &gt; &quot; &amp;</div>`;
+        testSpecialChars(elem);
+
+        elem.innerHTML = `<div test='‘ ’ ‚ “ ” „ < > " &'>‘ ’ ‚ “ ” „ < > " &</div>`;
+        testSpecialChars(elem);
+      });
     });
   }
 

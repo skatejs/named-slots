@@ -85,9 +85,7 @@ describe('dom: outerHTML', () => {
         expect(elem.firstChild.getAttribute('test')).to.equal('‘ ’ ‚ “ ” „ < > " &');
         expect(elem.firstChild.textContent).to.equal('‘ ’ ‚ “ ” „ < > " &');
         expect(elem.innerHTML).to.equal('<div test="‘ ’ ‚ “ ” „ < > &quot; &amp;">‘ ’ ‚ “ ” „ &lt; &gt; " &amp;</div>');
-        if (type !== 'root') {
-          expect(elem.outerHTML).to.equal(`<${elem.localName}><div test="‘ ’ ‚ “ ” „ < > &quot; &amp;">‘ ’ ‚ “ ” „ &lt; &gt; " &amp;</div></${elem.localName}>`);
-        }
+        expect(elem.outerHTML).to.equal(`<${elem.localName}><div test="‘ ’ ‚ “ ” „ < > &quot; &amp;">‘ ’ ‚ “ ” „ &lt; &gt; " &amp;</div></${elem.localName}>`);
       }
 
       it('should work correctly with special characters', () => {

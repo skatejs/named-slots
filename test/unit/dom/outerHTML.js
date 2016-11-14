@@ -80,6 +80,11 @@ describe('dom: outerHTML', () => {
         elem.childNodes[0].outerHTML = '<div4></div4>';
         expect(elem.innerHTML).to.equal('<div4></div4>');
       });
+
+      it.only('should preserve encoded values', () => {
+        elem.innerHTML = '<div test="&quot;test1 &amp; test2&quot;">&quot;test1 &amp; test2&quot;</div>';
+        expect(elem.outerHTML).to.equal('<div><div test=""test1 & test2"">"test1 &amp; test2"</div></div>');
+      });
     });
   }
 

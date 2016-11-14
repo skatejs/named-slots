@@ -81,9 +81,21 @@ describe('dom: outerHTML', () => {
         expect(elem.innerHTML).to.equal('<div4></div4>');
       });
 
-      it.only('should preserve encoded values', () => {
-        elem.innerHTML = '<div test="&quot;test1 &amp; test2&quot;">&quot;test1 &amp; test2&quot;</div>';
-        expect(elem.outerHTML).to.equal('<div><div test=""test1 & test2"">"test1 &amp; test2"</div></div>');
+      function testSpecialChars(elem) {
+        expect(elem.firstChild.getAttribute('test')).to.equal('‘ ’ ‚ “ ” „ < > " &');
+        expect(elem.firstChild.textContent).to.equal('‘ ’ ‚ “ ” „ < > " &');
+        expect(elem.innerHTML).to.equal('<div test="‘ ’ ‚ “ ” „ < > &quot; &amp;">‘ ’ ‚ “ ” „ &lt; &gt; " &amp;</div>');
+        if (type !== 'root') {
+          expect(elem.outerHTML).to.equal(`<${elem.localName}><div test="‘ ’ ‚ “ ” „ < > &quot; &amp;">‘ ’ ‚ “ ” „ &lt; &gt; " &amp;</div></${elem.localName}>`);
+        }
+      }
+
+      it('should work correctly with special characters', () => {
+        elem.innerHTML = `<div test='&lsquo; &rsquo; &sbquo; &ldquo; &rdquo; &bdquo; &lt; &gt; &quot; &amp;'>&lsquo; &rsquo; &sbquo; &ldquo; &rdquo; &bdquo; &lt; &gt; &quot; &amp;</div>`;
+        testSpecialChars(elem);
+
+        elem.innerHTML = `<div test='‘ ’ ‚ “ ” „ < > " &'>‘ ’ ‚ “ ” „ < > " &</div>`;
+        testSpecialChars(elem);
       });
     });
   }

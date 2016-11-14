@@ -442,6 +442,10 @@ function syncSlotChildNodes (node) {
   }
 }
 
+function transformAttrChars(value) {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
 const members = {
   // For testing purposes.
   ____assignedNodes: {
@@ -757,7 +761,7 @@ const members = {
     get () {
       const name = this.tagName.toLowerCase();
       const attributes = Array.prototype.slice.call(this.attributes).map((attr) =>
-        (` ${attr.name}${attr.value ? `="${attr.value}"` : ''}`)
+        (` ${attr.name}${attr.value ? `="${transformAttrChars(attr.value)}"` : ''}`)
       ).join('');
       return `<${name}${attributes}>${this.innerHTML}</${name}>`;
     },
